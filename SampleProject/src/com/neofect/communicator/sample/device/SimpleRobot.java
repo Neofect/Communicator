@@ -14,23 +14,24 @@ import com.neofect.communicator.message.CommunicationMessage;
  * @author neo.kim@neofect.com
  * @date Feb 14, 2015
  */
-public class SampleDevice extends Device {
+public class SimpleRobot extends Device {
 	
+	private short proximitySensorValue = 0;
 	
-	
-	/**
-	 * @param connection
-	 */
-	public SampleDevice(Connection connection) {
+	public SimpleRobot(Connection connection) {
 		super(connection);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.neofect.communicator.Device#processMessage(com.neofect.communicator.message.CommunicationMessage)
-	 */
+	
+	public short getProximitySensorValue() {
+		return proximitySensorValue;
+	}
+	
+	public void setProximitySensorValue(short proximitySensorValue) {
+		this.proximitySensorValue = proximitySensorValue;
+	}
+	
 	@Override
 	protected boolean processMessage(CommunicationMessage message) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

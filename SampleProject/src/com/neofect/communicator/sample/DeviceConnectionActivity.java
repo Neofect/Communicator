@@ -22,7 +22,7 @@ import android.widget.Toast;
 import com.neofect.communicator.CommunicationListener;
 import com.neofect.communicator.Communicator;
 import com.neofect.communicator.Connection;
-import com.neofect.communicator.sample.device.SampleDevice;
+import com.neofect.communicator.sample.device.SimpleRobot;
 
 public class DeviceConnectionActivity extends Activity {
 	
@@ -197,8 +197,8 @@ public class DeviceConnectionActivity extends Activity {
 	/**
 	 * Connection and sensor data part
 	 */
-	private SampleDevice glove = null;
-	private CommunicationListener<SampleDevice> listener = new CommunicationListener<SampleDevice>() {
+	private SimpleRobot glove = null;
+	private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
 		@Override
 		public void onStartConnecting(Connection connection) {
 			Log.d(LOG_TAG, "onStartConnecting()");
@@ -215,7 +215,7 @@ public class DeviceConnectionActivity extends Activity {
 		}
 
 		@Override
-		public void onDeviceReady(SampleDevice glove, boolean alreadyExisting) {
+		public void onDeviceReady(SimpleRobot glove, boolean alreadyExisting) {
 			Log.d(LOG_TAG, "onDeviceReady() connection=" + glove.getConnection().getDescription());
 			
 			DeviceConnectionActivity.this.glove = glove;;
@@ -226,7 +226,7 @@ public class DeviceConnectionActivity extends Activity {
 		}
 
 		@Override
-		public void onDeviceDisconnected(SampleDevice glove) {
+		public void onDeviceDisconnected(SimpleRobot glove) {
 			Log.d(LOG_TAG, "onDeviceDisconnected()");
 			
 			toggleButtonVisibility(false);
@@ -236,7 +236,7 @@ public class DeviceConnectionActivity extends Activity {
 		}
 
 		@Override
-		public void onDeviceUpdated(SampleDevice glove) {
+		public void onDeviceUpdated(SimpleRobot glove) {
 			StringBuilder dataText = new StringBuilder();
 //			dataText.append("Fingers - ");
 //			for(int fingerIndex = 0; fingerIndex < 5; ++fingerIndex) {
