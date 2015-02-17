@@ -78,8 +78,8 @@ public class DeviceConnectionActivity extends Activity {
 			buttonDisconnect.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					if(device != null)
-						device.getConnection().disconnect();
+					if(robot != null)
+						robot.getConnection().disconnect();
 				}
 			});
 		}
@@ -199,7 +199,7 @@ public class DeviceConnectionActivity extends Activity {
 	/**
 	 * Connection and sensor data part
 	 */
-	private SimpleRobot device = null;
+	private SimpleRobot robot = null;
 	private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
 		@Override
 		public void onStartConnecting(Connection connection) {
@@ -217,22 +217,22 @@ public class DeviceConnectionActivity extends Activity {
 		}
 
 		@Override
-		public void onDeviceReady(SimpleRobot device, boolean alreadyExisting) {
-			DeviceConnectionActivity.this.device = device;;
+		public void onDeviceReady(SimpleRobot robot, boolean alreadyExisting) {
+			DeviceConnectionActivity.this.robot = robot;;
 			toggleButtonVisibility(true);
-			updateConnectionStatus("Connected to '" + device.getConnection().getRemoteAddress() + "'");
+			updateConnectionStatus("Connected to '" + robot.getConnection().getRemoteAddress() + "'");
 		}
 
 		@Override
-		public void onDeviceDisconnected(SimpleRobot device) {
+		public void onDeviceDisconnected(SimpleRobot robot) {
 			toggleButtonVisibility(false);
-			updateConnectionStatus("Disconnected '" + device.getConnection().getRemoteAddress() + "'");
+			updateConnectionStatus("Disconnected '" + robot.getConnection().getRemoteAddress() + "'");
 			updateSensorData("");
 		}
 
 		@Override
-		public void onDeviceUpdated(SimpleRobot device) {
-			updateSensorData("Proximity sensor - " + device.getProximitySensorValue());
+		public void onDeviceUpdated(SimpleRobot robot) {
+			updateSensorData("Proximity sensor - " + robot.getProximitySensorValue());
 		}
 
 	};
@@ -254,7 +254,7 @@ public class DeviceConnectionActivity extends Activity {
 	
 	private void refreshUI() {
 		boolean connected = false;
-		if(device != null && device.getConnection() != null && device.getConnection().isConnected())
+		if(robot != null && robot.getConnection() != null && robot.getConnection().isConnected())
 			connected = true;
 		toggleButtonVisibility(connected);
 		updateConnectionStatus("");

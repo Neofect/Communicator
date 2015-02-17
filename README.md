@@ -489,25 +489,25 @@ Following is a simple activity implementation.
 		
 		private static final String LOG_TAG = TestActivity.class.getSimpleName();
 		
-		private CommunicationListener<SmartGlove> listener = new CommunicationListener<SmartGlove>() {
+		private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
 			@Override
 			public void onFailedToConnect(Connection connection) {
 				updateConnectionStatus("Failed to connect to '" + connection.getRemoteAddress() + "'");
 			}
 
 			@Override
-			public void onDeviceReady(SmartGlove glove, boolean alreadyExisting) {
-				updateConnectionStatus("Connected to '" + glove.getConnection().getRemoteAddress() + "'");
+			public void onDeviceReady(SimpleRobot robot, boolean alreadyExisting) {
+				updateConnectionStatus("Connected to '" + robot.getConnection().getRemoteAddress() + "'");
 			}
 
 			@Override
-			public void onDeviceDisconnected(SmartGlove glove) {
-				updateConnectionStatus("Disconnected '" + glove.getConnection().getRemoteAddress() + "'");
+			public void onDeviceDisconnected(SimpleRobot robot) {
+				updateConnectionStatus("Disconnected '" + robot.getConnection().getRemoteAddress() + "'");
 				updateSensorData("");
 			}
 			
 			@Override
-			public void onDeviceUpdated(SmartGlove glove) {
+			public void onDeviceUpdated(SimpleRobot robot) {
 				updateSensorData("Proximity sensor - " + device.getProximitySensorValue());
 			}
 
