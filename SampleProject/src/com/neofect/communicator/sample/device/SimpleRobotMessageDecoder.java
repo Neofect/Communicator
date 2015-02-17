@@ -7,10 +7,8 @@
 package com.neofect.communicator.sample.device;
 
 import com.neofect.communicator.message.CommunicationMessage;
-import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.util.ByteRingBuffer;
-import com.neofect.smartrehab.glove.protocol.SmartGloveMessageConstants;
 
 /**
  * @author neo.kim@neofect.com
@@ -18,8 +16,8 @@ import com.neofect.smartrehab.glove.protocol.SmartGloveMessageConstants;
  */
 public class SimpleRobotMessageDecoder extends MessageDecoder {
 
-	public SimpleRobotMessageDecoder(MessageClassMapper messageClassMapper) {
-		super(messageClassMapper);
+	public SimpleRobotMessageDecoder() {
+		super(new SimpleRobotMessageClassMapper());
 	}
 
 	@Override
@@ -32,25 +30,30 @@ public class SimpleRobotMessageDecoder extends MessageDecoder {
 		if(inputBuffer.getContentSize() == 0)
 			return null;
 		
-		// Message length
+		// Get message ID
 		if(inputBuffer.getContentSize() < 2)
 			return null;
-		int messageLength = inputBuffer.peek(1);
+		byte messageId = inputBuffer.peek(1);
+		
+		// Figure out the length of message
+		int messageLength = 0;
+		if(messageId == 0x01)
+			messageLength = 4;
+		else if(messageId == 0x02)
+			messageLength = 3;
 		
 		// Check if we have enough data for a message
 		if(inputBuffer.getContentSize() < messageLength)
 			return null;
 		
 		// Get whole message data
-		byte[] messageBytes = inputBuffer.readWithoutConsume(messageLength);
+		byte[] messageBytes = inputBuffer.read(messageLength);
 		
 		// Create a message instance
-		byte messageId = messageBytes[2];
 		byte[] messageIdArray = new byte[] { messageId };
-		CommunicationMessage message = decodeMessagePayload(messageIdArray, messageBytes, 3, messageLength - 3);
+		CommunicationMessage message = decodeMessagePayload(messageIdArray, messageBytes, 2, messageLength - 2);
 		
-		// Consume the used data
-		inputBuffer.consume(messageLength);
+		// Return the message instance
 		return message;
 	}
 

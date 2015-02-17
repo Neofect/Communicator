@@ -26,12 +26,20 @@ public class SimpleRobot extends Device {
 		return proximitySensorValue;
 	}
 	
-	public void setProximitySensorValue(short proximitySensorValue) {
-		this.proximitySensorValue = proximitySensorValue;
+	public void operateWheels(int leftWheelSpeed, int rightWheelSpeed) {
+		OperateWheelsMessage message = new OperateWheelsMessage(leftWheelSpeed, rightWheelSpeed);
+		sendMessage(message);
 	}
 	
 	@Override
 	protected boolean processMessage(CommunicationMessage message) {
+		if(message instanceof ReportProximitySensorMessage) {
+			ReportProximitySensorMessage reportMessage = (ReportProximitySensorMessage) message;
+			proximitySensorValue = reportMessage.getProximitySensorValue();
+			return true;
+		} else {
+			// Error handling
+		}
 		return false;
 	}
 

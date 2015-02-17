@@ -22,7 +22,9 @@ import android.widget.Toast;
 import com.neofect.communicator.CommunicationListener;
 import com.neofect.communicator.Communicator;
 import com.neofect.communicator.Connection;
+import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.sample.device.SimpleRobot;
+import com.neofect.communicator.sample.device.SimpleRobotCommunicationController;
 
 public class DeviceConnectionActivity extends Activity {
 	
@@ -76,8 +78,8 @@ public class DeviceConnectionActivity extends Activity {
 			buttonDisconnect.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					if(glove != null)
-						glove.getConnection().disconnect();
+					if(device != null)
+						device.getConnection().disconnect();
 				}
 			});
 		}
@@ -93,7 +95,7 @@ public class DeviceConnectionActivity extends Activity {
 	        	String deviceListItem = deviceListAdapter.getItem(arg2);
 	        	try {
 	        		String deviceAddress = deviceListItem.split(DEVICE_LIST_ITEM_SEPARATOR)[0];
-	        		connectToGlove(deviceAddress);
+	        		connectToDevice(deviceAddress);
 	        		Toast.makeText(getApplicationContext(), deviceAddress, Toast.LENGTH_SHORT).show();
 	        	} catch(Exception e) {
 	        		Log.e(LOG_TAG, "", e);
@@ -197,7 +199,7 @@ public class DeviceConnectionActivity extends Activity {
 	/**
 	 * Connection and sensor data part
 	 */
-	private SimpleRobot glove = null;
+	private SimpleRobot device = null;
 	private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
 		@Override
 		public void onStartConnecting(Connection connection) {
@@ -215,42 +217,22 @@ public class DeviceConnectionActivity extends Activity {
 		}
 
 		@Override
-		public void onDeviceReady(SimpleRobot glove, boolean alreadyExisting) {
-			Log.d(LOG_TAG, "onDeviceReady() connection=" + glove.getConnection().getDescription());
-			
-			DeviceConnectionActivity.this.glove = glove;;
-			
+		public void onDeviceReady(SimpleRobot device, boolean alreadyExisting) {
+			DeviceConnectionActivity.this.device = device;;
 			toggleButtonVisibility(true);
-
-			updateConnectionStatus("Connected to '" + glove.getConnection().getRemoteAddress() + "'");
+			updateConnectionStatus("Connected to '" + device.getConnection().getRemoteAddress() + "'");
 		}
 
 		@Override
-		public void onDeviceDisconnected(SimpleRobot glove) {
-			Log.d(LOG_TAG, "onDeviceDisconnected()");
-			
+		public void onDeviceDisconnected(SimpleRobot device) {
 			toggleButtonVisibility(false);
-			
-			updateConnectionStatus("Disconnected '" + glove.getConnection().getRemoteAddress() + "'");
+			updateConnectionStatus("Disconnected '" + device.getConnection().getRemoteAddress() + "'");
 			updateSensorData("");
 		}
 
 		@Override
-		public void onDeviceUpdated(SimpleRobot glove) {
-			StringBuilder dataText = new StringBuilder();
-//			dataText.append("Fingers - ");
-//			for(int fingerIndex = 0; fingerIndex < 5; ++fingerIndex) {
-//				if(fingerIndex != 0)
-//					dataText.append(" ");
-//				dataText.append(String.format(FLOAT_PRECISION, glove.getFingerBendingRatio(fingerIndex)));
-//			}
-//			dataText.append("\nForearmRatio - ").append(String.format(FLOAT_PRECISION, glove.getForearmRotationRatio()));
-//			dataText.append("\nWristRatio - ").append(String.format(FLOAT_PRECISION, glove.getWristBendingRatio()));
-//			dataText.append("\nForearmDegree - ").append(String.format(FLOAT_PRECISION, glove.getForearmDegree()));
-//			dataText.append("\nWristDegree - ").append(String.format(FLOAT_PRECISION, glove.getWristDegree()));
-//			dataText.append("\nDeviationDegree - ").append(String.format(FLOAT_PRECISION, glove.getDeviationDegree()));
-//			
-			updateSensorData(dataText.toString());
+		public void onDeviceUpdated(SimpleRobot device) {
+			updateSensorData("Proximity sensor - " + device.getProximitySensorValue());
 		}
 
 	};
@@ -260,7 +242,6 @@ public class DeviceConnectionActivity extends Activity {
 		Log.d(LOG_TAG, "onResume()");
 		super.onResume();
 		refreshUI();
-		
 		Communicator.registerListener(listener);
 	}
 	
@@ -273,7 +254,7 @@ public class DeviceConnectionActivity extends Activity {
 	
 	private void refreshUI() {
 		boolean connected = false;
-		if(glove != null && glove.getConnection() != null && glove.getConnection().isConnected())
+		if(device != null && device.getConnection() != null && device.getConnection().isConnected())
 			connected = true;
 		toggleButtonVisibility(connected);
 		updateConnectionStatus("");
@@ -286,10 +267,10 @@ public class DeviceConnectionActivity extends Activity {
 		buttonDisconnect.setVisibility(visibility);
 	}
 	
-	private void connectToGlove(String deviceAddress) {
+	private void connectToDevice(String deviceAddress) {
 		Log.d(LOG_TAG, "connectToDevice() deviceAddress=" + deviceAddress);
-//		SmartGloveCommunicationController controller = new SmartGloveCommunicationController();
-//		Communicator.connect(deviceAddress, ConnectionType.BLUETOOTH_SPP, controller);
+		SimpleRobotCommunicationController controller = new SimpleRobotCommunicationController();
+		Communicator.connect(deviceAddress, ConnectionType.BLUETOOTH_SPP, controller);
 	}
 	
 	private void updateConnectionStatus(String status) {
