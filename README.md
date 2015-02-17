@@ -1,21 +1,15 @@
 # NFCommunicator
 
 ## Overview
-===========
 * [Features](#features)
 * [Tutorial](#tutorial)
 
 
-
 ## Features
-===========
 Android communication framework for Bluetooth
 
 
-
-
 ## Tutorial
-===========
 
 * [Prerequisites](#prerequisites)
 * [Protocol Implementation](#protocol-implementation)
@@ -144,7 +138,7 @@ At last, return the message instance.
 	// Return the message instance
 	return message;
 
-The `SimpleRobotMessageDecoder` results as following.
+The complete `SimpleRobotMessageDecoder` is following.
 
 	public class SimpleRobotMessageDecoder extends MessageDecoder {
 
@@ -269,7 +263,7 @@ The complete `SimpleRobotMessageEncoder` is following.
 ##### Message classes
 Message classes representing the messages in protocol specification. We have two messages in protocol so create two message classes, `OperateWheelsMessage` and `ReportProximitySensorMessage` by subclassing `CommunicationMessageImpl`.
 
-###### `OperateWheelsMessage`
+###### OperateWheelsMessage
 This is outgoing message so it needs to override `encodePayload()` method.
 
 	public class OperateWheelsMessage extends CommunicationMessageImpl {
@@ -292,7 +286,7 @@ This is outgoing message so it needs to override `encodePayload()` method.
 		
 	}
 
-###### `ReportProximitySensorMessage`
+###### ReportProximitySensorMessage
 This is incoming message so it needs to override `decodePayload()` method.
 
 	public class ReportProximitySensorMessage extends CommunicationMessageImpl {
@@ -487,7 +481,7 @@ There are more things to customize `CommunicationController`, but for a simple c
 ### How to use it
 All steps to talk with our simple robot is done! Let's make some Android UI to communicate with our robot.
 
-We need to register listeners to NFCommunicator to get notified by any communication events.
+We need to register listener to NFCommunicator to get notified by any communication events.
 
 Following is a simple activity implementation.
 
