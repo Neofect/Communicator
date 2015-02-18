@@ -1,7 +1,5 @@
 # NFCommunicator
-NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps all communication related implementation internally so make developers focus more on the business logic. And its modular structure makes application's structure more clear and easy to test modules independently.
-
-It works on Android runtime.
+NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps all communication related implementation internally so make developers focus more on the business logic. And its modular structure makes application's structure more clear and easy to test modules independently. It is being used in two live products now and proved. It works on Android runtime.
 
 
 ## Features
@@ -61,7 +59,7 @@ Message ID - 0x02
 |Value|0x9D|0x02|Any|
 
 
-*Note : Header byte is '0x9D'*
+*Note : Header byte is '0x9D'. It is used to avoid malfunctioning by network interference.*
 
 ### Protocol Implementation
 To work with the framework, we need to create classes representing the protocol by subclassing framework classes.
