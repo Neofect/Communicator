@@ -23,12 +23,10 @@ import com.neofect.communicator.CommunicationListener;
 import com.neofect.communicator.Communicator;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
-import com.neofect.communicator.sample.device.SimpleRobot;
-import com.neofect.communicator.sample.device.SimpleRobotCommunicationController;
 
-public class DeviceConnectionActivity extends Activity {
+public class SampleActivity extends Activity {
 	
-	private static final String LOG_TAG = DeviceConnectionActivity.class.getSimpleName();
+	private static final String LOG_TAG = SampleActivity.class.getSimpleName();
 	
 	private static final int REQUEST_ENABLE_BLUETOOTH		= 1;
 	
@@ -36,10 +34,47 @@ public class DeviceConnectionActivity extends Activity {
 	
 	private boolean	discovering = false;
     private ArrayAdapter<String>	deviceListAdapter;
+    
+	/**
+	 * A instance of simple robot and a listener to communication events.
+	 */
+	private SimpleRobot robot = null;
+	
+	private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
+		@Override
+		public void onStartConnecting(Connection connection) {
+			updateConnectionStatus("Connecting to '" + connection.getRemoteAddress() + "'");
+		}
+		
+		@Override
+		public void onFailedToConnect(Connection connection) {
+			toggleButtonVisibility(false);
+			updateConnectionStatus("Failed to connect to '" + connection.getRemoteAddress() + "'");
+		}
 
+		@Override
+		public void onDeviceConnected(SimpleRobot robot, boolean alreadyExisting) {
+			SampleActivity.this.robot = robot;
+			toggleButtonVisibility(true);
+			updateConnectionStatus("Connected to '" + robot.getConnection().getRemoteAddress() + "'");
+		}
+
+		@Override
+		public void onDeviceDisconnected(SimpleRobot robot) {
+			toggleButtonVisibility(false);
+			updateConnectionStatus("Disconnected '" + robot.getConnection().getRemoteAddress() + "'");
+			updateSensorData("");
+		}
+
+		@Override
+		public void onDeviceUpdated(SimpleRobot robot) {
+			updateSensorData("Proximity sensor - " + robot.getProximitySensorValue());
+		}
+
+	};
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		Log.d(LOG_TAG, "onCreate()");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_device_connection);
 		
@@ -50,7 +85,6 @@ public class DeviceConnectionActivity extends Activity {
 	
 	@Override
 	protected void onDestroy() {
-		Log.d(LOG_TAG, "onDestroy()");
 		super.onDestroy();
 		cancelDiscovery();
 		this.unregisterReceiver(discoveryReceiver);
@@ -73,7 +107,7 @@ public class DeviceConnectionActivity extends Activity {
 		
 		// Disconnect
 		{
-			Button buttonDisconnect = (Button) DeviceConnectionActivity.this.findViewById(R.id.button_disconnect);
+			Button buttonDisconnect = (Button) SampleActivity.this.findViewById(R.id.button_disconnect);
 			buttonDisconnect.setVisibility(View.INVISIBLE);
 			buttonDisconnect.setOnClickListener(new OnClickListener() {
 				@Override
@@ -189,57 +223,14 @@ public class DeviceConnectionActivity extends Activity {
 				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				onDeviceDiscovered(device);
 			} else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-				if(DeviceConnectionActivity.this.discovering)
+				if(SampleActivity.this.discovering)
 					changeDiscoveryStatus(false);
 			}
 		}
 	};
 	
-	
-	/**
-	 * Connection and sensor data part
-	 */
-	private SimpleRobot robot = null;
-	private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
-		@Override
-		public void onStartConnecting(Connection connection) {
-			Log.d(LOG_TAG, "onStartConnecting()");
-			updateConnectionStatus("Connecting to '" + connection.getRemoteAddress() + "'");
-		}
-		
-		@Override
-		public void onFailedToConnect(Connection connection) {
-			Log.d(LOG_TAG, "onFailedToConnect()");
-			
-			toggleButtonVisibility(false);
-			
-			updateConnectionStatus("Failed to connect to '" + connection.getRemoteAddress() + "'");
-		}
-
-		@Override
-		public void onDeviceReady(SimpleRobot robot, boolean alreadyExisting) {
-			DeviceConnectionActivity.this.robot = robot;;
-			toggleButtonVisibility(true);
-			updateConnectionStatus("Connected to '" + robot.getConnection().getRemoteAddress() + "'");
-		}
-
-		@Override
-		public void onDeviceDisconnected(SimpleRobot robot) {
-			toggleButtonVisibility(false);
-			updateConnectionStatus("Disconnected '" + robot.getConnection().getRemoteAddress() + "'");
-			updateSensorData("");
-		}
-
-		@Override
-		public void onDeviceUpdated(SimpleRobot robot) {
-			updateSensorData("Proximity sensor - " + robot.getProximitySensorValue());
-		}
-
-	};
-	
 	@Override
 	public void onResume() {
-		Log.d(LOG_TAG, "onResume()");
 		super.onResume();
 		refreshUI();
 		Communicator.registerListener(listener);
@@ -247,7 +238,6 @@ public class DeviceConnectionActivity extends Activity {
 	
 	@Override
 	public void onPause() {
-		Log.d(LOG_TAG, "onPause()");
 		super.onPause();
 		Communicator.unregisterListener(listener);
 	}
@@ -263,7 +253,7 @@ public class DeviceConnectionActivity extends Activity {
 	
 	private void toggleButtonVisibility(boolean visible) {
 		int visibility = (visible ? View.VISIBLE : View.INVISIBLE);
-		Button buttonDisconnect = (Button) DeviceConnectionActivity.this.findViewById(R.id.button_disconnect);
+		Button buttonDisconnect = (Button) SampleActivity.this.findViewById(R.id.button_disconnect);
 		buttonDisconnect.setVisibility(visibility);
 	}
 	

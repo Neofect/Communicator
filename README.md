@@ -1,21 +1,27 @@
 # NFCommunicator
+NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps all communication related implementation internally so make developers more focus on the business logic. And its modular structure makes application's structure more clearly and easy to test modules independently.
 
-## Overview
-* [Features](#features)
-* [Tutorial](#tutorial)
+It works on Android runtime.
 
 
 ## Features
-Android communication framework for Bluetooth
+* Event driven
+  * Processes like connecting, disconnection and packet transferring are done internally and related events are dispatched. It makes application's structure simple.
+* Protocol is implemented as a indenpendent module
+  * It is easy to test and maintain.
+  * It is reusable even if connection type is changed to another.
+* Various connection types are applicable.
+  * Actual connection process and packet communication is an independent module and pluggable.
+  * Currently there are only Bluetooth wireless connection types. But because the framework works on any type of binary serial protocol, it can be applicable for like serial port connection or TCP/IP connection if we implement. Then existing applications can use it without changing other part like protocol implementation.
 
 
-## Tutorial
+## How to use it
 
 * [Prerequisites](#prerequisites)
 * [Protocol Implementation](#protocol-implementation)
 * [Device module representing the real device](#device-module-representing-the-real-device)
 * [Communication controller](#communication-controller)
-* [How to use it](#how-to-use-it)
+* [Usage](#usage)
 
 
 ### Prerequisites
@@ -476,39 +482,62 @@ Only one piece is left, it is communication controller. A communication controll
 
 To make it simple, the constructors of the encoder and the decoder are modified to have no parameters. The modified version is in sample project.
 
-There are more things to customize `CommunicationController`, but for a simple communication this controller implementation is enough.
+In fact, there are more things customizable in `CommunicationController`, but for a simple communication this implementation is enough.
 
-### How to use it
-All steps to talk with our simple robot is done! Let's make some Android UI to communicate with our robot.
+### Usage
+To talk with our simple robot, all necessary steps are done. Let's make some Android UI to communicate with our robot.
 
-We need to register listener to NFCommunicator to get notified by any communication events.
+We call `Communicator.connect()` method to connect to device. It asks for three parameters which are a remote address, a connection type and a communication controller.
 
-Following is a simple activity implementation.
+The remote address of a device is acquired using Bluetooth discovery. You can refer to the actual implementation in the sample project.
+
+Second, there are three kinds of connection types for now.
+
+* Bluetooth SPP
+* Bluetooth insecure SPP
+* Bluetooth A2DP
+
+As NFCommunicator is structured to extend connection types, we can implement more connection types later.
+
+Third, put a newly created `SimpleRobotCommunicationController` as parameter.
+
+After `Communicator.connect()` call, we can get notified by any communication events through a listener. Register a listener to the communicator in `onResume()` and unregister it in `onPause()`.
+
+Once a robot is connected, we keep its instance as variable given via  `onDeviceConnected()` and operate wheels by using it whenever we want.
+
+Following is an example activity implementation.
 
 	public class TestActivity extends Activity {
 		
-		private static final String LOG_TAG = TestActivity.class.getSimpleName();
+		private SimpleRobot robot;
 		
 		private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
+			
+			@Override
+			public void onStartConnecting(Connection connection) {
+				updateConnectionStatus("Started connecting to '" + connection.getRemoteAddress() + "'");
+			}
+			
 			@Override
 			public void onFailedToConnect(Connection connection) {
 				updateConnectionStatus("Failed to connect to '" + connection.getRemoteAddress() + "'");
 			}
 
 			@Override
-			public void onDeviceReady(SimpleRobot robot, boolean alreadyExisting) {
+			public void onDeviceConnected(SimpleRobot robot, boolean alreadyExisting) {
+				TestActivity.this.robot = robot;
 				updateConnectionStatus("Connected to '" + robot.getConnection().getRemoteAddress() + "'");
 			}
 
 			@Override
 			public void onDeviceDisconnected(SimpleRobot robot) {
-				updateConnectionStatus("Disconnected '" + robot.getConnection().getRemoteAddress() + "'");
+				updateConnectionStatus("Disconnected from '" + robot.getConnection().getRemoteAddress() + "'");
 				updateSensorData("");
 			}
 			
 			@Override
 			public void onDeviceUpdated(SimpleRobot robot) {
-				updateSensorData("Proximity sensor - " + device.getProximitySensorValue());
+				updateSensorData("Proximity sensor - " + robot.getProximitySensorValue());
 			}
 
 		};
@@ -518,20 +547,32 @@ Following is a simple activity implementation.
 			super.onCreate(savedInstanceState);
 			setContentView(R.layout.activity_test);
 			
-			Button buttonConnect = (Button) this.findViewById(R.id.button);
+			Button buttonConnect = (Button) this.findViewById(R.id.button_connect);
 			buttonConnect.setOnClickListener(new OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					String deviceAddress = "BLUETOOTH_MAC_ADDRESS";
+					String remoteAddress = "BLUETOOTH_MAC_ADDRESS";
 					SimpleRobotCommunicationController controller = new SimpleRobotCommunicationController();
-					Communicator.connect(deviceAddress, ConnectionType.BLUETOOTH_SPP, controller);
+					Communicator.connect(remoteAddress, ConnectionType.BLUETOOTH_SPP, controller);
 				}
 			});
+			
+			Button buttonOperateWheels = (Button) this.findViewById(R.id.button_operate_wheels);
+			buttonOperateWheels.setOnClickListener(new OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					if(robot == null)
+						return;
+					robot.operateWheels(10, 10);
+				}
+			});
+
 		}
 		
 		@Override
 		public void onResume() {
 			super.onResume();
+			robot = null;
 			Communicator.registerListener(listener);
 		}
 		

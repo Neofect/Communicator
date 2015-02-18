@@ -4,9 +4,11 @@
  * All rights reserved. Used by permission.
  */
 
-package com.neofect.communicator.sample.device;
+package com.neofect.communicator.sample;
 
 import com.neofect.communicator.CommunicationController;
+import com.neofect.communicator.sample.protocol.SimpleRobotMessageDecoder;
+import com.neofect.communicator.sample.protocol.SimpleRobotMessageEncoder;
 
 /**
  * @author neo.kim@neofect.com

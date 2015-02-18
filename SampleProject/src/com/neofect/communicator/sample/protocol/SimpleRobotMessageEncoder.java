@@ -4,7 +4,7 @@
  * All rights reserved. Used by permission.
  */
 
-package com.neofect.communicator.sample.device;
+package com.neofect.communicator.sample.protocol;
 
 import com.neofect.communicator.message.CommunicationMessage;
 import com.neofect.communicator.message.MessageEncoder;

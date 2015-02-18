@@ -4,11 +4,13 @@
  * All rights reserved. Used by permission.
  */
 
-package com.neofect.communicator.sample.device;
+package com.neofect.communicator.sample;
 
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.sample.protocol.message.OperateWheelsMessage;
+import com.neofect.communicator.sample.protocol.message.ReportProximitySensorMessage;
 
 /**
  * @author neo.kim@neofect.com
