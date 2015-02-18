@@ -1,5 +1,5 @@
 # NFCommunicator
-NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps all communication related implementation internally so make developers more focus on the business logic. And its modular structure makes application's structure more clearly and easy to test modules independently.
+NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps all communication related implementation internally so make developers focus more on the business logic. And its modular structure makes application's structure more clear and easy to test modules independently.
 
 It works on Android runtime.
 
@@ -9,7 +9,7 @@ It works on Android runtime.
   * Processes like connecting, disconnection and packet transferring are done internally and related events are dispatched. It makes application's structure simple.
 * Protocol is implemented as a indenpendent module
   * It is easy to test and maintain.
-  * It is reusable even if connection type is changed to another.
+  * It is reusable even though connection type is changed to another.
 * Various connection types are applicable.
   * Actual connection process and packet communication is an independent module and pluggable.
   * Currently there are only Bluetooth wireless connection types. But because the framework works on any type of binary serial protocol, it can be applicable for like serial port connection or TCP/IP connection if we implement. Then existing applications can use it without changing other part like protocol implementation.
@@ -35,7 +35,7 @@ For tutorial, **_let say we have a simple robot device_** and we want to communi
 Our simple robot has two wheels under its bottom and a proximity sensor in front. We want to command the robot to move forward, backward or turn left or right. Also want to get the proximity value it detects.
 
 ##### Protocol
-To communicate with with the robot, we design a simple binary protocol. The protocol has **_two types of messages_** (or called packet) as following. In this protocol, big-endian byte order is used in multi-bytes value.
+To communicate with with the robot, we design a simple binary protocol. The protocol has **_two types of messages_** (or called packet) as following.
 
 
 ###### Message for operating wheels
@@ -137,7 +137,7 @@ Parsing process for the metadata like header and length is done here. Message de
 
 `decodeMessagePayload()` method is not a kind of things you implement. It resides framework side. You just pass the message ID (as a byte array), message bytes and an index of payload.
 
-The method creates an instance of message class according to the message ID and passes the payload to the instance. These are done internally. The actual process of payload parsing is done by message class. We will look into in message step.
+The method creates an instance of message class according to the message ID and passes the payload to the message instance. These are done internally. The actual payload parsing is done by message class itself. We will look into that in message section.
 
 At last, return the message instance.
 
@@ -192,7 +192,7 @@ The complete `SimpleRobotMessageDecoder` is following.
 	}
 
 ##### Message encoder
-Message encoder builds a binary packet from an instance of message class. Encoder is used for outgoing messages. Let's create a message encoder called `SimpleRobotMessageEncoder` subclassing `MessageEncoder`.
+Message encoder builds a binary packet from an instance of message class. Encoder is used for outgoing messages. Let's create a message encoder called `SimpleRobotMessageEncoder` by subclassing `MessageEncoder`.
 	
 	public class SimpleRobotMessageEncoder extends MessageEncoder {
 
@@ -267,7 +267,7 @@ The complete `SimpleRobotMessageEncoder` is following.
 
 
 ##### Message classes
-Message classes representing the messages in protocol specification. We have two messages in protocol so create two message classes, `OperateWheelsMessage` and `ReportProximitySensorMessage` by subclassing `CommunicationMessageImpl`.
+Message classes represents messages in protocol specification. We have two messages in the protocol so create two message classes, `OperateWheelsMessage` and `ReportProximitySensorMessage` by subclassing `CommunicationMessageImpl`.
 
 ###### OperateWheelsMessage
 This is outgoing message so it needs to override `encodePayload()` method.
@@ -381,7 +381,7 @@ The complete `SimpleRobotMessageClassMapper` is following.
 
 	}
 
-The protocol side implementation is done now. We have only two more steps from now on.
+The protocol implementation is done now. We have only two more steps from now on.
 
 ### Device module representing the real device
 We are going to have a virtual instance representing the real device. The instance has same attributes as real device, such as sensor values. The instance has same operations as real device, such as operating wheels. Let's create a device class called `SimpleRobot` by subclassing `Device`.
@@ -409,7 +409,7 @@ We are going to have a virtual instance representing the real device. The instan
 
 	}
 
-The subclass of `Device` must have a constructor which receives only one parameter of `Connection` class. This constructor is called by the framework during run-time. 
+The subclass of `Device` must have a constructor which receives only one parameter of `Connection` class. This constructor is called by the framework during runtime. 
 
 First, implement the operation method.
 
@@ -434,7 +434,9 @@ Next, implement the `processMessage()` method. It handles all incoming messages.
 		return false;
 	}
 
-You need to look carefully the return value of `processMessage()`. Once a message is processed, and by its result any attributes of the device is updated, it must return true. Sometimes there are messages which don't update the device, then just return false. If device is updated, an event for the update is dispatched by framework.
+It updates the instance's proximity sensor value according to the incoming message. This is how the device instance is synchronized with the remote real device.
+
+And you need to look carefully the return value of `processMessage()`. Once a message is processed, and by its result any attributes of the device is updated, it must return true. Sometimes there are messages which don't update the device, then just return false. If device is updated, an event for the update is dispatched by framework.
 
 The complete `SimpleRobot` is following.
 
@@ -503,7 +505,7 @@ Third, put a newly created `SimpleRobotCommunicationController` as parameter.
 
 After `Communicator.connect()` call, we can get notified by any communication events through a listener. Register a listener to the communicator in `onResume()` and unregister it in `onPause()`.
 
-Once a robot is connected, we keep its instance as variable given via  `onDeviceConnected()` and operate wheels by using it whenever we want.
+Once a robot is connected, we keep its instance as a variable given via  `onDeviceConnected()` and operate wheels by using it whenever we want.
 
 Following is an example activity implementation.
 
