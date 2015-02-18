@@ -3,14 +3,14 @@ NFCommunicator is a framework for simplifying application structure which commun
 
 
 ## Features
-* Event driven
-  * Processes like connecting, disconnection and packet transferring are done internally and related events are dispatched. It makes application's structure simple.
 * Protocol is implemented as a indenpendent module
   * It is easy to test and maintain.
   * It is reusable even though connection type is changed to another.
+* Event driven
+  * Processes like connecting, disconnection and packet transferring are done internally and related events are dispatched. It makes application's structure simple.
 * Various connection types are applicable.
   * Actual connection process and packet communication is an independent module and pluggable.
-  * Currently there are only Bluetooth wireless connection types. But because the framework works on any type of binary serial protocol, it can be applicable for like serial port connection or TCP/IP connection if we implement. Then existing applications can use it without changing other part like protocol implementation.
+  * Currently there are only Bluetooth wireless connection types. But because the framework works on any type of serial protocol, it can be applicable for like USB, serial port or TCP/IP connection if we implement. Then existing applications can use it without changing other part like protocol implementation.
 
 
 ## How to use it
