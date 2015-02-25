@@ -163,8 +163,7 @@ public class Communicator {
 		try {
 			device = deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
 		} catch (Exception e) {
-			Log.e(LOG_TAG, "Failed to instantiate an instance of device class!", e);
-			return null;
+			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
 		}
 		return device;
 	}
