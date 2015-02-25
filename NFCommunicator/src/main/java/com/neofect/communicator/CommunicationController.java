@@ -66,7 +66,7 @@ public class CommunicationController<T extends Device> {
 	}
 	
 	final T onConnectedInner(Connection connection) {
-		device = Communicator.createDeviceInstance(connection, deviceClass);;
+		device = Communicator.createDeviceInstance(connection, deviceClass);
 		onConnected(device);
 		return device;
 	}
