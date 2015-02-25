@@ -94,9 +94,19 @@ public abstract class Connection {
 	}
 	
 	protected final void handleConnected() {
-		status = Status.CONNECTED;
-		Device device = controller.onConnectedInner(this);
-		Communicator.getInstance().notifyConnected(device);
+		try {
+			status = Status.CONNECTED;
+			Device device = controller.onConnectedInner(this);
+			Communicator.getInstance().notifyConnected(device);
+		} catch(Exception e) {
+			Log.e(LOG_TAG, "Exception occurred during handling connected device!", e);
+			try {
+				this.disconnect();
+			} catch(Exception e1) {
+				Log.e(LOG_TAG, "Failed to disconnect!", e1);
+			}
+			handleFailedToConnect();
+		}
 	}
 	
 	protected final void handleDisconnected() {
