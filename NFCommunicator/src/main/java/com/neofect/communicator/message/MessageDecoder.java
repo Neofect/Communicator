@@ -43,8 +43,7 @@ public abstract class MessageDecoder {
 		try {
 			message = (CommunicationMessage) messageClass.newInstance();
 		} catch (Exception e) {
-			Log.e(LOG_TAG, "", e);
-			return null;
+			throw new RuntimeException("Failed to instantiate a message class from message bytes! messageId='0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'", e);
 		}
 		return message;
 	}
@@ -66,10 +65,6 @@ public abstract class MessageDecoder {
 		
 		// Create a message class
 		CommunicationMessage message = createCommunicationMessageInstance(messageId);
-		if(message == null) {
-			Log.e(LOG_TAG, "Failed to instantiate a message class from message bytes! messageId=" + ByteArrayConverter.byteArrayToHex(messageId));
-			return null;
-		}
 		
 		// Decode payload data
 		try {
@@ -78,11 +73,10 @@ public abstract class MessageDecoder {
 		} catch(Exception e) {
 			try {
 				String payload = ByteArrayConverter.byteArrayToHex(data, startIndex, startIndex + length);
-				Log.e(LOG_TAG, "Failed to decode message! messageClass=" + message.getClass().getSimpleName() + ", payload=" + payload, e); 
+				throw new RuntimeException("Failed to decode message! messageClass=" + message.getClass().getSimpleName() + ", payload=" + payload, e);
 			} catch(Exception e2) {
-				Log.e(LOG_TAG, "Failed to decode message! messageClass=" + message.getClass().getSimpleName(), e2); 
+				throw new RuntimeException("Failed to decode message! messageClass=" + message.getClass().getSimpleName(), e);
 			}
-			return null;
 		}
 	}
 	

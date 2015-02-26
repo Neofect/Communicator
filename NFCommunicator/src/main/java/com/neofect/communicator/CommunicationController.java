@@ -113,7 +113,7 @@ public class CommunicationController<T extends Device> {
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
-				Log.e(LOG_TAG, "Failed to parse message!", e);
+				Log.e(LOG_TAG, "Failed to decode message!", e);
 			}
 			if(message == null)
 				break;
