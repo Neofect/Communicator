@@ -71,7 +71,11 @@ public abstract class Connection {
 	}
 	
 	public void sendMessage(CommunicationMessage message) {
-		write(controller.encodeMessage(message));
+		try {
+			write(controller.encodeMessage(message));
+		} catch(Exception e) {
+			Log.e(LOG_TAG, "Failed send a message!", e);
+		}
 	}
 	
 	protected final void handleReadData(byte[] data) {

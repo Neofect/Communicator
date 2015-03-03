@@ -88,13 +88,11 @@ public class CommunicationController<T extends Device> {
 			return null;
 		}
 		
-		byte[] encodedMessage = null;
 		try {
-			encodedMessage = encoder.encodeMessage(message);
+			return encoder.encodeMessage(message);
 		} catch(Exception e) {
-			Log.e(LOG_TAG, "Failed to encode a message! '" + message.getDescription() + "'", e);
+			throw new RuntimeException("Failed to encode a message! '" + message.getDescription() + "'", e);
 		}
-		return encodedMessage;
 	}
 	
 	/**
