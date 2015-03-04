@@ -126,6 +126,26 @@ public class Communicator {
 		}
 	}
 	
+	/**
+	 * Returns the number of connected devices by device type. If the input param is null, it returns the number of all connected devices.
+	 * 
+	 * @param deviceClass
+	 * @return
+	 */
+	public static int getNumberOfConnectedDevices(Class<? extends Device> deviceClass) {
+		synchronized (instance) {
+			if(deviceClass == null)
+				return instance.devices.size();
+			
+			int count = 0;
+			for(Device device : instance.devices) {
+				if(device.getClass() == deviceClass)
+					++count;
+			}
+			return count;
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static <T extends Device> void notifyNewListenerOfExistingDevices(CommunicationHandler<T> handler, Device device) {
 		handler.onDeviceConnected((T) device, true);
