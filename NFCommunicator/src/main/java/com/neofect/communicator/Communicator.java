@@ -163,7 +163,7 @@ public class Communicator {
 			Type superclass = listener.getClass().getGenericSuperclass();
 			return (Class<T>) ((ParameterizedType) superclass).getActualTypeArguments()[0];
 		} catch(Exception e) {
-			throw new IllegalArgumentException("The given CommunicationListener is raw type. It must be parameterized with Device subclass!");
+			throw new IllegalArgumentException("The given CommunicationListener is raw type. It must be parameterized with Device subclass!", e);
 		}
 	}
 	
