@@ -79,7 +79,7 @@ public class CommunicationController<T extends Device> {
 		return deviceClass;
 	}
 	
-	final byte[] encodeMessage(CommunicationMessage message) {
+	public final byte[] encodeMessage(CommunicationMessage message) {
 		if(encoder == null) {
 			Log.e(LOG_TAG, "Message parser is not set!");
 			return null;
