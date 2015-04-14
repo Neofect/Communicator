@@ -50,11 +50,12 @@ public class Communicator {
 	private HandlerListMap		handlers	= new HandlerListMap();
 	
 	public static void connect(String remoteAddress, ConnectionType connectionType, CommunicationController<? extends Device> controller) {
+		Connection connection = null;
 		try {
-			Connection connection = ConnectionFactory.createConnection(remoteAddress, connectionType, controller);
+			connection = ConnectionFactory.createConnection(remoteAddress, connectionType, controller);
 			connection.connect();
 		} catch(Exception e) {
-			Log.e(LOG_TAG, "", e);
+			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + remoteAddress + "'!", e));
 		}
 	}
 	
