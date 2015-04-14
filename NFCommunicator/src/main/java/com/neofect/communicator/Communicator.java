@@ -218,6 +218,7 @@ public class Communicator {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyConnected(Device device) {
+		Log.d(LOG_TAG, "notifyConnected() device=" + device.getConnection().getRemoteAddress());
 		connections.remove(device.getConnection());
 		devices.add(device);
 		
@@ -232,6 +233,7 @@ public class Communicator {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDisconnected(Connection connection, Class<? extends Device> deviceClass) {
+		Log.d(LOG_TAG, "notifyDisconnected() connection=" + connection.getDescription());
 		connections.remove(connection);
 		
 		// Find a device with the disconnected connection

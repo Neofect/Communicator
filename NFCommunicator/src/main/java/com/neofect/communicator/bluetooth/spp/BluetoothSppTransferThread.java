@@ -52,6 +52,7 @@ class BluetoothSppTransferThread extends Thread {
 	 * @throws IOException
 	 */
 	BluetoothSppTransferThread(BluetoothSppConnection connection, BluetoothSocket socket) throws IOException {
+		super("BluetoothSppTransferThread");
 		this.connection = connection;
 		this.socket = socket;
 		inputStream = socket.getInputStream();
@@ -100,8 +101,6 @@ class BluetoothSppTransferThread extends Thread {
 	
 	@Override
 	public void run() {
-		setName(this.getClass().getSimpleName());
-		
 		// If it is still trying to connect, wait some time.
 		while(connection.getStatus() == BluetoothConnection.Status.CONNECTING) {
 			try {
