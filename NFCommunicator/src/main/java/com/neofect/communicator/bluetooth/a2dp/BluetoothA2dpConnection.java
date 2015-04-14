@@ -74,11 +74,8 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
             if(a2dpService != null) {
 				Log.d(LOG_TAG, "onServiceConnected() : Bluetooth A2DP service is connected (API17+)");
 				startConnect();
-            }
-            else
-            {
-            	Log.e(LOG_TAG, "onServiceConnected() : Failed to connect to Bluetooth A2DP service! (API17+)");
-    			handleFailedToConnect();
+            } else {
+    			handleFailedToConnect(new Exception("Failed to connect to Bluetooth A2DP service! (API 17 and above)"));
             }
 		}
 
@@ -115,10 +112,12 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 				methodAsInterface.setAccessible(true);
 
 				a2dpService = (IBluetoothA2dp) methodAsInterface.invoke(null, binder);
-                if(a2dpService != null)
+                if(a2dpService != null) {
                 	startConnect();
-                else
-        			handleFailedToConnect();
+                }
+                else {
+        			handleFailedToConnect(new Exception("Failed to connect to Bluetooth A2DP service! (below API 17)"));
+                }
 			}
 			else {
 				// TODO
@@ -140,8 +139,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 	private void startConnect() {
 		boolean isSucceededToStartConnect = false;
 
-		if (a2dpService == null)
-		{
+		if (a2dpService == null) {
 			Log.e(LOG_TAG, "connect() A2DP service instance is null!");
 		}
 		else {
@@ -151,18 +149,21 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 			while(tryLimitCount > 0)
 			{
 				isSucceededToStartConnect = connectWithService();
-				if(true == isSucceededToStartConnect)
+				if(isSucceededToStartConnect) {
 					break;
+				}
 				tryLimitCount--;
 				try {
 					Thread.sleep(800, 0); // tested for 500, 1000 .. 500 failed
 				} catch (InterruptedException e) {
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		}
 		
-		if(connectivityCheckThread != null)
+		if(connectivityCheckThread != null) {
 			cancelConnectivityCheckThread();
+		}
 		
 		if(isSucceededToStartConnect) {
 			// Start a thread which checks A2DP connectivity regularly.
@@ -170,7 +171,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 			connectivityCheckThread.start();
 			handleConnecting();
 		} else {
-			handleFailedToConnect();
+			handleFailedToConnect(new Exception("Failed to connect to A2DP service!"));
 		}
 	}
 
@@ -225,8 +226,8 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		cancelConnectivityCheckThread();
 	}
 	
-	void	onFailedToConnect() {
-		handleFailedToConnect();
+	void onFailedToConnect(Exception exception) {
+		handleFailedToConnect(exception);
 	}
 	
 	private boolean connectWithService() {

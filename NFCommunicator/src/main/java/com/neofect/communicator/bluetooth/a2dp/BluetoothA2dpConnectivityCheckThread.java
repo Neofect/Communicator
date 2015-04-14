@@ -15,6 +15,8 @@
  */
 package com.neofect.communicator.bluetooth.a2dp;
 
+import java.util.concurrent.TimeoutException;
+
 import android.util.Log;
 
 /**
@@ -59,13 +61,6 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 					case NOT_CONNECTED:
 						canceled = true;
 						break;
-//					case NOT_CONNECTED:
-//						Thread.sleep(200);
-//						break;
-//					case FAILED_TO_CONNECT:
-//					case DISCONNECTED:
-//						isCanceled = true;
-//						break;
 					case CONNECTED: {
 						// Check connectivity
 						if(!isConnected)
@@ -78,11 +73,11 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 					}
 					case CONNECTING: {
 						// Check connectivity
-						if(isConnected)
+						if(isConnected) {
 							connection.onConnected();
-						else if(System.currentTimeMillis() - connectingStartTimestamp > CONNECTING_TIMEOUT_IN_SECONDS * 1000) {
+						} else if(System.currentTimeMillis() - connectingStartTimestamp > CONNECTING_TIMEOUT_IN_SECONDS * 1000) {
 							// Check timeout
-							connection.onFailedToConnect();
+							connection.onFailedToConnect(new TimeoutException("Timeout during connecting to A2DP."));
 						} else {
 							// Sleep between connectivity check
 							Thread.sleep(500);

@@ -61,8 +61,7 @@ class BluetoothSppConnectThread extends Thread {
 			else
 				Log.e(LOG_TAG, "Unknown bluetooth connection type! '" + bluetoothConnection.getConnectionType() + "'");
 		} catch (IOException e) {
-			Log.e(LOG_TAG, "Failed to create bluetooth socket!", e);
-			bluetoothConnection.onFailedToConnect();
+			bluetoothConnection.onFailedToConnect(new RuntimeException("Failed to create bluetooth socket!", e));
 			return;
 		}
 
@@ -71,8 +70,7 @@ class BluetoothSppConnectThread extends Thread {
 			// This is a blocking call and will only return on a successful connection or an exception.
 			socket.connect();
 		} catch (IOException e) {
-			Log.e(LOG_TAG, "Failed to connect to device '" + bluetoothConnection.getDescriptionWithAddress() + "'", e);
-			bluetoothConnection.onFailedToConnect();
+			bluetoothConnection.onFailedToConnect(new RuntimeException("Failed to connect to device '" + bluetoothConnection.getDescriptionWithAddress() + "'", e));
 			return;
 		}
 

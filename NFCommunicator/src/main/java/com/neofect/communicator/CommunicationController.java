@@ -46,7 +46,7 @@ public class CommunicationController<T extends Device> {
 	}
 	
 	protected void onStartConnecting(Connection connection) {}
-	protected void onFailedToConnect(Connection connection) {}
+	protected void onFailedToConnect(Connection connection, Exception cause) {}
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
 	protected void onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}

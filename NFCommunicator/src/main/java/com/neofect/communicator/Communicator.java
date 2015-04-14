@@ -197,13 +197,13 @@ public class Communicator {
 			handler.onStartConnecting(connection);
 	}
 
-	synchronized void notifyFailedToConnect(Connection connection, Class<? extends Device> deviceClass) {
+	synchronized void notifyFailedToConnect(Connection connection, Class<? extends Device> deviceClass, Exception cause) {
 		connections.remove(connection);
 		
 		if(!handlers.containsKey(deviceClass))
 			return;
 		for(CommunicationHandler<?> handler : handlers.get(deviceClass))
-			handler.onFailedToConnect(connection);
+			handler.onFailedToConnect(connection, cause);
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })

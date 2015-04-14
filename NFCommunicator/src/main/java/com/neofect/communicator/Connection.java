@@ -91,10 +91,10 @@ public abstract class Connection {
 		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
 	}
 	
-	protected final void handleFailedToConnect() {
+	protected final void handleFailedToConnect(Exception cause) {
 		status = Status.NOT_CONNECTED;
-		controller.onFailedToConnect(this);
-		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass());
+		controller.onFailedToConnect(this, cause);
+		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
 	}
 	
 	protected final void handleConnected() {
@@ -103,13 +103,12 @@ public abstract class Connection {
 			Device device = controller.onConnectedInner(this);
 			Communicator.getInstance().notifyConnected(device);
 		} catch(Exception e) {
-			Log.e(LOG_TAG, "Exception occurred during handling connected device!", e);
 			try {
 				this.disconnect();
 			} catch(Exception e1) {
 				Log.e(LOG_TAG, "Failed to disconnect!", e1);
 			}
-			handleFailedToConnect();
+			handleFailedToConnect(new Exception("Failed to process the connected device!", e));
 		}
 	}
 	

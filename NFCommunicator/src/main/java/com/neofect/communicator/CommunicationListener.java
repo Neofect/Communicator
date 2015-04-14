@@ -21,7 +21,7 @@ import com.neofect.communicator.message.CommunicationMessage;
 public abstract class CommunicationListener<T extends Device> {
 	
 	public void onStartConnecting(Connection connection) {}
-	public void onFailedToConnect(Connection connection) {}
+	public void onFailedToConnect(Connection connection, Exception cause) {}
 	public void onDeviceConnected(T device, boolean alreadyExisting) {}
 	public void onDeviceDisconnected(T device) {}
 	public void onDeviceReady(T device, boolean alreadyExisting) {}

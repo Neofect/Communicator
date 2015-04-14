@@ -107,8 +107,7 @@ public class BluetoothSppConnection extends BluetoothConnection {
 		try {
 			transferThread = new BluetoothSppTransferThread(this, socket);
 		} catch (IOException e) {
-			Log.e(LOG_TAG, "", e);
-			handleFailedToConnect();
+			handleFailedToConnect(new RuntimeException("Failed to create a transfer thread!", e));
 			return;
 		}
 		transferThread.start();
@@ -120,8 +119,8 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	/**
 	 * Followings are called by {@link BluetoothSppConnectThread}.
 	 */
-	void onFailedToConnect() {
-		handleFailedToConnect();
+	void onFailedToConnect(Exception exception) {
+		handleFailedToConnect(exception);
 	}
 
 	void onReadMessage(byte[] data) {

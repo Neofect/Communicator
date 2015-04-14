@@ -46,11 +46,11 @@ class CommunicationHandler<T extends Device> extends Handler {
 		});
 	}
 	
-	void onFailedToConnect(final Connection connection) {
+	void onFailedToConnect(final Connection connection, final Exception cause) {
 		post(new Runnable() {
 			public void run() {
 				try {
-					listener.onFailedToConnect(connection);
+					listener.onFailedToConnect(connection, cause);
 				} catch(Exception e) {
 					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
 				}
