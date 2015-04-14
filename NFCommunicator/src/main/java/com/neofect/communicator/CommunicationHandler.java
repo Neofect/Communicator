@@ -29,8 +29,9 @@ class CommunicationHandler<T extends Device> extends Handler {
 	CommunicationListener<T> listener;
 	
 	CommunicationHandler(CommunicationListener<T> listener) {
-		if(listener == null)
+		if(listener == null) {
 			throw new IllegalArgumentException("Listener must not be null!");
+		}
 		this.listener = listener;
 	}
 

@@ -113,8 +113,9 @@ public class CommunicationController<T extends Device> {
 			} catch(Exception e) {
 				Log.e(LOG_TAG, "Failed to decode message!", e);
 			}
-			if(message == null)
+			if(message == null) {
 				break;
+			}
 			processInboundMessage(connection, message);
 		}
 	}
@@ -125,8 +126,9 @@ public class CommunicationController<T extends Device> {
 			if(device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
-				if(deviceUpdated)
+				if(deviceUpdated) {
 					Communicator.getInstance().notifyDeviceUpdated(device);
+				}
 			}
 			onAfterDeviceProcessInboundMessage(connection, message);
 		} catch(Exception e) {

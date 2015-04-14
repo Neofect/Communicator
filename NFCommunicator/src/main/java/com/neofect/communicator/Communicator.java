@@ -68,8 +68,9 @@ public class Communicator {
 	
 	public static void disconnectAllConnections() {
 		synchronized(instance) {
-			for(Device device : instance.devices)
+			for(Device device : instance.devices) {
 				disconnect(device);
+			}
 			for(Connection connection : instance.connections) {
 				try {
 					connection.disconnect();
@@ -101,9 +102,9 @@ public class Communicator {
 			
 			// Notify of already existing devices
 			for(Device device : instance.devices) {
-				if(device.getClass() != deviceClass)
-					continue;
-				notifyNewListenerOfExistingDevices(handler, device);
+				if(device.getClass() == deviceClass) {
+					notifyNewListenerOfExistingDevices(handler, device);
+				}
 			}
 		}
 	}
@@ -134,13 +135,15 @@ public class Communicator {
 	 */
 	public static int getNumberOfConnectedDevices(Class<? extends Device> deviceClass) {
 		synchronized (instance) {
-			if(deviceClass == null)
+			if(deviceClass == null) {
 				return instance.devices.size();
+			}
 			
 			int count = 0;
 			for(Device device : instance.devices) {
-				if(device.getClass() == deviceClass)
+				if(device.getClass() == deviceClass) {
 					++count;
+				}
 			}
 			return count;
 		}
@@ -149,8 +152,9 @@ public class Communicator {
 	@SuppressWarnings("unchecked")
 	private static <T extends Device> void notifyNewListenerOfExistingDevices(CommunicationHandler<T> handler, Device device) {
 		handler.onDeviceConnected((T) device, true);
-		if(device.isReady())
+		if(device.isReady()) {
 			handler.onDeviceReady((T) device, true);
+		}
 	}
 	
 	/**
@@ -170,8 +174,9 @@ public class Communicator {
 	private static int getHandlerIndexByListener(HandlerList handlerList, CommunicationListener<? extends Device> listener) {
 		synchronized(handlerList) {
 			for(int i = 0; i < handlerList.size(); ++i) {
-				if(handlerList.get(i).listener == listener)
+				if(handlerList.get(i).listener == listener) {
 					return i;
+				}
 			}
 			return -1;
 		}
@@ -191,19 +196,23 @@ public class Communicator {
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {
 		connections.add(connection);
 		
-		if(!handlers.containsKey(deviceClass))
+		if(!handlers.containsKey(deviceClass)) {
 			return;
-		for(CommunicationHandler<?> handler : handlers.get(deviceClass))
+		}
+		for(CommunicationHandler<?> handler : handlers.get(deviceClass)) {
 			handler.onStartConnecting(connection);
+		}
 	}
 
 	synchronized void notifyFailedToConnect(Connection connection, Class<? extends Device> deviceClass, Exception cause) {
 		connections.remove(connection);
 		
-		if(!handlers.containsKey(deviceClass))
+		if(!handlers.containsKey(deviceClass)) {
 			return;
-		for(CommunicationHandler<?> handler : handlers.get(deviceClass))
+		}
+		for(CommunicationHandler<?> handler : handlers.get(deviceClass)) {
 			handler.onFailedToConnect(connection, cause);
+		}
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -212,10 +221,12 @@ public class Communicator {
 		devices.add(device);
 		
 		Class<? extends Device> deviceClass = device.getClass();
-		if(!handlers.containsKey(deviceClass))
+		if(!handlers.containsKey(deviceClass)) {
 			return;
-		for(CommunicationHandler handler : handlers.get(deviceClass))
+		}
+		for(CommunicationHandler handler : handlers.get(deviceClass)) {
 			handler.onDeviceConnected(device, false);
+		}
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -224,13 +235,16 @@ public class Communicator {
 		
 		// Find a device with the disconnected connection
 		for(Device device : devices) {
-			if(device.getConnection() != connection)
+			if(device.getConnection() != connection) {
 				continue;
+			}
 			devices.remove(device);
-			if(!handlers.containsKey(deviceClass))
+			if(!handlers.containsKey(deviceClass)) {
 				return;
-			for(CommunicationHandler handler : handlers.get(deviceClass))
+			}
+			for(CommunicationHandler handler : handlers.get(deviceClass)) {
 				handler.onDeviceDisconnected(device);
+			}
 			break;
 		}
 	}
@@ -238,28 +252,34 @@ public class Communicator {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceReady(Device device) {
 		Class<? extends Device> deviceClass = device.getClass();
-		if(!handlers.containsKey(deviceClass))
+		if(!handlers.containsKey(deviceClass)) {
 			return;
-		for(CommunicationHandler handler : handlers.get(deviceClass))
+		}
+		for(CommunicationHandler handler : handlers.get(deviceClass)) {
 			handler.onDeviceReady(device, false);
+		}
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceMessageProcessed(Device device, CommunicationMessage message) {
 		Class<? extends Device> deviceClass = device.getClass();
-		if(!handlers.containsKey(deviceClass))
+		if(!handlers.containsKey(deviceClass)) {
 			return;
-		for(CommunicationHandler handler : handlers.get(deviceClass))
+		}
+		for(CommunicationHandler handler : handlers.get(deviceClass)) {
 			handler.onDeviceMessageProcessed(device, message);
+		}
 	}
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceUpdated(Device device) {
 		Class<? extends Device> deviceClass = device.getClass();
-		if(!handlers.containsKey(deviceClass))
+		if(!handlers.containsKey(deviceClass)) {
 			return;
-		for(CommunicationHandler handler : handlers.get(deviceClass))
+		}
+		for(CommunicationHandler handler : handlers.get(deviceClass)) {
 			handler.onDeviceUpdated(device);
+		}
 	}
 	
 }
