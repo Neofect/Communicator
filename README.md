@@ -1,5 +1,5 @@
 # NFCommunicator
-NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps all communication related implementation internally so make developers focus more on the business logic. And its modular structure makes application's structure more clear and easy to test modules independently. It is being used in two live products now and proved. It works on Android runtime.
+NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps the communication related implementations internally so make developers focus more on the business logic. And its modular structure makes application's structure more clear and easy to test modules independently. It is being used in two live products now and proved. It works on Android runtime.
 
 
 ## Features
@@ -595,3 +595,12 @@ Following is an example activity implementation.
 	}
 
 You can find the sample project in `/SampleProject` folder.
+
+
+## Configuration for Proguard
+To work with Proguard, following lines need to be added into proguard-project.txt.
+
+	-keepattributes Signature
+	-keepclassmembers class * extends com.neofect.communicator.Device {
+	    public <init>(com.neofect.communicator.Connection);
+	}
