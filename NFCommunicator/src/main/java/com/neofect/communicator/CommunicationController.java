@@ -91,7 +91,7 @@ public class CommunicationController<T extends Device> {
 		try {
 			return encoder.encodeMessage(message);
 		} catch(Exception e) {
-			throw new RuntimeException("Failed to encode a message! '" + message.getDescription() + "'", e);
+			throw new RuntimeException("Failed to encode a message! " + message.getDescription(), e);
 		}
 	}
 	

@@ -40,8 +40,9 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	
 	public BluetoothSppConnection(BluetoothDevice device, CommunicationController<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
-		if(connectionType != ConnectionType.BLUETOOTH_SPP && connectionType != ConnectionType.BLUETOOTH_SPP_INSECURE)
+		if(connectionType != ConnectionType.BLUETOOTH_SPP && connectionType != ConnectionType.BLUETOOTH_SPP_INSECURE) {
 			throw new IllegalArgumentException("Only SPP connection type is allowed!");
+		}
 	}
 	
 	private void cancelTransferThread() {
