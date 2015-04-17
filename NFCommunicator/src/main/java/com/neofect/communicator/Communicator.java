@@ -35,7 +35,7 @@ public class Communicator {
 	
 	private static Communicator instance = new Communicator();
 	
-	public static Communicator getInstance() {
+	static Communicator getInstance() {
 		return instance;
 	}
 	
@@ -128,6 +128,10 @@ public class Communicator {
 		}
 	}
 	
+	public static List<Device> getConnectedDevices() {
+		return instance.devices;
+	}
+	
 	/**
 	 * Returns the number of connected devices by device type. If the input param is null, it returns the number of all connected devices.
 	 * 
@@ -165,10 +169,10 @@ public class Communicator {
 	@SuppressWarnings("unchecked")
 	private static <T extends Device> Class<T> getClassFromGeneric(CommunicationListener<T> listener) {
 		try {
-			Type superclass = listener.getClass().getGenericSuperclass();
-			return (Class<T>) ((ParameterizedType) superclass).getActualTypeArguments()[0];
+			Type superClass = listener.getClass().getGenericSuperclass();
+			return (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
 		} catch(Exception e) {
-			throw new IllegalArgumentException("The given CommunicationListener is raw type. It must be parameterized with Device subclass!", e);
+			throw new IllegalArgumentException("Failed to get parameterized class type from the given generic!", e);
 		}
 	}
 	
