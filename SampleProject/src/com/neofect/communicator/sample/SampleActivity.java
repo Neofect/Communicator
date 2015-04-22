@@ -47,7 +47,8 @@ public class SampleActivity extends Activity {
 		}
 		
 		@Override
-		public void onFailedToConnect(Connection connection) {
+		public void onFailedToConnect(Connection connection, Exception cause) {
+			Log.e(LOG_TAG, "onFailedToConnect()", cause);
 			toggleButtonVisibility(false);
 			updateConnectionStatus("Failed to connect to '" + connection.getRemoteAddress() + "'");
 		}
