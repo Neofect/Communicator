@@ -81,7 +81,7 @@ public class CommunicationController<T extends Device> {
 	
 	public final byte[] encodeMessage(CommunicationMessage message) {
 		if(encoder == null) {
-			Log.e(LOG_TAG, "Message parser is not set!");
+			Log.e(LOG_TAG, "Message encoder is not set!");
 			return null;
 		} else if(message == null) {
 			Log.e(LOG_TAG, "Given message instance is null!");
@@ -102,7 +102,7 @@ public class CommunicationController<T extends Device> {
 	 */
 	final void decodeRawMessageAndProcess(Connection connection) {
 		if(decoder == null) {
-			Log.e(LOG_TAG, "Message parser is not set!");
+			Log.e(LOG_TAG, "Message decoder is not set!");
 			return;
 		}
 		
