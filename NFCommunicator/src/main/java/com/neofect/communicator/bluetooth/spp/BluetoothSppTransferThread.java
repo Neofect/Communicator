@@ -42,7 +42,7 @@ class BluetoothSppTransferThread extends Thread {
 	private OutputStream outputStream;
 
 	private byte[] buffer = new byte[BUFFER_SIZE];
-	private boolean isSocketClosed = false;
+	private boolean socketClosed = false;
 	
 	/**
 	 * Constructor for {@link BluetoothSppTransferThread}. This throws IOException when failed to get input / output streams from provided socket.
@@ -62,9 +62,9 @@ class BluetoothSppTransferThread extends Thread {
 	void cancel() {
 		try {
 			synchronized(this) {
-				if(!isSocketClosed) {
+				if(!socketClosed) {
 					socket.close();
-					isSocketClosed = true;
+					socketClosed = true;
 				}
 			}
 		} catch (IOException e) {
@@ -73,21 +73,26 @@ class BluetoothSppTransferThread extends Thread {
 	}
 	
 	void write(byte[] data) {
-		if(isSocketClosed) {
-			Log.e(LOG_TAG, "write() Connection is closed!");
-			return;
-		}
-		try {
-			outputStream.write(data);
-			connection.onWroteMessage(data);
-		} catch (Exception e) {
-			Log.e(LOG_TAG, "write() Failed to write!", e);
-			onDisconnected();
+		synchronized(this) {
+			if(!connection.isConnected()) {
+				Log.e(LOG_TAG, "write() Connection is closed!");
+				return;
+			}
+			try {
+				outputStream.write(data);
+				connection.onWroteMessage(data);
+			} catch (Exception e) {
+				Log.e(LOG_TAG, "write() Failed to write!", e);
+				onDisconnected();
+			}
 		}
 	}
 	
 	private void onDisconnected() {
 		synchronized(this) {
+			if(!connection.isConnected()) {
+				return;
+			}
 			try {
 				inputStream.close();
 			} catch (IOException e) {
@@ -99,8 +104,8 @@ class BluetoothSppTransferThread extends Thread {
 				Log.e(LOG_TAG, "", e);
 			}
 			cancel();
+			connection.onDisconnected();
 		}
-		connection.onDisconnected();
 	}
 	
 	@Override
