@@ -30,16 +30,16 @@ public abstract class BluetoothConnection extends Connection {
 
 	private static final String LOG_TAG = BluetoothConnection.class.getSimpleName();
 	
-	private BluetoothDevice	device;
+	private BluetoothDevice	bluetoothDevice;
 	private	boolean			disconnectRequested = false;
 	
 	public BluetoothConnection(BluetoothDevice device, CommunicationController<? extends Device> controller, ConnectionType connectionType) {
 		super(connectionType, controller);
-		this.device = device;
+		this.bluetoothDevice = device;
 	}
 	
-	public final BluetoothDevice getDevice() {
-		return device;
+	public final BluetoothDevice getBluetoothDevice() {
+		return bluetoothDevice;
 	}
 	
 	public final boolean isDisconnectRequested() {
@@ -53,13 +53,13 @@ public abstract class BluetoothConnection extends Connection {
 	
 	@Override
 	public String getRemoteAddress() {
-		return getDevice().getAddress();
+		return bluetoothDevice.getAddress();
 	}
 	
 	public String getDeviceName() {
 		String deviceName = null;
 		try {
-			deviceName = getDevice().getName();
+			deviceName = bluetoothDevice.getName();
 		} catch(Exception e) {
 			Log.e(LOG_TAG, "", e);
 		}

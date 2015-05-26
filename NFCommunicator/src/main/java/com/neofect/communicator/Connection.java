@@ -58,6 +58,14 @@ public abstract class Connection {
 		return status == Status.CONNECTED;
 	}
 	
+	public Device getDevice() {
+		return controller.getDevice();
+	}
+	
+	public Class<? extends Device> getDeviceClass() {
+		return controller.getDeviceClass();
+	}
+	
 	public Status getStatus() {
 		return status;
 	}

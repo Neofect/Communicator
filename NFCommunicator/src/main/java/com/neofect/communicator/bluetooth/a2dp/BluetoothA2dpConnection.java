@@ -196,9 +196,9 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		int connectionStateValue = 0;
 		try {
 			if(Build.VERSION.SDK_INT < 11)
-				connectionStateValue = a2dpService.getSinkState(getDevice());
+				connectionStateValue = a2dpService.getSinkState(getBluetoothDevice());
 			else
-				connectionStateValue = a2dpService.getConnectionState(getDevice());
+				connectionStateValue = a2dpService.getConnectionState(getBluetoothDevice());
 		} catch (RemoteException e) {
 			Log.e(LOG_TAG, "Error on getting A2DP connected sinks", e);
 			return false;
@@ -236,11 +236,11 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 			//it seems that exception does not include failure of connection, so made it return result value 
             boolean connectResult = false;
 			if(Build.VERSION.SDK_INT < 11) {
-				connectResult = a2dpService.connectSink(getDevice());
+				connectResult = a2dpService.connectSink(getBluetoothDevice());
 				Log.d(LOG_TAG, "connectProcess() Called a2dpService.connectSink() " + connectResult);
 			}
 			else {
-				connectResult = a2dpService.connect(getDevice());
+				connectResult = a2dpService.connect(getBluetoothDevice());
 				Log.d(LOG_TAG, "connectProcess() Called a2dpService.connect() " + connectResult);
 			}
 			return connectResult;
@@ -253,10 +253,10 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 	private void disconnectWithService() {
 		try {
 			if(Build.VERSION.SDK_INT < 11) {
-				a2dpService.disconnectSink(getDevice());
+				a2dpService.disconnectSink(getBluetoothDevice());
 				Log.d(LOG_TAG, "disconnectProcess() Called a2dpService.disconnectSink()");
 			} else {
-				a2dpService.disconnect(getDevice());
+				a2dpService.disconnect(getBluetoothDevice());
 				Log.d(LOG_TAG, "disconnectProcess() Called a2dpService.disconnect()");
 			}
 		} catch (RemoteException e) {

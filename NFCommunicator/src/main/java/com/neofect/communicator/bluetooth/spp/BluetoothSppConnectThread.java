@@ -45,7 +45,7 @@ class BluetoothSppConnectThread extends Thread {
 		// As recommended in http://developer.android.com/guide/topics/connectivity/bluetooth.html#ConnectingAsAClient
 		BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
 		
-		BluetoothDevice device = bluetoothConnection.getDevice();
+		BluetoothDevice device = bluetoothConnection.getBluetoothDevice();
 		
 		// Get a BluetoothSocket for a connection with the given BluetoothDevice.
 		BluetoothSocket socket = null;
