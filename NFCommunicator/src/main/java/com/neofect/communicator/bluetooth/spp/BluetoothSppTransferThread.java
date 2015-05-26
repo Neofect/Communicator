@@ -33,16 +33,16 @@ import com.neofect.communicator.bluetooth.BluetoothConnection;
 class BluetoothSppTransferThread extends Thread {
 
 	private static final String LOG_TAG = BluetoothSppTransferThread.class.getSimpleName();
-	private static final int	BUFFER_SIZE	= 1024;
+	private static final int BUFFER_SIZE	= 1024;
 	
 	private BluetoothSppConnection connection;
 	
-	private BluetoothSocket		socket;
-	private InputStream			inputStream; 
-	private OutputStream		outputStream;
+	private BluetoothSocket socket;
+	private InputStream inputStream; 
+	private OutputStream outputStream;
 
-	private byte[]				buffer			= new byte[BUFFER_SIZE];
-	private boolean				isSocketClosed	= false;
+	private byte[] buffer = new byte[BUFFER_SIZE];
+	private boolean isSocketClosed = false;
 	
 	/**
 	 * Constructor for {@link BluetoothSppTransferThread}. This throws IOException when failed to get input / output streams from provided socket.
@@ -59,7 +59,7 @@ class BluetoothSppTransferThread extends Thread {
 		outputStream = socket.getOutputStream();
 	}
 	
-	void	cancel() {
+	void cancel() {
 		try {
 			synchronized(this) {
 				if(!isSocketClosed) {
@@ -72,7 +72,11 @@ class BluetoothSppTransferThread extends Thread {
 		}
 	}
 	
-	void	write(byte[] data) {
+	void write(byte[] data) {
+		if(isSocketClosed) {
+			Log.e(LOG_TAG, "write() Connection is closed!");
+			return;
+		}
 		try {
 			outputStream.write(data);
 			connection.onWroteMessage(data);
@@ -82,7 +86,7 @@ class BluetoothSppTransferThread extends Thread {
 		}
 	}
 	
-	private void	onDisconnected() {
+	private void onDisconnected() {
 		synchronized(this) {
 			try {
 				inputStream.close();
