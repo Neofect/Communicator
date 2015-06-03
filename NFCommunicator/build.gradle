@@ -12,13 +12,7 @@ buildscript {
   }
 }
 
-tasks.whenTaskAdded { task ->
-  if (task.name in ['lint', 'testDebug', 'testRelease']) {
-    task.enabled = false
-  }
-}
-
-apply plugin: 'android-library'
+apply plugin: 'com.android.library'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
 
@@ -95,7 +89,7 @@ eclipse {
 
         // Remove the source paths and add again
         classpath.entries.removeAll { entry -> entry.kind == 'src' }
-        for(sourcePath in ['src/main/java', 'gen']) {
+        for(sourcePath in ['src/main/java', 'src/test/java', 'gen']) {
           if(!classpath.entries.any { entry -> entry.path == sourcePath }) {
             classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder(sourcePath, null))
           }
@@ -152,3 +146,11 @@ sourceCompatibility = '1.6'
 project.version = '1.1.1'
 project.group = 'com.neofect.communicator'
 archivesBaseName = rootProject.name.toLowerCase()
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+}

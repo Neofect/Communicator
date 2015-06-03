@@ -27,6 +27,7 @@ public class ByteRingBufferTest extends TestCase {
 	
 	@Override
 	protected void setUp() {
+		Log.setUseStandardOutput(true);
 		Log.setMessageOnlyWhenStandardOutput(true);
 		sequenceNumber = 0;
 	}
