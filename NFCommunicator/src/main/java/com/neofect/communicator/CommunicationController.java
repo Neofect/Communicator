@@ -17,6 +17,7 @@ package com.neofect.communicator;
 
 import android.util.Log;
 
+import com.neofect.communicator.exception.InappropriateDeviceException;
 import com.neofect.communicator.message.CommunicationMessage;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
@@ -131,6 +132,8 @@ public class CommunicationController<T extends Device> {
 				}
 			}
 			onAfterDeviceProcessInboundMessage(connection, message);
+		} catch(InappropriateDeviceException e) {
+			connection.forceFailedToConnectFromController(e);
 		} catch(Exception e) {
 			Log.e(LOG_TAG, "Failed to process a message! '" + message.getDescription() + "'", e);
 		}
