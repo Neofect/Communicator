@@ -74,6 +74,10 @@ public abstract class Connection {
 		return ringBuffer;
 	}
 	
+	public CommunicationController<? extends Device> getController() {
+		return controller;
+	}
+	
 	public void	write(byte[] data) {
 		Log.e(LOG_TAG, "write() is not implemented for this connection type!");
 	}
