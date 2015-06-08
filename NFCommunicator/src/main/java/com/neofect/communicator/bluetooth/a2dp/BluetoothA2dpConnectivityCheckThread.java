@@ -33,6 +33,7 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 	private boolean	canceled = false;
 	
 	BluetoothA2dpConnectivityCheckThread(BluetoothA2dpConnection connection) {
+		super("BluetoothA2dpConnectivityCheckThread");
 		this.connection = connection;
 	}
 	
@@ -47,8 +48,6 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 	
 	@Override
 	public void run() {
-		setName(this.getClass().getSimpleName());
-		
 		// Store the started time
 		if(connectingStartTimestamp == 0)
 			connectingStartTimestamp = System.currentTimeMillis();

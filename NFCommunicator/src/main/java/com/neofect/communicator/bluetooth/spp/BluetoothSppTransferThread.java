@@ -33,16 +33,16 @@ import com.neofect.communicator.bluetooth.BluetoothConnection;
 class BluetoothSppTransferThread extends Thread {
 
 	private static final String LOG_TAG = BluetoothSppTransferThread.class.getSimpleName();
-	private static final int	BUFFER_SIZE	= 1024;
+	private static final int BUFFER_SIZE	= 1024;
 	
 	private BluetoothSppConnection connection;
 	
-	private BluetoothSocket		socket;
-	private InputStream			inputStream; 
-	private OutputStream		outputStream;
+	private BluetoothSocket socket;
+	private InputStream inputStream; 
+	private OutputStream outputStream;
 
-	private byte[]				buffer			= new byte[BUFFER_SIZE];
-	private boolean				isSocketClosed	= false;
+	private byte[] buffer = new byte[BUFFER_SIZE];
+	private boolean socketClosed = false;
 	
 	/**
 	 * Constructor for {@link BluetoothSppTransferThread}. This throws IOException when failed to get input / output streams from provided socket.
@@ -52,18 +52,19 @@ class BluetoothSppTransferThread extends Thread {
 	 * @throws IOException
 	 */
 	BluetoothSppTransferThread(BluetoothSppConnection connection, BluetoothSocket socket) throws IOException {
+		super("BluetoothSppTransferThread");
 		this.connection = connection;
 		this.socket = socket;
 		inputStream = socket.getInputStream();
 		outputStream = socket.getOutputStream();
 	}
 	
-	void	cancel() {
+	void cancel() {
 		try {
 			synchronized(this) {
-				if(!isSocketClosed) {
+				if(!socketClosed) {
 					socket.close();
-					isSocketClosed = true;
+					socketClosed = true;
 				}
 			}
 		} catch (IOException e) {
@@ -71,18 +72,27 @@ class BluetoothSppTransferThread extends Thread {
 		}
 	}
 	
-	void	write(byte[] data) {
-		try {
-			outputStream.write(data);
-			connection.onWroteMessage(data);
-		} catch (Exception e) {
-			Log.e(LOG_TAG, "write() Failed to write!", e);
-			onDisconnected();
+	void write(byte[] data) {
+		synchronized(this) {
+			if(!connection.isConnected()) {
+				Log.e(LOG_TAG, "write() Connection is closed!");
+				return;
+			}
+			try {
+				outputStream.write(data);
+				connection.onWroteMessage(data);
+			} catch (Exception e) {
+				Log.e(LOG_TAG, "write() Failed to write!", e);
+				onDisconnected();
+			}
 		}
 	}
 	
-	private void	onDisconnected() {
+	private void onDisconnected() {
 		synchronized(this) {
+			if(!connection.isConnected()) {
+				return;
+			}
 			try {
 				inputStream.close();
 			} catch (IOException e) {
@@ -94,14 +104,12 @@ class BluetoothSppTransferThread extends Thread {
 				Log.e(LOG_TAG, "", e);
 			}
 			cancel();
+			connection.onDisconnected();
 		}
-		connection.onDisconnected();
 	}
 	
 	@Override
 	public void run() {
-		setName(this.getClass().getSimpleName());
-		
 		// If it is still trying to connect, wait some time.
 		while(connection.getStatus() == BluetoothConnection.Status.CONNECTING) {
 			try {

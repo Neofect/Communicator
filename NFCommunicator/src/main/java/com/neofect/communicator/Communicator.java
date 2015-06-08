@@ -35,7 +35,7 @@ public class Communicator {
 	
 	private static Communicator instance = new Communicator();
 	
-	public static Communicator getInstance() {
+	static Communicator getInstance() {
 		return instance;
 	}
 	
@@ -50,11 +50,12 @@ public class Communicator {
 	private HandlerListMap		handlers	= new HandlerListMap();
 	
 	public static void connect(String remoteAddress, ConnectionType connectionType, CommunicationController<? extends Device> controller) {
+		Connection connection = null;
 		try {
-			Connection connection = ConnectionFactory.createConnection(remoteAddress, connectionType, controller);
+			connection = ConnectionFactory.createConnection(remoteAddress, connectionType, controller);
 			connection.connect();
 		} catch(Exception e) {
-			Log.e(LOG_TAG, "", e);
+			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + remoteAddress + "'!", e));
 		}
 	}
 	
@@ -127,6 +128,10 @@ public class Communicator {
 		}
 	}
 	
+	public static List<Device> getConnectedDevices() {
+		return instance.devices;
+	}
+	
 	/**
 	 * Returns the number of connected devices by device type. If the input param is null, it returns the number of all connected devices.
 	 * 
@@ -164,10 +169,10 @@ public class Communicator {
 	@SuppressWarnings("unchecked")
 	private static <T extends Device> Class<T> getClassFromGeneric(CommunicationListener<T> listener) {
 		try {
-			Type superclass = listener.getClass().getGenericSuperclass();
-			return (Class<T>) ((ParameterizedType) superclass).getActualTypeArguments()[0];
+			Type superClass = listener.getClass().getGenericSuperclass();
+			return (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
 		} catch(Exception e) {
-			throw new IllegalArgumentException("The given CommunicationListener is raw type. It must be parameterized with Device subclass!", e);
+			throw new IllegalArgumentException("Failed to get parameterized class type from the given generic!", e);
 		}
 	}
 	
@@ -217,6 +222,7 @@ public class Communicator {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyConnected(Device device) {
+		Log.d(LOG_TAG, "notifyConnected() device=" + device.getConnection().getRemoteAddress());
 		connections.remove(device.getConnection());
 		devices.add(device);
 		
@@ -231,6 +237,7 @@ public class Communicator {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDisconnected(Connection connection, Class<? extends Device> deviceClass) {
+		Log.d(LOG_TAG, "notifyDisconnected() connection=" + connection.getDescription());
 		connections.remove(connection);
 		
 		// Find a device with the disconnected connection

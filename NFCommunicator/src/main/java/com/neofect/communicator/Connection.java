@@ -58,12 +58,24 @@ public abstract class Connection {
 		return status == Status.CONNECTED;
 	}
 	
+	public Device getDevice() {
+		return controller.getDevice();
+	}
+	
+	public Class<? extends Device> getDeviceClass() {
+		return controller.getDeviceClass();
+	}
+	
 	public Status getStatus() {
 		return status;
 	}
 	
 	public ByteRingBuffer getRingBuffer() {
 		return ringBuffer;
+	}
+	
+	public CommunicationController<? extends Device> getController() {
+		return controller;
 	}
 	
 	public void	write(byte[] data) {
@@ -89,6 +101,11 @@ public abstract class Connection {
 		status = Status.CONNECTING;
 		controller.onStartConnecting(this);
 		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
+	}
+	
+	void forceFailedToConnectFromController(Exception cause) {
+		disconnect();
+		handleFailedToConnect(cause);
 	}
 	
 	protected final void handleFailedToConnect(Exception cause) {

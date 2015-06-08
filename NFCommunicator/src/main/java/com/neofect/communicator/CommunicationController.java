@@ -17,6 +17,7 @@ package com.neofect.communicator;
 
 import android.util.Log;
 
+import com.neofect.communicator.exception.InappropriateDeviceException;
 import com.neofect.communicator.message.CommunicationMessage;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
@@ -81,7 +82,7 @@ public class CommunicationController<T extends Device> {
 	
 	public final byte[] encodeMessage(CommunicationMessage message) {
 		if(encoder == null) {
-			Log.e(LOG_TAG, "Message parser is not set!");
+			Log.e(LOG_TAG, "Message encoder is not set!");
 			return null;
 		} else if(message == null) {
 			Log.e(LOG_TAG, "Given message instance is null!");
@@ -102,7 +103,7 @@ public class CommunicationController<T extends Device> {
 	 */
 	final void decodeRawMessageAndProcess(Connection connection) {
 		if(decoder == null) {
-			Log.e(LOG_TAG, "Message parser is not set!");
+			Log.e(LOG_TAG, "Message decoder is not set!");
 			return;
 		}
 		
@@ -131,6 +132,8 @@ public class CommunicationController<T extends Device> {
 				}
 			}
 			onAfterDeviceProcessInboundMessage(connection, message);
+		} catch(InappropriateDeviceException e) {
+			connection.forceFailedToConnectFromController(e);
 		} catch(Exception e) {
 			Log.e(LOG_TAG, "Failed to process a message! '" + message.getDescription() + "'", e);
 		}

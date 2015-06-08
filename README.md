@@ -1,5 +1,11 @@
 # NFCommunicator
-NFCommunicator is a framework for simplifying application structure which communicates with remote entity. It wraps the communication related implementations internally so make developers focus more on the business logic. And its modular structure makes application's structure more clear and easy to test modules independently. It is being used in two live products now and proved. It works on Android runtime.
+NFCommunicator is a library for Bluetooth communication on Android. It mainly works with devices which an Android device connects to via Bluetooth SPP. But it can be used for any Bluetooth SPP communication which defines binary communication protocol.
+
+NFCommunicator wraps the communication related implementations internally so help developers focus on the business logic. Due to its event handling architecture, an application using it only needs to implement its behavior corresponding with the communication events such as connection established, message received, connection disconnected and so on. Events are being dispatched by NFCommunicator to the listeners which are registered by application.
+
+Device specific binary protocols can be easily implemented since the structure for packet encoder, decoder and protocol control is constructed modularly. Consequently it is easy to modify and test.
+
+It is currently adopted into two products which are in live at the moment.
 
 
 ## Features

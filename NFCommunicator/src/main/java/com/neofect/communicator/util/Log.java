@@ -47,6 +47,10 @@ public class Log {
 		}
 	}
 	
+	public static void setUseStandardOutput(boolean useStandardOutput) {
+		Log.USE_STANDARD_OUTPUT = useStandardOutput;
+	}
+	
 	public static void setMessageOnlyWhenStandardOutput(boolean messageOnlyWhenStandardOutput) {
 		Log.messageOnlyWhenStandardOutput = messageOnlyWhenStandardOutput;
 	}
