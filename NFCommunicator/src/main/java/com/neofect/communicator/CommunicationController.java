@@ -35,6 +35,8 @@ public class CommunicationController<T extends Device> {
 	
 	private MessageEncoder encoder;
 	private MessageDecoder decoder;
+	private boolean deviceConnected = false;
+	private boolean notifiedDeviceReady = false;
 	
 	public CommunicationController(Class<T> deviceClass) {
 		this.deviceClass = deviceClass;
@@ -63,13 +65,37 @@ public class CommunicationController<T extends Device> {
 			return;
 		}
 		device.setReady(true);
-		Communicator.getInstance().notifyDeviceReady(device);
+		if(deviceConnected) {
+			Communicator.getInstance().notifyDeviceReady(device);
+			notifiedDeviceReady = true;
+		}
 	}
 	
-	final T onConnectedInner(Connection connection) {
+	void onStartConnectingInner(Connection connection) {
+		onStartConnecting(connection);
+		Communicator.getInstance().notifyStartConnecting(connection, deviceClass);
+	}
+	
+	void onConnectedInner(Connection connection) {
 		device = Communicator.createDeviceInstance(connection, deviceClass);
 		onConnected(device);
-		return device;
+		Communicator.getInstance().notifyConnected(device);
+		
+		deviceConnected = true;
+		if(device.isReady() && !notifiedDeviceReady) {
+			Communicator.getInstance().notifyDeviceReady(device);
+			notifiedDeviceReady = true;
+		}
+	}
+	
+	void onDisconnectedInner(Connection connection) {
+		onDisconnected(connection);
+		Communicator.getInstance().notifyDisconnected(connection, deviceClass);
+	}
+	
+	void onFailedToConnectInner(Connection connection, Exception cause) {
+		onFailedToConnect(connection, cause);
+		Communicator.getInstance().notifyFailedToConnect(connection, deviceClass, cause);
 	}
 	
 	protected final T getDevice() {

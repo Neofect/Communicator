@@ -99,8 +99,7 @@ public abstract class Connection {
 	
 	protected final void handleConnecting() {
 		status = Status.CONNECTING;
-		controller.onStartConnecting(this);
-		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
+		controller.onStartConnectingInner(this);
 	}
 	
 	void forceFailedToConnectFromController(Exception cause) {
@@ -110,15 +109,13 @@ public abstract class Connection {
 	
 	protected final void handleFailedToConnect(Exception cause) {
 		status = Status.NOT_CONNECTED;
-		controller.onFailedToConnect(this, cause);
-		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
+		controller.onFailedToConnectInner(this, cause);
 	}
 	
 	protected final void handleConnected() {
 		try {
 			status = Status.CONNECTED;
-			Device device = controller.onConnectedInner(this);
-			Communicator.getInstance().notifyConnected(device);
+			controller.onConnectedInner(this);
 		} catch(Exception e) {
 			try {
 				this.disconnect();
@@ -131,8 +128,7 @@ public abstract class Connection {
 	
 	protected final void handleDisconnected() {
 		status = Status.NOT_CONNECTED;
-		controller.onDisconnected(this);
-		Communicator.getInstance().notifyDisconnected(this, controller.getDeviceClass());
+		controller.onDisconnectedInner(this);
 	}
 	
 }
