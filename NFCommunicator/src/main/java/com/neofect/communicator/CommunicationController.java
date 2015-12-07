@@ -55,6 +55,18 @@ public class CommunicationController<T extends Device> {
 	protected void onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
 	protected void onAfterDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
 	
+	protected void handleExceptionFromDecodeMessage(Exception exception, Connection connection) {
+		Log.e(LOG_TAG, "Failed to decode message!", exception);
+	}
+	
+	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, CommunicationMessage message) {
+		if(exception instanceof InappropriateDeviceException) {
+			connection.forceFailedToConnectFromController(exception);
+		} else {
+			Log.e(LOG_TAG, "Failed to process a message! '" + message.getDescription() + "'", exception);
+		}
+	}
+	
 	/**
 	 * This method should be called by subclass when it is determined whether a device is connected AND ready.
 	 * @param device
@@ -138,7 +150,7 @@ public class CommunicationController<T extends Device> {
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
-				Log.e(LOG_TAG, "Failed to decode message!", e);
+				handleExceptionFromDecodeMessage(e, connection);
 			}
 			if(message == null) {
 				break;
@@ -146,7 +158,7 @@ public class CommunicationController<T extends Device> {
 			processInboundMessage(connection, message);
 		}
 	}
-	
+
 	private void processInboundMessage(Connection connection, CommunicationMessage message) {
 		try {
 			onBeforeDeviceProcessInboundMessage(connection, message);
@@ -158,10 +170,8 @@ public class CommunicationController<T extends Device> {
 				}
 			}
 			onAfterDeviceProcessInboundMessage(connection, message);
-		} catch(InappropriateDeviceException e) {
-			connection.forceFailedToConnectFromController(e);
 		} catch(Exception e) {
-			Log.e(LOG_TAG, "Failed to process a message! '" + message.getDescription() + "'", e);
+			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
 	}
 	

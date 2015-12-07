@@ -15,6 +15,7 @@
  */
 package com.neofect.communicator.message;
 
+import com.neofect.communicator.exception.UndefinedMessageIdException;
 import com.neofect.communicator.util.ByteArrayConverter;
 import com.neofect.communicator.util.ByteRingBuffer;
 import com.neofect.communicator.util.Log;
@@ -36,8 +37,9 @@ public abstract class MessageDecoder {
 	private CommunicationMessage createCommunicationMessageInstance(byte[] messageId) {
 		// Get message class from class mapper
 		Class<? extends CommunicationMessage> messageClass = messageClassMapper.getMessageClassById(messageId);
-		if(messageClass == null)
-			throw new IllegalArgumentException("Not existing message ID! '0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'");
+		if(messageClass == null) {
+			throw new UndefinedMessageIdException(messageId, "Not existing message ID! '0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'");
+		}
 		
 		CommunicationMessage message = null;
 		try {
