@@ -67,6 +67,17 @@ public class CommunicationController<T extends Device> {
 		}
 	}
 	
+	private static <T extends Device> T createDeviceInstance(Connection connection, Class<T> deviceClass) {
+		// Create an instance of the device.
+		T device = null;
+		try {
+			device = deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
+		}
+		return device;
+	}
+	
 	/**
 	 * This method should be called by subclass when it is determined whether a device is connected AND ready.
 	 * @param device
@@ -89,7 +100,7 @@ public class CommunicationController<T extends Device> {
 	}
 	
 	void onConnectedInner(Connection connection) {
-		device = Communicator.createDeviceInstance(connection, deviceClass);
+		device = createDeviceInstance(connection, deviceClass);
 		onConnected(device);
 		Communicator.getInstance().notifyConnected(device);
 		
