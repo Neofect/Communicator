@@ -15,12 +15,13 @@
  */
 package com.neofect.communicator;
 
-import android.util.Log;
-
 import com.neofect.communicator.exception.InappropriateDeviceException;
 import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
+
+import android.util.Log;
 
 /**
  * @author neo.kim@neofect.com
@@ -184,6 +185,35 @@ public class CommunicationController<T extends Device> {
 		} catch(Exception e) {
 			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
+	}
+	
+	public MessageEncoder getMessageEncoder() {
+		return encoder;
+	}
+	
+	public void setMessageEncoder(MessageEncoder encoder) {
+		this.encoder = encoder;
+	}
+	
+	public MessageDecoder getMessageDecoder() {
+		return decoder;
+	}
+	
+	public void setMessageDecoder(MessageDecoder decoder) {
+		this.decoder = decoder;
+	}
+	
+	public void setMessageClassMapperForEncoder(MessageClassMapper mapper) {
+		encoder.setMessageClassMapper(mapper);
+	}
+	
+	public void setMessageClassMapperForDecoder(MessageClassMapper mapper) {
+		decoder.setMessageClassMapper(mapper);
+	}
+	
+	public void setMessageClassMapper(MessageClassMapper mapper) {
+		encoder.setMessageClassMapper(mapper);
+		decoder.setMessageClassMapper(mapper);
 	}
 	
 }

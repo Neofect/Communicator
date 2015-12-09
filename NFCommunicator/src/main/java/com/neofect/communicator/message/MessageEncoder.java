@@ -21,7 +21,7 @@ package com.neofect.communicator.message;
  */
 public abstract class MessageEncoder {
 	
-	private MessageClassMapper	messageClassMapper;
+	private MessageClassMapper messageClassMapper;
 	
 	public MessageEncoder(MessageClassMapper messageClassMapper) {
 		this.messageClassMapper = messageClassMapper;
@@ -29,6 +29,14 @@ public abstract class MessageEncoder {
 	
 	protected final byte[] getMessageId(Class<? extends CommunicationMessage> messageClass) {
 		return messageClassMapper.getMessageIdByClass(messageClass);
+	}
+	
+	public MessageClassMapper getMessageClassMapper() {
+		return messageClassMapper;
+	}
+	
+	public void setMessageClassMapper(MessageClassMapper messageClassMapper) {
+		this.messageClassMapper = messageClassMapper;
 	}
 	
 	/**

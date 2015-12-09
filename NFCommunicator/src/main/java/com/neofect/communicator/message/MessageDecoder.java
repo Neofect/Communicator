@@ -28,9 +28,17 @@ public abstract class MessageDecoder {
 
 	private static final String LOG_TAG = MessageDecoder.class.getSimpleName();
 	
-	private MessageClassMapper	messageClassMapper;
+	private MessageClassMapper messageClassMapper;
 	
 	public MessageDecoder(MessageClassMapper messageClassMapper) {
+		this.messageClassMapper = messageClassMapper;
+	}
+	
+	public MessageClassMapper getMessageClassMapper() {
+		return messageClassMapper;
+	}
+	
+	public void setMessageClassMapper(MessageClassMapper messageClassMapper) {
 		this.messageClassMapper = messageClassMapper;
 	}
 	
