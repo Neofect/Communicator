@@ -53,7 +53,14 @@ public class CommunicationController<T extends Device> {
 	protected void onFailedToConnect(Connection connection, Exception cause) {}
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
-	protected void onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
+	/**
+	 * This delegate API returns true if the given message must not processed by the device after this method.
+	 * 
+	 * @param connection
+	 * @param message
+	 * @return If true returned, the message processing by device will be bypassed. 
+	 */
+	protected boolean onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
 	protected void onAfterDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
 	
 	protected void handleExceptionFromDecodeMessage(Exception exception, Connection connection) {
@@ -173,7 +180,11 @@ public class CommunicationController<T extends Device> {
 
 	private void processInboundMessage(Connection connection, CommunicationMessage message) {
 		try {
-			onBeforeDeviceProcessInboundMessage(connection, message);
+			boolean passMessageProcessingByDevice = onBeforeDeviceProcessInboundMessage(connection, message);
+			if(passMessageProcessingByDevice) {
+				return;
+			}
+			
 			if(device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
