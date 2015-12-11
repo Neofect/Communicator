@@ -188,7 +188,7 @@ public class CommunicationController<T extends Device> {
 			if(device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
-				if(deviceUpdated) {
+				if(device.isReady() && deviceUpdated) {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}
