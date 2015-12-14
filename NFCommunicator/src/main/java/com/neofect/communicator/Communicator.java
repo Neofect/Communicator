@@ -39,7 +39,7 @@ public class Communicator {
 		return instance;
 	}
 	
-	/** Aliases for short type name */
+	/** Aliases for short type names */
 	@SuppressWarnings("serial")
 	private static class HandlerList extends ArrayList<CommunicationHandler<? extends Device>> {}
 	@SuppressWarnings("serial")
@@ -185,17 +185,6 @@ public class Communicator {
 			}
 			return -1;
 		}
-	}
-	
-	static <T extends Device> T createDeviceInstance(Connection connection, Class<T> deviceClass) {
-		// Create an instance of the device.
-		T device = null;
-		try {
-			device = deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
-		} catch (Exception e) {
-			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
-		}
-		return device;
 	}
 	
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {

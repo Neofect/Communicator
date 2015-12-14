@@ -15,12 +15,13 @@
  */
 package com.neofect.communicator;
 
-import android.util.Log;
-
 import com.neofect.communicator.exception.InappropriateDeviceException;
 import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
+
+import android.util.Log;
 
 /**
  * @author neo.kim@neofect.com
@@ -52,8 +53,38 @@ public class CommunicationController<T extends Device> {
 	protected void onFailedToConnect(Connection connection, Exception cause) {}
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
-	protected void onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
+	/**
+	 * This delegate API returns true if the given message must not processed by the device after this method.
+	 * 
+	 * @param connection
+	 * @param message
+	 * @return If true returned, the message processing by device will be bypassed. 
+	 */
+	protected boolean onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
 	protected void onAfterDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
+	
+	protected void handleExceptionFromDecodeMessage(Exception exception, Connection connection) {
+		Log.e(LOG_TAG, "Failed to decode message!", exception);
+	}
+	
+	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, CommunicationMessage message) {
+		if(exception instanceof InappropriateDeviceException) {
+			connection.forceFailedToConnectFromController(exception);
+		} else {
+			Log.e(LOG_TAG, "Failed to process a message! '" + message.getDescription() + "'", exception);
+		}
+	}
+	
+	private static <T extends Device> T createDeviceInstance(Connection connection, Class<T> deviceClass) {
+		// Create an instance of the device.
+		T device = null;
+		try {
+			device = deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
+		}
+		return device;
+	}
 	
 	/**
 	 * This method should be called by subclass when it is determined whether a device is connected AND ready.
@@ -77,7 +108,7 @@ public class CommunicationController<T extends Device> {
 	}
 	
 	void onConnectedInner(Connection connection) {
-		device = Communicator.createDeviceInstance(connection, deviceClass);
+		device = createDeviceInstance(connection, deviceClass);
 		onConnected(device);
 		Communicator.getInstance().notifyConnected(device);
 		
@@ -138,7 +169,7 @@ public class CommunicationController<T extends Device> {
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
-				Log.e(LOG_TAG, "Failed to decode message!", e);
+				handleExceptionFromDecodeMessage(e, connection);
 			}
 			if(message == null) {
 				break;
@@ -146,23 +177,54 @@ public class CommunicationController<T extends Device> {
 			processInboundMessage(connection, message);
 		}
 	}
-	
+
 	private void processInboundMessage(Connection connection, CommunicationMessage message) {
 		try {
-			onBeforeDeviceProcessInboundMessage(connection, message);
+			boolean passMessageProcessingByDevice = onBeforeDeviceProcessInboundMessage(connection, message);
+			if(passMessageProcessingByDevice) {
+				return;
+			}
+			
 			if(device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
-				if(deviceUpdated) {
+				if(device.isReady() && deviceUpdated) {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}
 			onAfterDeviceProcessInboundMessage(connection, message);
-		} catch(InappropriateDeviceException e) {
-			connection.forceFailedToConnectFromController(e);
 		} catch(Exception e) {
-			Log.e(LOG_TAG, "Failed to process a message! '" + message.getDescription() + "'", e);
+			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
+	}
+	
+	public MessageEncoder getMessageEncoder() {
+		return encoder;
+	}
+	
+	public void setMessageEncoder(MessageEncoder encoder) {
+		this.encoder = encoder;
+	}
+	
+	public MessageDecoder getMessageDecoder() {
+		return decoder;
+	}
+	
+	public void setMessageDecoder(MessageDecoder decoder) {
+		this.decoder = decoder;
+	}
+	
+	public void setMessageClassMapperForEncoder(MessageClassMapper mapper) {
+		encoder.setMessageClassMapper(mapper);
+	}
+	
+	public void setMessageClassMapperForDecoder(MessageClassMapper mapper) {
+		decoder.setMessageClassMapper(mapper);
+	}
+	
+	public void setMessageClassMapper(MessageClassMapper mapper) {
+		encoder.setMessageClassMapper(mapper);
+		decoder.setMessageClassMapper(mapper);
 	}
 	
 }

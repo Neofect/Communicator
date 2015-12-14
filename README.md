@@ -9,7 +9,7 @@ It is currently adopted into two products which are in live at the moment.
 
 
 ## Features
-* Protocol is implemented as a indenpendent module
+* Protocol is implemented as an independent module
   * It is easy to test and maintain.
   * It is reusable even though connection type is changed to another.
 * Event driven
