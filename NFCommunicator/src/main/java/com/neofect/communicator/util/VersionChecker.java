@@ -51,7 +51,7 @@ public class VersionChecker {
 			
 			boolean biggerThanMin = false;
 			boolean smallerThanMax = false;
-			for (int i = 0; i < maxLength && (!biggerThanMin || !smallerThanMax); ++i) {
+			for (int i = 0; i < maxLength; ++i) {
 				if(!biggerThanMin) {
 					if(target[i] < min[i]) {
 						return false;
@@ -66,6 +66,10 @@ public class VersionChecker {
 					} else if(target[i] < max[i]) {
 						smallerThanMax = true;
 					}
+				}
+				
+				if(biggerThanMin && smallerThanMax) {
+					break;
 				}
 			}
 		} catch (Exception e) {
@@ -102,20 +106,20 @@ public class VersionChecker {
 	}
 	
 	public static void main(String[] args) {
-		String[][] dataSet = {
+		String[][] dataSet1 = {
 				{ "1.0", "1.0", "1.0", "true"},
 				{ "1.0.0.0.0.0.0.1", "1.0", "3.0.5", "true"},
 				{ "1.1", "1.00000.00.11.3330.13131", "1.1", "true"},
 				{ "1.0.0.0.0.0.0.1", "1.0", "1.0.5", "true"},
 				{ "1.0.3", "1.3", "1.4", "false"},
 				{ "1.0.4", "1.0", "1.0.5", "true" },
-				{ "1.0.5", "1.0", "1.0.5", "false" },
+				{ "1.0.5", "1.0", "1.0.5", "true" },
 		};
 		
-		for(int i = 0; i < dataSet.length; ++i) {
-			String[] data = dataSet[i];
+		for(int i = 0; i < dataSet1.length; ++i) {
+			String[] data = dataSet1[i];
 			boolean result = VersionChecker.check(data[0], data[1], data[2]);
-			Log.d(LOG_TAG, data[0] + ", " + data[1] + ", " + data[2] + ", result=" + result);
+			Log.d(LOG_TAG, data[0] + ", " + data[1] + ", " + data[2] + ", result=" + result + ", expected=" + data[3]);
 			if(result != Boolean.parseBoolean(data[3])) {
 				Log.e(LOG_TAG, "Failed!");
 			}
@@ -123,10 +127,20 @@ public class VersionChecker {
 		
 		Log.d(LOG_TAG, "------");
 		
-		for(int i = 0; i < dataSet.length; ++i) {
-			String[] data = dataSet[i];
+		String[][] dataSet2 = {
+				{ "1.0", "1.0", "1.0", "false"},
+				{ "1.0.0.0.0.0.0.1", "1.0", "3.0.5", "true"},
+				{ "1.1", "1.00000.00.11.3330.13131", "1.1", "false"},
+				{ "1.0.0.0.0.0.0.1", "1.0", "1.0.5", "true"},
+				{ "1.0.3", "1.3", "1.4", "false"},
+				{ "1.0.4", "1.0", "1.0.5", "true" },
+				{ "1.0.5", "1.0", "1.0.5", "false" },
+		};
+		
+		for(int i = 0; i < dataSet2.length; ++i) {
+			String[] data = dataSet2[i];
 			boolean result = VersionChecker.checkExcludingMaxVersion(data[0], data[1], data[2]);
-			Log.d(LOG_TAG, data[0] + ", " + data[1] + ", " + data[2] + ", result=" + result);
+			Log.d(LOG_TAG, data[0] + ", " + data[1] + ", " + data[2] + ", result=" + result + ", expected=" + data[3]);
 			if(result != Boolean.parseBoolean(data[3])) {
 				Log.e(LOG_TAG, "Failed!");
 			}
