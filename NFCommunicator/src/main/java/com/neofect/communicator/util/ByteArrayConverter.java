@@ -27,7 +27,8 @@ public class ByteArrayConverter {
 	private static final String	LOG_TAG	= ByteArrayConverter.class.getSimpleName();
 
 	/**
-	 * 'fa3db9' 형태의 hex string을 byte[]로 반환한다.
+	 * Convert a hex string to a byte array.
+	 * @param hex A hex string like 'fa3db9'.
 	 */
 	public static byte[] hexToByteArray(String hex) {
 		if (hex == null || hex.length() == 0) {
@@ -42,7 +43,8 @@ public class ByteArrayConverter {
 	}
 
 	/**
-	 * 'fa 3d b9' 형태의 hex string을 byte[]로 반환한다.
+	 * Convert a hex string containing spaces to a byte array.
+	 * @param hex A hex string like 'fa 3d b9'.
 	 */
 	public static byte[] hexToByteArrayWithSpace(String hex) {
 		if (hex == null || hex.length() == 0) {
@@ -58,57 +60,41 @@ public class ByteArrayConverter {
 	}
 
 	/**
-	 * byte array를 'fa 3d b9' 형태의 hex string으로 변환한다.
-	 * 
-	 * @param byte[]
-	 * @return hex string
+	 * Convert a byte value to a hex string.
 	 */
-	public static String byteToHex(byte b) {
-		String result = Integer.toHexString(0xff & b);
-		if (result.length() == 1)
+	public static String byteToHex(byte byteValue) {
+		String result = Integer.toHexString(0xff & byteValue);
+		if (result.length() == 1) {
 			result = "0" + result;
+		}
 		return result;
 	}
 
 	/**
-	 * byte array를 'fa 3d b9' 형태의 hex string으로 변환한다.
-	 * 
-	 * @param byte[]
-	 * @return hex string
+	 * Convert a byte array to a hex string containing spaces.
+	 * @return A hex string like 'fa 3d b9'.
 	 */
 	public static String byteArrayToHex(byte[] ba) {
 		return byteArrayToHex(ba, 0, ba.length);
 	}
 	
 	/**
-	 * byte array를 'fa3db9' 형태의 hex string으로 변환한다.
-	 * 
-	 * @param byte[]
-	 * @return hex string
+	 * Convert a byte array to a hex string without spaces.
+	 * @return A hex string like 'fa3db9'.
 	 */
 	public static String byteArrayToHexWithoutSpace(byte[] ba) {
 		return byteArrayToHex(ba, 0, ba.length, false);
 	}
 
 	/**
-	 * byte array를 'fa 3d b9' 형태의 hex string으로 변환한다.
-	 * 
-	 * @param byte[]
-	 * @param startIndex	시작 인덱스
-	 * @param endIndex		종료 인덱스
-	 * @return hex string
+	 * Convert a byte array to a hex string without spaces.
 	 */
 	public static String byteArrayToHex(byte[] ba, int startIndex, int endIndex) {
 		return byteArrayToHex(ba, startIndex, endIndex, true);
 	}
 	
 	/**
-	 * byte array를 'fa 3d b9' 형태의 hex string으로 변환한다.
-	 * 
-	 * @param byte[]
-	 * @param startIndex	시작 인덱스
-	 * @param endIndex		종료 인덱스
-	 * @return hex string
+	 * Convert a byte array to a hex string.
 	 */
 	public static String byteArrayToHex(byte[] ba, int startIndex, int endIndex, boolean includeSpace) {
 		if (ba == null || ba.length == 0 || startIndex == endIndex)
@@ -128,20 +114,23 @@ public class ByteArrayConverter {
 		}
 		return sb.toString();
 	}
-
+	
+	/**
+	 * Convert an integer value to a byte array.
+	 */
 	public static byte[] intToByteArray(int integer, ByteOrder byteOrder) {
 		return ByteBuffer.allocate(Integer.SIZE / 8).order(byteOrder).putInt(integer).array();
 	}
 
 	/**
-	 * Convert the byte array to an integer value.
+	 * Convert a byte array to an integer value.
 	 */
 	public static int byteArrayToInt(byte[] bytes, int startIndex, int length) {
 		return byteArrayToInt(bytes, startIndex, length, ByteOrder.BIG_ENDIAN);
 	}
 
 	/**
-	 * Convert the byte array to an integer value.
+	 * Convert a byte array to an integer value.
 	 */
 	public static int byteArrayToInt(byte[] bytes, int startIndex, int length, ByteOrder byteOrder) {
     	if(bytes == null)
@@ -168,14 +157,8 @@ public class ByteArrayConverter {
         buff.order(byteOrder);
         return buff.getInt();
     }
-    
+	
     /**
-	 * byte[]를 numForRow 길이의 row 로 정열하여 HEX 문자열로 변환해 반환한다. 
-     * default format "%#-2x "
-     * @param array
-     * @param numForRow
-     * @return
-     * String
      * @author "wjchoi@neofect.com"
      */
 	public static String byteArrayToHex(byte[] array, int numForRow) {
@@ -183,17 +166,12 @@ public class ByteArrayConverter {
 	}
 	
 	/**
-	 * 출력 문자열에 format 을 적용할 수 있다. 
-	 * @param array
-	 * @param numForRow
-	 * @param format example) "%#-2x ", "%c "
-	 * @return
-	 * String
      * @author "wjchoi@neofect.com"
 	 */
 	public static String byteArrayToHex(byte[] array, int numForRow, String format) {
-		if(array == null)
+		if(array == null) {
 			return null;
+		}
 		
 		int byteLen = array.length;
 
@@ -206,8 +184,9 @@ public class ByteArrayConverter {
 			byteArrayElements.append(String.format(format, b));
 
 			// intent to feed a line per a numForRow
-			if( ((loop+1)% numForRow ==0) && ((loop+1)/numForRow >=1) )
+			if( ((loop+1)% numForRow ==0) && ((loop+1)/numForRow >=1) ) {
 				byteArrayElements.append("\n");
+			}
 		}
 		return byteArrayElements.toString();
 	}
