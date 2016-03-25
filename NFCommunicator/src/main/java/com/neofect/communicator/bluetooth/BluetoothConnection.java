@@ -63,8 +63,9 @@ public abstract class BluetoothConnection extends Connection {
 		} catch(Exception e) {
 			Log.e(LOG_TAG, "", e);
 		}
-		if(deviceName == null)
+		if(deviceName == null) {
 			deviceName = "Unknown";
+		}
 		return deviceName;
 	}
 	
