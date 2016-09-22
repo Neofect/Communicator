@@ -1,156 +1,18 @@
-println 'Project name - ' + project.name
-
-// download gradle for build android, if not exist
 buildscript {
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath 'com.android.tools.build:gradle:1.2.2'
-    // NOTE: Do not place your application dependencies here: they belong
-    // in the individual module build.gradle files
-  }
-}
-
-apply plugin: 'com.android.library'
-apply plugin: 'maven'
-apply plugin: 'eclipse'
-
-// use nexus's user and url
-repositories { 
-  maven {
-    credentials {
-      username NEXUS_USERNAME
-      password NEXUS_PASSWORD
+    repositories {
+        jcenter()
     }
-    url NEXUS_SNAPSHOTS_URL
-  }
-  
-  maven {
-    credentials {
-      username NEXUS_USERNAME
-      password NEXUS_PASSWORD
+    dependencies {
+        classpath 'com.android.tools.build:gradle:2.2.0'
     }
-    url NEXUS_RELEASES_URL
-  }
 }
 
-android {
-  compileSdkVersion 10
-
-  // Android SDK Tools version
-  buildToolsVersion '22.0.1'
-
-  // adapt eclipse's style
-  sourceSets {
-    main {
-      manifest.srcFile 'AndroidManifest.xml'
-      java.srcDirs = ['src/main/java']
-      resources.srcDirs = ['src/main/java']
-      aidl.srcDirs = ['src/main/java']
-      renderscript.srcDirs = ['src/main/java']
-      res.srcDirs = ['res']
-      assets.srcDirs = ['assets']
+allprojects {
+    repositories {
+        jcenter()
     }
-  }
-
-  // check for updates every build in snapshot
-  configurations.all {
-    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
-  }
-
 }
 
-// for make jar instead aar
-android.libraryVariants.all { variant ->
-  def name = variant.buildType.name
-  if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
-    return; // Skip debug builds.
-  }
-  def task = project.tasks.create "jar${name.capitalize()}", Jar
-  task.dependsOn variant.javaCompile
-  task.from variant.javaCompile.destinationDir
-  artifacts.add('archives', task);
-}
-
-// Classpath setting for eclipse
-def eclipseClasspathContainers = []
-eclipseClasspathContainers += 'com.android.ide.eclipse.adt.ANDROID_FRAMEWORK'
-eclipseClasspathContainers += 'com.android.ide.eclipse.adt.LIBRARIES'
-eclipseClasspathContainers += 'com.android.ide.eclipse.adt.DEPENDENCIES'
-eclipseClasspathContainers += 'org.eclipse.jdt.launching.JRE_CONTAINER'
-
-eclipse {
-  classpath {
-    plusConfigurations = [ configurations.compile ]
-    
-    file {
-      beforeMerged { classpath ->
-
-        // Remove the source paths and add again
-        classpath.entries.removeAll { entry -> entry.kind == 'src' }
-        for(sourcePath in ['src/main/java', 'src/test/java', 'gen']) {
-          if(!classpath.entries.any { entry -> entry.path == sourcePath }) {
-            classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.SourceFolder(sourcePath, null))
-          }
-        }
-
-        // Remove the containers and add again
-        classpath.entries.removeAll { entry -> entry.kind == 'con' }
-          for(container in eclipseClasspathContainers) {
-            def containerInstance = new org.gradle.plugins.ide.eclipse.model.Container(container)
-            containerInstance.exported = true
-            classpath.entries.add(containerInstance)
-          }
-
-      }
-    }
-  }
-}
- 
-
-// insert source in jar
-task sourcesJar(type: Jar) {
-  from android.sourceSets.main.java.srcDirs
-  classifier = 'sources'
-}
-
-artifacts {
-  archives sourcesJar
-}
-
-task wrapper(type: Wrapper) {
-  gradleVersion = '2.3'
-    jarFile = 'wrapper/wrapper.jar'
-}
-
-// set uploaded nexus's repository
-uploadArchives {
-  repositories {
-    mavenDeployer{
-      repository(url: NEXUS_RELEASES_URL)
-      {
-        authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
-      }
-      snapshotRepository(url: NEXUS_SNAPSHOTS_URL)
-      {
-        authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
-      }
-    }
-  }
-}
-
-sourceCompatibility = '1.6'
-
-// set version and package
-project.version = '1.2.1'
-project.group = 'com.neofect.communicator'
-archivesBaseName = rootProject.name.toLowerCase()
-
-repositories {
-  mavenCentral()
-}
-
-dependencies {
-    testCompile 'junit:junit:4.11'
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
