@@ -15,20 +15,30 @@
  */
 package com.neofect.communicator.util;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
-import com.neofect.communicator.util.ByteArrayConverter;
-import com.neofect.communicator.util.ByteRingBuffer;
-import com.neofect.communicator.util.Log;
+import static org.junit.Assert.assertEquals;
 
-public class ByteRingBufferTest extends TestCase {
+
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest=Config.NONE)
+public class ByteRingBufferTest {
 	
 	private int sequenceNumber = 0;
-	
-	@Override
-	protected void setUp() {
-		Log.setUseStandardOutput(true);
-		Log.setMessageOnlyWhenStandardOutput(true);
+
+	@BeforeClass
+	public static void setUpClass() {
+		ShadowLog.stream = System.out;
+	}
+
+	@Before
+	public void setUp() {
 		sequenceNumber = 0;
 	}
 	
@@ -38,7 +48,8 @@ public class ByteRingBufferTest extends TestCase {
 			result[i] = (byte) (sequenceNumber++);
 		return result;
 	}
-	
+
+	@Test
 	public void testPut() {
 		ByteRingBuffer buffer = new ByteRingBuffer(10, 15);
 		buffer.put(createByteArray(17));
@@ -47,11 +58,12 @@ public class ByteRingBufferTest extends TestCase {
 		assertEquals("Head index", buffer.getHeadIndex(), 2);
 		assertEquals("Content size", buffer.getContentSize(), 15);
 	}
-	
+
+	@Test
 	public void testExpansion() {
 		ByteRingBuffer buffer = new ByteRingBuffer(10, 15);
 		buffer.put(createByteArray(19));
-		
+
 		buffer.changeMaxCapacity(20);
 		buffer.put(createByteArray(8));
 		String result = buffer.toStringOnlyBuffer();
@@ -59,7 +71,8 @@ public class ByteRingBufferTest extends TestCase {
 		assertEquals("Head index", buffer.getHeadIndex(), 3);
 		assertEquals("Content size", buffer.getContentSize(), 20);
 	}
-	
+
+	@Test
 	public void testRead() {
 		int maxCapacity = 15;
 		int numberToRead = 11;

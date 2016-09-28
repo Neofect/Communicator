@@ -15,8 +15,9 @@
  */
 package com.neofect.communicator;
 
+import android.util.Log;
+
 import com.neofect.communicator.message.CommunicationMessage;
-import com.neofect.communicator.util.Log;
 
 /**
  * Subclass must have a constructor which has one parameter of {@link Connection} instance.

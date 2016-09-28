@@ -6,6 +6,8 @@
 
 package com.neofect.communicator.util;
 
+import android.util.Log;
+
 /**
  * @author neo.kim@neofect.com
  * @date Jul 15, 2015

@@ -15,15 +15,16 @@
  */
 package com.neofect.communicator;
 
+import android.util.Log;
+
+import com.neofect.communicator.message.CommunicationMessage;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
-
-import com.neofect.communicator.message.CommunicationMessage;
-import com.neofect.communicator.util.Log;
 
 /**
  * @author neo.kim@neofect.com

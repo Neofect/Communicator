@@ -15,10 +15,11 @@
  */
 package com.neofect.communicator.message;
 
+import android.util.Log;
+
 import com.neofect.communicator.exception.UndefinedMessageIdException;
 import com.neofect.communicator.util.ByteArrayConverter;
 import com.neofect.communicator.util.ByteRingBuffer;
-import com.neofect.communicator.util.Log;
 
 /**
  * @author neo.kim@neofect.com
