@@ -1,0 +1,37 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion "24.0.0"
+
+    defaultConfig {
+        minSdkVersion 15
+    }
+}
+
+repositories {
+    maven {
+        credentials {
+            username NEXUS_USERNAME
+            password NEXUS_PASSWORD
+        }
+        url NEXUS_SNAPSHOT_URL
+    }
+
+    maven {
+        credentials {
+            username NEXUS_USERNAME
+            password NEXUS_PASSWORD
+        }
+        url NEXUS_RELEASE_URL
+    }
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.robolectric:robolectric:3.1.2'
+}
+
+if (rootProject.name == 'NFCommunicator') {
+    apply from: project.file('../gradle/gradle-mvn-push.gradle')
+}
