@@ -18,7 +18,8 @@ package com.neofect.communicator;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.neofect.communicator.bluetooth.BluetoothConnectionFactory;
+import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
+import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
 import com.neofect.communicator.message.CommunicationMessage;
 
 import java.lang.reflect.ParameterizedType;
@@ -55,7 +56,19 @@ public class Communicator {
 	public static void connect(BluetoothDevice device, ConnectionType connectionType, CommunicationController<? extends Device> controller) {
 		Connection connection = null;
 		try {
-			connection = BluetoothConnectionFactory.createConnection(device, connectionType, controller);
+			switch (connectionType) {
+				case BLUETOOTH_SPP:
+				case BLUETOOTH_SPP_INSECURE: {
+					connection = new BluetoothSppConnection(device, controller, connectionType);
+					break;
+				}
+				case BLUETOOTH_A2DP: {
+					connection = new BluetoothA2dpConnection(device, controller);
+					break;
+				}
+				default:
+					throw new IllegalArgumentException("Undefined bluetooth connection type '" + connectionType + "'");
+			}
 			connection.connect();
 		} catch(Exception e) {
 			String macAddress = (device == null ? "" : device.getAddress());
