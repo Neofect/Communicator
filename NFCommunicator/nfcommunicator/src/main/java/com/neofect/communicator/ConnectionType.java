@@ -24,4 +24,6 @@ public enum ConnectionType {
 	BLUETOOTH_SPP_INSECURE,
 	BLUETOOTH_A2DP,
 	BLUETOOTH_LOW_ENERGY,	// Not used for now
+
+	USB_SERIAL,
 }
