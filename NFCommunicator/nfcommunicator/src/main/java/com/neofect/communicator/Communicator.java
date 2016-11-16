@@ -15,8 +15,10 @@
  */
 package com.neofect.communicator;
 
+import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
+import com.neofect.communicator.bluetooth.BluetoothConnectionFactory;
 import com.neofect.communicator.message.CommunicationMessage;
 
 import java.lang.reflect.ParameterizedType;
@@ -50,16 +52,17 @@ public class Communicator {
 	private List<Device>		devices		= new Vector<Device>();
 	private HandlerListMap		handlers	= new HandlerListMap();
 	
-	public static void connect(String remoteAddress, ConnectionType connectionType, CommunicationController<? extends Device> controller) {
+	public static void connect(BluetoothDevice device, ConnectionType connectionType, CommunicationController<? extends Device> controller) {
 		Connection connection = null;
 		try {
-			connection = ConnectionFactory.createConnection(remoteAddress, connectionType, controller);
+			connection = BluetoothConnectionFactory.createConnection(device, connectionType, controller);
 			connection.connect();
 		} catch(Exception e) {
-			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + remoteAddress + "'!", e));
+			String macAddress = (device == null ? "" : device.getAddress());
+			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + macAddress + "'!", e));
 		}
 	}
-	
+
 	public static void disconnect(Device device) {
 		try {
 			device.getConnection().disconnect();

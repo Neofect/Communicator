@@ -15,7 +15,6 @@
  */
 package com.neofect.communicator.bluetooth;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
 import com.neofect.communicator.CommunicationController;
@@ -30,23 +29,7 @@ import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
  */
 public class BluetoothConnectionFactory {
 
-	public static Connection createConnection(final String macAddress, final ConnectionType connectionType, final CommunicationController<? extends Device> controller) {
-		BluetoothDevice device = retrieveBluetoothDevice(connectionType, macAddress);
-		
-		// Create a bluetooth connection instance
-		return createBluetoothConnection(device, controller, connectionType);
-	}
-	
-	private static BluetoothDevice retrieveBluetoothDevice(final ConnectionType connectionType, final String macAddress) {
-		BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-		if(bluetoothAdapter == null)
-			throw new IllegalStateException("Failed to retrieve the bluetooth adapter!");
-		
-		// Retrieve a bluetooth device from adapter
-		return bluetoothAdapter.getRemoteDevice(macAddress);
-	}
-	
-	private static BluetoothConnection createBluetoothConnection(BluetoothDevice device, CommunicationController<? extends Device> controller, ConnectionType connectionType) {
+	public static Connection createConnection(BluetoothDevice device, final ConnectionType connectionType, final CommunicationController<? extends Device> controller) {
 		switch(connectionType) {
 		case BLUETOOTH_SPP:
 		case BLUETOOTH_SPP_INSECURE:
