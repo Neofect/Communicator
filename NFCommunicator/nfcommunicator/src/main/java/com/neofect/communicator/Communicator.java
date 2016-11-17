@@ -18,11 +18,14 @@ package com.neofect.communicator;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.util.Log;
 
 import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
 import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
 import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.usb.UsbConnection;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -37,15 +40,15 @@ import static com.neofect.communicator.ConnectionType.BLUETOOTH_A2DP;
  * @date 2014. 2. 4.
  */
 public class Communicator {
-	
+
 	private static final String LOG_TAG = Communicator.class.getSimpleName();
-	
+
 	private static Communicator instance = new Communicator();
-	
+
 	static Communicator getInstance() {
 		return instance;
 	}
-	
+
 	/** Aliases for short type names */
 	@SuppressWarnings("serial")
 	private static class HandlerList extends ArrayList<CommunicationHandler<? extends Device>> {}
@@ -72,10 +75,9 @@ public class Communicator {
 				break;
 			}
 			case USB_SERIAL: {
-				connection = null;
-//				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-//				UsbDevice device = usbManager.getDeviceList().get(connectionIdentifier);
-//				connection = new UsbConnection(context, device, controller);
+				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+				UsbDevice device = usbManager.getDeviceList().get(connectionIdentifier);
+				connection = new UsbConnection(context, device, controller);
 				break;
 			}
 			default: {
@@ -92,6 +94,17 @@ public class Communicator {
 		}
 	}
 
+	public static void connect(Context context, UsbDevice device, CommunicationController<? extends Device> controller) {
+		Connection connection = null;
+		try {
+			connection = new UsbConnection(context, device, controller);
+			connection.connect();
+		} catch(Exception e) {
+			String deviceName = (device == null ? "" : device.getDeviceName());
+			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + deviceName + "'!", e));
+		}
+	}
+
 	public static void disconnect(Device device) {
 		try {
 			device.getConnection().disconnect();
@@ -99,7 +112,7 @@ public class Communicator {
 			Log.e(LOG_TAG, "", e);
 		}
 	}
-	
+
 	public static void disconnectAllConnections() {
 		synchronized(instance) {
 			for(Device device : instance.devices) {
@@ -114,7 +127,7 @@ public class Communicator {
 			}
 		}
 	}
-	
+
 	public static <T extends Device> void registerListener(CommunicationListener<T> listener) {
 		synchronized(instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
@@ -130,10 +143,10 @@ public class Communicator {
 				handlerList = new HandlerList();
 				instance.handlers.put(deviceClass, handlerList);
 			}
-			
+
 			CommunicationHandler<T> handler = new CommunicationHandler<T>(listener);
 			handlerList.add(handler);
-			
+
 			// Notify of already existing devices
 			for(Device device : instance.devices) {
 				if(device.getClass() == deviceClass) {
@@ -142,7 +155,7 @@ public class Communicator {
 			}
 		}
 	}
-	
+
 	public static <T extends Device> void unregisterListener(CommunicationListener<T> listener) {
 		synchronized(instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
@@ -150,7 +163,7 @@ public class Communicator {
 				Log.w(LOG_TAG,  "The listener is not registered!");
 				return;
 			}
-			
+
 			HandlerList handlerList = instance.handlers.get(deviceClass);
 			int handlerIndex = getHandlerIndexByListener(handlerList, listener);
 			if(handlerIndex == -1) {
@@ -160,14 +173,14 @@ public class Communicator {
 			handlerList.remove(handlerIndex);
 		}
 	}
-	
+
 	public static List<Device> getConnectedDevices() {
 		return instance.devices;
 	}
-	
+
 	/**
 	 * Returns the number of connected devices by device type. If the input param is null, it returns the number of all connected devices.
-	 * 
+	 *
 	 * @param deviceClass
 	 * @return
 	 */
@@ -176,7 +189,7 @@ public class Communicator {
 			if(deviceClass == null) {
 				return instance.devices.size();
 			}
-			
+
 			int count = 0;
 			for(Device device : instance.devices) {
 				if(device.getClass() == deviceClass) {
@@ -206,7 +219,7 @@ public class Communicator {
 			handler.onDeviceReady((T) device, true);
 		}
 	}
-	
+
 	/**
 	 * A neat way to get class type of generic.
 	 * http://stackoverflow.com/a/3403976/576440
@@ -220,7 +233,7 @@ public class Communicator {
 			throw new IllegalArgumentException("Failed to get parameterized class type from the given generic!", e);
 		}
 	}
-	
+
 	private static int getHandlerIndexByListener(HandlerList handlerList, CommunicationListener<? extends Device> listener) {
 		synchronized(handlerList) {
 			for(int i = 0; i < handlerList.size(); ++i) {
@@ -231,10 +244,10 @@ public class Communicator {
 			return -1;
 		}
 	}
-	
+
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {
 		connections.add(connection);
-		
+
 		if(!handlers.containsKey(deviceClass)) {
 			return;
 		}
@@ -245,7 +258,7 @@ public class Communicator {
 
 	synchronized void notifyFailedToConnect(Connection connection, Class<? extends Device> deviceClass, Exception cause) {
 		connections.remove(connection);
-		
+
 		if(!handlers.containsKey(deviceClass)) {
 			return;
 		}
@@ -253,13 +266,13 @@ public class Communicator {
 			handler.onFailedToConnect(connection, cause);
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyConnected(Device device) {
 		Log.d(LOG_TAG, "notifyConnected() device=" + device.getConnection().getRemoteAddress());
 		connections.remove(device.getConnection());
 		devices.add(device);
-		
+
 		Class<? extends Device> deviceClass = device.getClass();
 		if(!handlers.containsKey(deviceClass)) {
 			return;
@@ -268,12 +281,12 @@ public class Communicator {
 			handler.onDeviceConnected(device, false);
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDisconnected(Connection connection, Class<? extends Device> deviceClass) {
 		Log.d(LOG_TAG, "notifyDisconnected() connection=" + connection.getDescription());
 		connections.remove(connection);
-		
+
 		// Find a device with the disconnected connection
 		for(Device device : devices) {
 			if(device.getConnection() != connection) {
@@ -289,7 +302,7 @@ public class Communicator {
 			break;
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceReady(Device device) {
 		Class<? extends Device> deviceClass = device.getClass();
@@ -300,7 +313,7 @@ public class Communicator {
 			handler.onDeviceReady(device, false);
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceMessageProcessed(Device device, CommunicationMessage message) {
 		Class<? extends Device> deviceClass = device.getClass();
@@ -311,7 +324,7 @@ public class Communicator {
 			handler.onDeviceMessageProcessed(device, message);
 		}
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceUpdated(Device device) {
 		Class<? extends Device> deviceClass = device.getClass();
@@ -322,5 +335,5 @@ public class Communicator {
 			handler.onDeviceUpdated(device);
 		}
 	}
-	
+
 }
