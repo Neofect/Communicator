@@ -55,7 +55,8 @@ public abstract class BluetoothConnection extends Connection {
 	public String getRemoteAddress() {
 		return bluetoothDevice.getAddress();
 	}
-	
+
+	@Override
 	public String getDeviceName() {
 		String deviceName = null;
 		try {

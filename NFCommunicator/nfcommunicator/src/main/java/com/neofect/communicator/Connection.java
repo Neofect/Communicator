@@ -36,6 +36,7 @@ public abstract class Connection {
 	
 	public abstract void	connect();
 	public abstract void	disconnect();
+	public abstract String getDeviceName();
 	public abstract String	getRemoteAddress();
 	public abstract String	getDescription();
 	
