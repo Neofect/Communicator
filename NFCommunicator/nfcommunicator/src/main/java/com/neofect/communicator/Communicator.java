@@ -15,7 +15,9 @@
  */
 package com.neofect.communicator;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.util.Log;
 
 import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
@@ -27,7 +29,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+
+import static com.neofect.communicator.ConnectionType.BLUETOOTH_A2DP;
 
 /**
  * @author neo.kim@neofect.com
@@ -48,31 +51,44 @@ public class Communicator {
 	private static class HandlerList extends ArrayList<CommunicationHandler<? extends Device>> {}
 	@SuppressWarnings("serial")
 	private static class HandlerListMap extends HashMap<Class<? extends Device>, HandlerList> {}
-	
-	private List<Connection>	connections	= new Vector<Connection>();
-	private List<Device>		devices		= new Vector<Device>();
-	private HandlerListMap		handlers	= new HandlerListMap();
-	
-	public static void connect(BluetoothDevice device, ConnectionType connectionType, CommunicationController<? extends Device> controller) {
-		Connection connection = null;
-		try {
-			switch (connectionType) {
-				case BLUETOOTH_SPP:
-				case BLUETOOTH_SPP_INSECURE: {
-					connection = new BluetoothSppConnection(device, controller, connectionType);
-					break;
-				}
-				case BLUETOOTH_A2DP: {
+
+	private List<Connection> connections = new ArrayList<>();
+	private List<Device> devices = new ArrayList<>();
+	private HandlerListMap handlers = new HandlerListMap();
+
+	public static void connect(Context context, ConnectionType connectionType, String connectionIdentifier, CommunicationController<? extends Device> controller) {
+		Connection connection;
+		switch (connectionType) {
+			case BLUETOOTH_SPP:
+			case BLUETOOTH_SPP_INSECURE:
+			case BLUETOOTH_A2DP: {
+				BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(connectionIdentifier);
+				if (connectionType == BLUETOOTH_A2DP) {
 					connection = new BluetoothA2dpConnection(device, controller);
-					break;
+				} else {
+					connection = new BluetoothSppConnection(device, controller, connectionType);
 				}
-				default:
-					throw new IllegalArgumentException("Undefined bluetooth connection type '" + connectionType + "'");
+				break;
 			}
+			case USB_SERIAL: {
+				connection = null;
+//				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+//				UsbDevice device = usbManager.getDeviceList().get(connectionIdentifier);
+//				connection = new UsbConnection(context, device, controller);
+				break;
+			}
+			default: {
+				Log.e(LOG_TAG, "Unsupported connection type! '" + connectionType + "'");
+				return;
+			}
+		}
+
+		try {
 			connection.connect();
 		} catch(Exception e) {
-			String macAddress = (device == null ? "" : device.getAddress());
-			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + macAddress + "'!", e));
+			String identifier = connectionType + ":" + connectionIdentifier;
+			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + identifier + "'!", e));
 		}
 	}
 
@@ -170,7 +186,19 @@ public class Communicator {
 			return count;
 		}
 	}
-	
+
+	public static Device findConnectedDevice(ConnectionType connectionType, String connectIdentifier) {
+		synchronized (instance.devices) {
+			for (Device device : instance.devices) {
+				Connection connection = device.getConnection();
+				if (connection.getConnectionType() != connectionType && connection.getRemoteAddress().equals(connectIdentifier)) {
+					return device;
+				}
+			}
+			return null;
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	private static <T extends Device> void notifyNewListenerOfExistingDevices(CommunicationHandler<T> handler, Device device) {
 		handler.onDeviceConnected((T) device, true);
