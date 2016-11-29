@@ -59,7 +59,7 @@ public class Communicator {
 	private List<Device> devices = new ArrayList<>();
 	private HandlerListMap handlers = new HandlerListMap();
 
-	public static void connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
+	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
 		Connection connection;
 		switch (connectionType) {
 			case BLUETOOTH_SPP:
@@ -77,20 +77,26 @@ public class Communicator {
 			case USB_SERIAL: {
 				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
 				UsbDevice device = usbManager.getDeviceList().get(connectIdentifier);
+				if (device == null) {
+					Log.e(LOG_TAG, "Not existing USB device! connectIdentifier=" + connectIdentifier);
+					return false;
+				}
 				connection = new UsbConnection(context, device, controller);
 				break;
 			}
 			default: {
 				Log.e(LOG_TAG, "Unsupported connection type! '" + connectionType + "'");
-				return;
+				return false;
 			}
 		}
 
 		try {
 			connection.connect();
+			return true;
 		} catch(Exception e) {
 			String identifier = connectionType + ":" + connectIdentifier;
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + identifier + "'!", e));
+			return false;
 		}
 	}
 
