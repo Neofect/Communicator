@@ -59,14 +59,14 @@ public class Communicator {
 	private List<Device> devices = new ArrayList<>();
 	private HandlerListMap handlers = new HandlerListMap();
 
-	public static void connect(Context context, ConnectionType connectionType, String connectionIdentifier, CommunicationController<? extends Device> controller) {
+	public static void connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
 		Connection connection;
 		switch (connectionType) {
 			case BLUETOOTH_SPP:
 			case BLUETOOTH_SPP_INSECURE:
 			case BLUETOOTH_A2DP: {
 				BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(connectionIdentifier);
+				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(connectIdentifier);
 				if (connectionType == BLUETOOTH_A2DP) {
 					connection = new BluetoothA2dpConnection(device, controller);
 				} else {
@@ -76,7 +76,7 @@ public class Communicator {
 			}
 			case USB_SERIAL: {
 				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-				UsbDevice device = usbManager.getDeviceList().get(connectionIdentifier);
+				UsbDevice device = usbManager.getDeviceList().get(connectIdentifier);
 				connection = new UsbConnection(context, device, controller);
 				break;
 			}
@@ -89,19 +89,8 @@ public class Communicator {
 		try {
 			connection.connect();
 		} catch(Exception e) {
-			String identifier = connectionType + ":" + connectionIdentifier;
+			String identifier = connectionType + ":" + connectIdentifier;
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + identifier + "'!", e));
-		}
-	}
-
-	public static void connect(Context context, UsbDevice device, CommunicationController<? extends Device> controller) {
-		Connection connection = null;
-		try {
-			connection = new UsbConnection(context, device, controller);
-			connection.connect();
-		} catch(Exception e) {
-			String deviceName = (device == null ? "" : device.getDeviceName());
-			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + deviceName + "'!", e));
 		}
 	}
 

@@ -1,13 +1,16 @@
 package com.neofect.communicator.usb;
 
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbDeviceConnection;
+import android.hardware.usb.UsbEndpoint;
+
+import java.io.IOException;
+
 /**
  * @author neo.kim@neofect.com
- * @date Nov 16, 2016
- *
- * Copied from `https://github.com/mik3y/usb-serial-for-android`
- * (https://github.com/mik3y/usb-serial-for-android/blob/b96f9ca7a25f44e997e1b5cb5746eb8082716168/usbSerialForAndroid/src/main/java/com/hoho/android/usbserial/driver/UsbSerialPort.java)
+ * @date Nov 29, 2016
  */
-public class UsbSerialPortConstants {
+public abstract class UsbSerialDriver {
 
 	/**
 	 * 5 data bits.
@@ -93,5 +96,17 @@ public class UsbSerialPortConstants {
 	 * 2 stop bits.
 	 */
 	public static final int STOPBITS_2 = 2;
+
+	protected UsbDevice device;
+	protected UsbDeviceConnection connection;
+
+	UsbSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
+		this.device = device;
+		this.connection = connection;
+	}
+
+	public abstract UsbEndpoint[] open() throws IOException;
+	public abstract void close() throws IOException;
+	public abstract void setParameters(int baudRate, int dataBits, int stopBits, int parity) throws IOException;
 
 }
