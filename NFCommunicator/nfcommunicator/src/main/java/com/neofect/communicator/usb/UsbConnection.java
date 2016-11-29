@@ -21,8 +21,6 @@ import com.neofect.communicator.Device;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static android.content.ContentValues.TAG;
-
 /**
  * @author neo.kim@neofect.com
  * @date Nov 16, 2016
@@ -31,7 +29,15 @@ public class UsbConnection extends Connection {
 
 	private static final String LOG_TAG = UsbConnection.class.getSimpleName();
 
-	private static final String ACTION_USB_PERMISSION = "com.android.permission.USB_PERMISSION";
+	private static final String ACTION_USB_PERMISSION = "com.neofect.communicator.USB_PERMISSION";
+
+	private static final int TIMEOUT_MILLIS = 200;
+	private static final int DEFAULT_READ_BUFFER_SIZE = 16 * 1024;
+	private static final int DEFAULT_WRITE_BUFFER_SIZE = 16 * 1024;
+
+	private final Object mWriteBufferLock = new Object();
+	private byte[] mWriteBuffer = new byte[DEFAULT_WRITE_BUFFER_SIZE];
+	private byte[] mReadBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
 
 	private Context context;
 	private UsbDevice device;
@@ -39,6 +45,8 @@ public class UsbConnection extends Connection {
 	private UsbEndpoint readEndpoint;
 	private UsbEndpoint writeEndpoint;
 	private UsbSerialDriver driver;
+	private Thread readThread;
+	private boolean receiverRegistered = false;
 
 	public UsbConnection(Context context, UsbDevice device, CommunicationController<? extends Device> controller) {
 		super(ConnectionType.USB_SERIAL, controller);
@@ -50,12 +58,11 @@ public class UsbConnection extends Connection {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-
 			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-				if (UsbConnection.this.device == device) {
-					// call your method that cleans up and closes communication with the device
-					Log.i(LOG_TAG, "Device is detached! device=" + device);
+				if (UsbConnection.this.device.equals(device)) {
+					Log.i(LOG_TAG, "USB device is detached. device=" + device);
+					disconnect();
 				}
 			} else if (ACTION_USB_PERMISSION.equals(action)) {
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
@@ -68,28 +75,6 @@ public class UsbConnection extends Connection {
 			}
 		}
 	};
-
-	@Override
-	public void connect() {
-		// Ask for permission for USB connection
-		registerReceiver();
-		PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
-		Log.d(LOG_TAG, "Requesting permission for USB device '" + getRemoteAddress() + "'...");
-		final UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-		usbManager.requestPermission(device, intent);
-	}
-
-	private void registerReceiver() {
-		IntentFilter filter = new IntentFilter();
-		filter.addAction(ACTION_USB_PERMISSION);
-		filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-		context.registerReceiver(usbEventReceiver, filter);
-	}
-
-	@Override
-	public void disconnect() {
-		context.unregisterReceiver(usbEventReceiver);
-	}
 
 	@Override
 	public String getDeviceName() {
@@ -107,19 +92,87 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public String getDescription() {
-		return device.getDeviceName();
+		return getDeviceName();
 	}
 
+	@Override
+	public void connect() {
+		if (usbConnection != null) {
+			Log.e(LOG_TAG, "connect() Already connected!");
+			return;
+		}
 
-	private static final int TIMEOUT_MILLIS = 200;
-	private static final int DEFAULT_READ_BUFFER_SIZE = 16 * 1024;
-	private static final int DEFAULT_WRITE_BUFFER_SIZE = 16 * 1024;
+		// Ask for permission for USB connection
+		registerReceiver();
+		PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+		Log.d(LOG_TAG, "Requesting permission for USB device '" + device.getDeviceName() + "'...");
+		final UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+		usbManager.requestPermission(device, intent);
+	}
 
-	protected final Object mWriteBufferLock = new Object();
-	protected byte[] mWriteBuffer = new byte[DEFAULT_WRITE_BUFFER_SIZE];
+	@Override
+	public void disconnect() {
+		if (usbConnection == null) {
+			Log.e(LOG_TAG, "disconnect() Already disconnected");
+			return;
+		}
 
-	protected final Object mReadBufferLock = new Object();
-	protected byte[] mReadBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
+		if (readThread != null) {
+			readThread.interrupt();
+			readThread = null;
+		}
+
+		if (receiverRegistered) {
+			context.unregisterReceiver(usbEventReceiver);
+			receiverRegistered = false;
+		}
+
+		try {
+			driver.close();
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "", e);
+		} finally {
+			usbConnection = null;
+		}
+
+		handleDisconnected();
+	}
+
+	private void startConnecting() {
+		handleConnecting();
+		try {
+			UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
+			usbConnection = usbManager.openDevice(device);
+
+			driver = UsbSerialDriverFactory.createDriver(device, usbConnection);
+			UsbEndpoint[] endpoints = driver.open();
+			readEndpoint = endpoints[0];
+			writeEndpoint = endpoints[1];
+
+			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+		} catch (IOException e) {
+			Log.e(LOG_TAG, "Error setting up device: " + e.getMessage(), e);
+			return;
+		}
+
+		// Start a thread for reading
+		readThread = new ReadThread();
+		readThread.start();
+
+		handleConnected();
+	}
+
+	private void registerReceiver() {
+		if (receiverRegistered) {
+			Log.e(LOG_TAG, "registerReceiver() Already registered!");
+			return;
+		}
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(ACTION_USB_PERMISSION);
+		filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+		context.registerReceiver(usbEventReceiver, filter);
+		receiverRegistered = true;
+	}
 
 	@Override
 	public void write(byte[] src) {
@@ -149,70 +202,29 @@ public class UsbConnection extends Connection {
 				return;
 			}
 
-			Log.d(TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
+			Log.d(LOG_TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
 			offset += amtWritten;
 		}
 	}
 
-	private void startConnecting() {
-		handleConnecting();
-		try {
-			open();
-			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
-		} catch (IOException e) {
-			Log.e(LOG_TAG, "Error setting up device: " + e.getMessage(), e);
-			return;
-		}
-
-		startReadThread();
-		handleConnected();
-	}
-
-	private void startReadThread() {
-		new Thread(readRunnable).start();
-	}
-
-	private void open() throws IOException {
-		if (usbConnection != null) {
-			throw new IOException("Already opened.");
-		}
-
-		final UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-		usbConnection = usbManager.openDevice(device);
-
-		driver = UsbSerialDriverFactory.createDriver(device, usbConnection);
-		UsbEndpoint[] endpoints = driver.open();
-		readEndpoint = endpoints[0];
-		writeEndpoint = endpoints[1];
-	}
-
-	public void close() throws IOException {
-		if (usbConnection == null) {
-			throw new IOException("Already closed");
-		}
-		try {
-			driver.close();
-		} finally {
-			usbConnection = null;
-		}
-	}
-
-	private Runnable readRunnable = new Runnable() {
+	private class ReadThread extends Thread {
 		@Override
 		public void run() {
 			final UsbRequest request = new UsbRequest();
 			request.initialize(usbConnection, readEndpoint);
-			while (true) {
+			while (UsbConnection.this.isConnected()) {
 				try {
 					ByteBuffer buf = ByteBuffer.wrap(mReadBuffer);
 					if (!request.queue(buf, mReadBuffer.length)) {
-						Log.e(LOG_TAG, "Error queueing request.");
+						Log.e(LOG_TAG, "ReadThread.run() Failed to queueing request!");
+						Thread.sleep(1000);
 						continue;
 					}
 
 					final UsbRequest response = usbConnection.requestWait();
 					if (response == null) {
-						Log.e(LOG_TAG, "Null response");
+						Log.e(LOG_TAG, "ReadThread.run() requestWait() returned null!");
+						Thread.sleep(1000);
 						continue;
 					}
 
@@ -222,13 +234,19 @@ public class UsbConnection extends Connection {
 						System.arraycopy(mReadBuffer, 0, readData, 0, nread);
 						handleReadData(mReadBuffer);
 					}
+				} catch (InterruptedException e) {
+					// Does nothing
 				} catch (Exception e) {
 					Log.e(LOG_TAG, "run()", e);
-					break;
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						Log.e(LOG_TAG, "", e1);
+					}
 				}
 			}
 			request.close();
 		}
-	};
+	}
 
 }
