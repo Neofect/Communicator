@@ -12,7 +12,7 @@ import java.io.IOException;
 import static android.content.ContentValues.TAG;
 
 /**
- * Following class is copied and modified from <a href="https://github.com/mik3y/usb-serial-for-android"/> project.
+ * Following class is copied and modified from UsbSerialForAndroid project. (https://github.com/mik3y/usb-serial-for-android)
  *
  * Original source :
  * https://github.com/mik3y/usb-serial-for-android/blob/4ccaff47b16047375bcb77e67954ff95e314b612/usbSerialForAndroid/src/main/java/com/hoho/android/usbserial/driver/Cp21xxSerialDriver.java

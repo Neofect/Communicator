@@ -102,13 +102,17 @@ public class UsbConnection extends Connection {
 			Log.e(LOG_TAG, "connect() Already connected!");
 			return;
 		}
-
-		// Ask permission for USB connection
 		registerReceiver();
-		PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
-		Log.d(LOG_TAG, "Requesting permission for USB device '" + device.getDeviceName() + "'...");
+
 		final UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-		usbManager.requestPermission(device, intent);
+		if (usbManager.hasPermission(device)) {
+			startConnecting();
+		} else {
+			// Ask permission for USB connection
+			PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+			Log.d(LOG_TAG, "Requesting permission for USB device '" + device.getDeviceName() + "'...");
+			usbManager.requestPermission(device, intent);
+		}
 	}
 
 	@Override
