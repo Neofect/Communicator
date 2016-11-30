@@ -60,6 +60,11 @@ public class Communicator {
 	private HandlerListMap handlers = new HandlerListMap();
 
 	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
+		if (isConnected(connectionType, connectIdentifier)) {
+			Log.e(LOG_TAG, "The device is already connected! connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
+			return false;
+		}
+
 		Connection connection;
 		switch (connectionType) {
 			case BLUETOOTH_SPP:
