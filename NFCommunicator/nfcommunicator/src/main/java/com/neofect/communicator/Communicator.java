@@ -169,6 +169,27 @@ public class Communicator {
 		}
 	}
 
+	public static boolean isConnected(ConnectionType connectionType, String connectIdentifier) {
+		synchronized(instance) {
+			for(Connection connection : instance.connections) {
+				if (connection.getConnectionType() == connectionType) {
+					if (connection.getRemoteAddress().equals(connectIdentifier)) {
+						return true;
+					}
+				}
+			}
+			for(Device device : instance.devices) {
+				Connection connection = device.getConnection();
+				if (connection.getConnectionType() == connectionType) {
+					if (connection.getRemoteAddress().equals(connectIdentifier)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	public static List<Device> getConnectedDevices() {
 		return instance.devices;
 	}
