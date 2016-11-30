@@ -31,17 +31,16 @@ public class UsbConnection extends Connection {
 
 	private static final String ACTION_USB_PERMISSION = "com.neofect.communicator.USB_PERMISSION";
 
-	private static final int TIMEOUT_MILLIS = 200;
-	private static final int DEFAULT_READ_BUFFER_SIZE = 16 * 1024;
-	private static final int DEFAULT_WRITE_BUFFER_SIZE = 16 * 1024;
+	private static final int WRITE_TIMEOUT_MILLIS = 200;
+	private static final int READ_BUFFER_SIZE = 16 * 1024;
+	private static final int WRITE_BUFFER_SIZE = 16 * 1024;
 
 	private final Object mWriteBufferLock = new Object();
-	private byte[] mWriteBuffer = new byte[DEFAULT_WRITE_BUFFER_SIZE];
-	private byte[] mReadBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
+	private byte[] mWriteBuffer = new byte[WRITE_BUFFER_SIZE];
 
 	private Context context;
 	private UsbDevice device;
-	private UsbDeviceConnection usbConnection;
+	private UsbDeviceConnection deviceConnection;
 	private UsbEndpoint readEndpoint;
 	private UsbEndpoint writeEndpoint;
 	private UsbSerialDriver driver;
@@ -62,7 +61,9 @@ public class UsbConnection extends Connection {
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 				if (UsbConnection.this.device.equals(device)) {
 					Log.i(LOG_TAG, "USB device is detached. device=" + device);
-					disconnect();
+					if (isConnected()) {
+						disconnect();
+					}
 				}
 			} else if (ACTION_USB_PERMISSION.equals(action)) {
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
@@ -97,12 +98,12 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void connect() {
-		if (usbConnection != null) {
+		if (deviceConnection != null) {
 			Log.e(LOG_TAG, "connect() Already connected!");
 			return;
 		}
 
-		// Ask for permission for USB connection
+		// Ask permission for USB connection
 		registerReceiver();
 		PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
 		Log.d(LOG_TAG, "Requesting permission for USB device '" + device.getDeviceName() + "'...");
@@ -112,7 +113,7 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void disconnect() {
-		if (usbConnection == null) {
+		if (deviceConnection == null) {
 			Log.e(LOG_TAG, "disconnect() Already disconnected");
 			return;
 		}
@@ -132,7 +133,8 @@ public class UsbConnection extends Connection {
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "", e);
 		} finally {
-			usbConnection = null;
+			driver = null;
+			deviceConnection = null;
 		}
 
 		handleDisconnected();
@@ -142,9 +144,9 @@ public class UsbConnection extends Connection {
 		handleConnecting();
 		try {
 			UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-			usbConnection = usbManager.openDevice(device);
+			deviceConnection = usbManager.openDevice(device);
 
-			driver = UsbSerialDriverFactory.createDriver(device, usbConnection);
+			driver = UsbSerialDriverFactory.createDriver(device, deviceConnection);
 			UsbEndpoint[] endpoints = driver.open();
 			readEndpoint = endpoints[0];
 			writeEndpoint = endpoints[1];
@@ -156,7 +158,7 @@ public class UsbConnection extends Connection {
 		}
 
 		// Start a thread for reading
-		readThread = new ReadThread();
+		readThread = new UsbReadThread();
 		readThread.start();
 
 		handleConnected();
@@ -177,10 +179,9 @@ public class UsbConnection extends Connection {
 	@Override
 	public void write(byte[] src) {
 		int offset = 0;
-
 		while (offset < src.length) {
 			final int writeLength;
-			final int amtWritten;
+			final int numberOfWrittenBytes;
 
 			synchronized (mWriteBufferLock) {
 				final byte[] writeBuffer;
@@ -194,56 +195,49 @@ public class UsbConnection extends Connection {
 					writeBuffer = mWriteBuffer;
 				}
 
-				amtWritten = usbConnection.bulkTransfer(writeEndpoint, writeBuffer, writeLength, TIMEOUT_MILLIS);
+				numberOfWrittenBytes = deviceConnection.bulkTransfer(writeEndpoint, writeBuffer, writeLength, WRITE_TIMEOUT_MILLIS);
 			}
-			if (amtWritten <= 0) {
-//				throw new IOException("Error writing " + writeLength + " bytes at offset " + offset + " length=" + src.length);
+			if (numberOfWrittenBytes <= 0) {
 				Log.e(LOG_TAG, "Error writing " + writeLength + " bytes at offset " + offset + " length=" + src.length);
 				return;
 			}
-
-			Log.d(LOG_TAG, "Wrote amt=" + amtWritten + " attempted=" + writeLength);
-			offset += amtWritten;
+			Log.d(LOG_TAG, "UsbConnection.write() numberOfWrittenBytes=" + numberOfWrittenBytes + " attempted=" + writeLength);
+			offset += numberOfWrittenBytes;
 		}
 	}
 
-	private class ReadThread extends Thread {
+	private class UsbReadThread extends Thread {
 		@Override
 		public void run() {
+			byte[] buffer = new byte[READ_BUFFER_SIZE];
 			final UsbRequest request = new UsbRequest();
-			request.initialize(usbConnection, readEndpoint);
-			while (UsbConnection.this.isConnected()) {
-				try {
-					ByteBuffer buf = ByteBuffer.wrap(mReadBuffer);
-					if (!request.queue(buf, mReadBuffer.length)) {
-						Log.e(LOG_TAG, "ReadThread.run() Failed to queueing request!");
-						Thread.sleep(1000);
-						continue;
+			request.initialize(deviceConnection, readEndpoint);
+			try {
+				while (UsbConnection.this.isConnected()) {
+					ByteBuffer buf = ByteBuffer.wrap(buffer);
+					if (!request.queue(buf, buffer.length)) {
+						Log.e(LOG_TAG, "UsbReadThread.run() Failed to queueing request!");
+						disconnect();
+						break;
 					}
 
-					final UsbRequest response = usbConnection.requestWait();
+					final UsbRequest response = deviceConnection.requestWait();
 					if (response == null) {
-						Log.e(LOG_TAG, "ReadThread.run() requestWait() returned null!");
-						Thread.sleep(1000);
-						continue;
+						Log.e(LOG_TAG, "UsbReadThread.run() requestWait() returned null!");
+						disconnect();
+						break;
 					}
 
-					int nread = buf.position();
-					if (nread > 0) {
-						byte[] readData = new byte[nread];
-						System.arraycopy(mReadBuffer, 0, readData, 0, nread);
-						handleReadData(mReadBuffer);
-					}
-				} catch (InterruptedException e) {
-					// Does nothing
-				} catch (Exception e) {
-					Log.e(LOG_TAG, "run()", e);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e1) {
-						Log.e(LOG_TAG, "", e1);
+					int numberOfBytes = buf.position();
+					if (numberOfBytes > 0) {
+						byte[] readData = new byte[numberOfBytes];
+						System.arraycopy(buffer, 0, readData, 0, numberOfBytes);
+						handleReadData(readData);
 					}
 				}
+			} catch (Exception e) {
+				Log.e(LOG_TAG, "run()", e);
+				disconnect();
 			}
 			request.close();
 		}
