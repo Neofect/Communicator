@@ -18,7 +18,6 @@ import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -156,8 +155,9 @@ public class UsbConnection extends Connection {
 			writeEndpoint = endpoints[1];
 
 			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			Log.e(LOG_TAG, "Error setting up device: " + e.getMessage(), e);
+			handleFailedToConnect(e);
 			return;
 		}
 

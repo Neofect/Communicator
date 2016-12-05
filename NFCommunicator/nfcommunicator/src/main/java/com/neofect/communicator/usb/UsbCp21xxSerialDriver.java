@@ -76,6 +76,10 @@ public class UsbCp21xxSerialDriver extends UsbSerialDriver {
 
 	@Override
 	public UsbEndpoint[] open() throws IOException {
+		if (device.getInterfaceCount() == 0) {
+			throw new RuntimeException("The device has no interface for USB!");
+		}
+
 		UsbEndpoint[] endpoints = new UsbEndpoint[2];
 
 		boolean opened = false;
