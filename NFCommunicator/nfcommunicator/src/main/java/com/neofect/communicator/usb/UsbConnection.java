@@ -55,17 +55,17 @@ public class UsbConnection extends Connection {
 	private final BroadcastReceiver usbEventReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+			if (device == null || !UsbConnection.this.device.equals(device)) {
+				return;
+			}
 			String action = intent.getAction();
+			Log.d(LOG_TAG, "USB event is received. action=" + action + ", device=" + UsbConnection.this.getDescription());
+
 			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-				if (UsbConnection.this.device.equals(device)) {
-					Log.i(LOG_TAG, "USB device is detached. device=" + device);
-					if (isConnected()) {
-						disconnect();
-					}
-				}
+				Log.i(LOG_TAG, "USB device is detached. device=" + device);
+				disconnect();
 			} else if (ACTION_USB_PERMISSION.equals(action)) {
-				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
 					Log.d(LOG_TAG, "Permission granted for the device " + device);
 					startConnecting();
@@ -163,8 +163,8 @@ public class UsbConnection extends Connection {
 
 			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
 		} catch (Exception e) {
-			cleanUp();
 			handleFailedToConnect(e);
+			cleanUp();
 			return;
 		}
 
@@ -172,7 +172,7 @@ public class UsbConnection extends Connection {
 		readThread = new UsbReadThread();
 		readThread.start();
 
-		Log.i(LOG_TAG, "USB device is connected! device=" + getDescription());
+		Log.i(LOG_TAG, "USB device is connected! connection=" + getDescription());
 		handleConnected();
 	}
 
