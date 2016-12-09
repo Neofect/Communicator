@@ -109,6 +109,8 @@ public class UsbCp21xxSerialDriver extends UsbSerialDriver {
 			setConfigSingle(SILABSER_SET_MHS_REQUEST_CODE, MCR_ALL | CONTROL_WRITE_DTR | CONTROL_WRITE_RTS);
 			setConfigSingle(SILABSER_SET_BAUDDIV_REQUEST_CODE, BAUD_RATE_GEN_FREQ / DEFAULT_BAUD_RATE);
 			opened = true;
+		} catch (Exception e) {
+			throw new IOException("Failed to open endpoints!", e);
 		} finally {
 			if (!opened) {
 				try {
