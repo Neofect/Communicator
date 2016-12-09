@@ -120,7 +120,16 @@ public class UsbConnection extends Connection {
 			Log.e(LOG_TAG, "disconnect() Already disconnected");
 			return;
 		}
+		cleanUp();
+		handleDisconnected();
+	}
 
+	private void cleanUp() {
+		String message = "cleanUp()";
+		if (device != null) {
+			message += " device=" + getDescription();
+		}
+		Log.d(LOG_TAG, message);
 		if (readThread != null) {
 			readThread.interrupt();
 			readThread = null;
@@ -139,8 +148,6 @@ public class UsbConnection extends Connection {
 			driver = null;
 			deviceConnection = null;
 		}
-
-		handleDisconnected();
 	}
 
 	private void startConnecting() {
@@ -156,7 +163,7 @@ public class UsbConnection extends Connection {
 
 			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
 		} catch (Exception e) {
-			Log.e(LOG_TAG, "Error setting up device: " + e.getMessage(), e);
+			cleanUp();
 			handleFailedToConnect(e);
 			return;
 		}
@@ -165,6 +172,7 @@ public class UsbConnection extends Connection {
 		readThread = new UsbReadThread();
 		readThread.start();
 
+		Log.i(LOG_TAG, "USB device is connected! device=" + getDescription());
 		handleConnected();
 	}
 
