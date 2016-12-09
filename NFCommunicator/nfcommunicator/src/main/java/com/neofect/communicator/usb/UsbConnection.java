@@ -100,6 +100,8 @@ public class UsbConnection extends Connection {
 		if (deviceConnection != null) {
 			Log.e(LOG_TAG, "connect() Already connected!");
 			return;
+		} else if (device.getInterfaceCount() == 0) {
+			throw new RuntimeException("The device has no interface for USB!");
 		}
 		registerReceiver();
 
@@ -163,8 +165,9 @@ public class UsbConnection extends Connection {
 
 			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
 		} catch (Exception e) {
-			handleFailedToConnect(e);
+			Log.e(LOG_TAG, "Failed to connect to USB device. cause=" + e.getMessage());
 			cleanUp();
+			handleFailedToConnect(e);
 			return;
 		}
 

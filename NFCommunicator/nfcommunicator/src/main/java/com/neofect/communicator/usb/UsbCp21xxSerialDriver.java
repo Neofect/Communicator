@@ -76,10 +76,6 @@ public class UsbCp21xxSerialDriver extends UsbSerialDriver {
 
 	@Override
 	public UsbEndpoint[] open() throws IOException {
-		if (device.getInterfaceCount() == 0) {
-			throw new RuntimeException("The device has no interface for USB!");
-		}
-
 		UsbEndpoint[] endpoints = new UsbEndpoint[2];
 
 		boolean opened = false;
@@ -87,9 +83,9 @@ public class UsbCp21xxSerialDriver extends UsbSerialDriver {
 			for (int i = 0; i < device.getInterfaceCount(); i++) {
 				UsbInterface usbIface = device.getInterface(i);
 				if (connection.claimInterface(usbIface, true)) {
-					Log.d(TAG, "claimInterface " + i + " SUCCESS");
+					Log.d(TAG, "open() claimInterface(" + i + ") succeeded.");
 				} else {
-					Log.d(TAG, "claimInterface " + i + " FAIL");
+					Log.d(TAG, "open() claimInterface(" + i + ") failed.");
 				}
 			}
 
