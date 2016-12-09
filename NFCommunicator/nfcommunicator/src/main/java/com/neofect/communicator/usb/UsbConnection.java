@@ -92,7 +92,7 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public String getDescription() {
-		return getDeviceName();
+		return getDeviceName() + "(" + getRemoteAddress() + ")";
 	}
 
 	@Override

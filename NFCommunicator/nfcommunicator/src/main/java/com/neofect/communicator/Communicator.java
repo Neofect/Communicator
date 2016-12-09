@@ -290,7 +290,7 @@ public class Communicator {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyConnected(Device device) {
-		Log.d(LOG_TAG, "notifyConnected() device=" + device.getConnection().getRemoteAddress());
+		Log.d(LOG_TAG, "notifyConnected() device=" + device.getConnection().getDescription());
 		connections.remove(device.getConnection());
 		devices.add(device);
 
