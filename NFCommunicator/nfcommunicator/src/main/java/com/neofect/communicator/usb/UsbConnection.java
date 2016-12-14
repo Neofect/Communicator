@@ -193,31 +193,35 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void write(byte[] src) {
-		int offset = 0;
-		while (offset < src.length) {
-			final int writeLength;
-			final int numberOfWrittenBytes;
+		try {
+			int offset = 0;
+			while (offset < src.length) {
+				final int writeLength;
+				final int numberOfWrittenBytes;
 
-			synchronized (mWriteBufferLock) {
-				final byte[] writeBuffer;
+				synchronized (mWriteBufferLock) {
+					final byte[] writeBuffer;
 
-				writeLength = Math.min(src.length - offset, mWriteBuffer.length);
-				if (offset == 0) {
-					writeBuffer = src;
-				} else {
-					// bulkTransfer does not support offsets, make a copy.
-					System.arraycopy(src, offset, mWriteBuffer, 0, writeLength);
-					writeBuffer = mWriteBuffer;
+					writeLength = Math.min(src.length - offset, mWriteBuffer.length);
+					if (offset == 0) {
+						writeBuffer = src;
+					} else {
+						// bulkTransfer does not support offsets, make a copy.
+						System.arraycopy(src, offset, mWriteBuffer, 0, writeLength);
+						writeBuffer = mWriteBuffer;
+					}
+
+					numberOfWrittenBytes = deviceConnection.bulkTransfer(writeEndpoint, writeBuffer, writeLength, WRITE_TIMEOUT_MILLIS);
 				}
-
-				numberOfWrittenBytes = deviceConnection.bulkTransfer(writeEndpoint, writeBuffer, writeLength, WRITE_TIMEOUT_MILLIS);
+				if (numberOfWrittenBytes <= 0) {
+					Log.e(LOG_TAG, "Error writing " + writeLength + " bytes at offset " + offset + " length=" + src.length);
+					return;
+				}
+				Log.d(LOG_TAG, "UsbConnection.write() numberOfWrittenBytes=" + numberOfWrittenBytes + " attempted=" + writeLength);
+				offset += numberOfWrittenBytes;
 			}
-			if (numberOfWrittenBytes <= 0) {
-				Log.e(LOG_TAG, "Error writing " + writeLength + " bytes at offset " + offset + " length=" + src.length);
-				return;
-			}
-			Log.d(LOG_TAG, "UsbConnection.write() numberOfWrittenBytes=" + numberOfWrittenBytes + " attempted=" + writeLength);
-			offset += numberOfWrittenBytes;
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "write()", e);
 		}
 	}
 
