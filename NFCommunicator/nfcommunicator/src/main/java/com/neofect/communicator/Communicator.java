@@ -99,8 +99,7 @@ public class Communicator {
 			connection.connect();
 			return true;
 		} catch(Exception e) {
-			String identifier = connectionType + ":" + connectIdentifier;
-			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), new Exception("Failed to connect to '" + identifier + "'!", e));
+			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
 			return false;
 		}
 	}

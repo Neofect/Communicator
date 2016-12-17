@@ -101,7 +101,10 @@ public class UsbConnection extends Connection {
 			Log.e(LOG_TAG, "connect() Already connected!");
 			return;
 		} else if (device.getInterfaceCount() == 0) {
-			throw new RuntimeException("The device has no interface for USB!");
+			// 2016.12.17 neo.kim@neofect.com
+			// If you got here and you don't know why, the following link might be helpful.
+			// https://code.google.com/p/android/issues/detail?id=159529
+			throw new RuntimeException("The USB device(" + device.getDeviceName() + ") has no interface!");
 		}
 		registerReceiver();
 
@@ -165,7 +168,7 @@ public class UsbConnection extends Connection {
 
 			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
 		} catch (Exception e) {
-			Log.e(LOG_TAG, "Failed to connect to USB device. cause=" + e.getMessage());
+			Log.e(LOG_TAG, "Failed to connect to USB device(" + device.getDeviceName() + "). cause=" + e.getMessage());
 			cleanUp();
 			handleFailedToConnect(e);
 			return;
