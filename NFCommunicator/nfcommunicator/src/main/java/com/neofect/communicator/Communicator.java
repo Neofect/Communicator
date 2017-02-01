@@ -61,7 +61,8 @@ public class Communicator {
 
 	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
 		if (isConnected(connectionType, connectIdentifier)) {
-			Log.e(LOG_TAG, "The device is already connected! connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
+			Exception exception = new Exception("The device is already connected! connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
+			instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 			return false;
 		}
 
@@ -83,14 +84,16 @@ public class Communicator {
 				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
 				UsbDevice device = usbManager.getDeviceList().get(connectIdentifier);
 				if (device == null) {
-					Log.e(LOG_TAG, "Not existing USB device! connectIdentifier=" + connectIdentifier);
+					Exception exception = new Exception("Not existing USB device! connectIdentifier=" + connectIdentifier);
+					instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 					return false;
 				}
 				connection = new UsbConnection(context, device, controller);
 				break;
 			}
 			default: {
-				Log.e(LOG_TAG, "Unsupported connection type! '" + connectionType + "'");
+				Exception exception = new Exception("Unsupported connection type! '" + connectionType + "'");
+				instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 				return false;
 			}
 		}
