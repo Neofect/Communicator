@@ -104,7 +104,7 @@ public class UsbConnection extends Connection {
 			// 2016.12.17 neo.kim@neofect.com
 			// If you got here and you don't know why, the following link might be helpful.
 			// https://code.google.com/p/android/issues/detail?id=159529
-			throw new RuntimeException("The USB device(" + device.getDeviceName() + ") has no interface!");
+			throw new UsbDeviceHasNoInterfaceException("The USB device(" + device.getDeviceName() + ") has no USB interface!");
 		}
 		registerReceiver();
 
