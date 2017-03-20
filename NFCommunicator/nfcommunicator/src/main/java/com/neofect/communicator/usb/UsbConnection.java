@@ -98,7 +98,7 @@ public class UsbConnection extends Connection {
 	@Override
 	public void connect() {
 		if (deviceConnection != null) {
-			Log.e(LOG_TAG, "connect() Already connected!");
+			Log.e(LOG_TAG, "connect: Already connected!");
 			return;
 		} else if (device.getInterfaceCount() == 0) {
 			// 2016.12.17 neo.kim@neofect.com
@@ -122,7 +122,7 @@ public class UsbConnection extends Connection {
 	@Override
 	public void disconnect() {
 		if (deviceConnection == null) {
-			Log.e(LOG_TAG, "disconnect() Already disconnected");
+			Log.e(LOG_TAG, "disconnect: Already disconnected");
 			return;
 		}
 		cleanUp();
@@ -130,7 +130,7 @@ public class UsbConnection extends Connection {
 	}
 
 	private void cleanUp() {
-		String message = "cleanUp()";
+		String message = "cleanUp:";
 		if (device != null) {
 			message += " device=" + getDescription();
 		}
@@ -184,7 +184,7 @@ public class UsbConnection extends Connection {
 
 	private void registerReceiver() {
 		if (receiverRegistered) {
-			Log.e(LOG_TAG, "registerReceiver() Already registered!");
+			Log.e(LOG_TAG, "registerReceiver: Already registered!");
 			return;
 		}
 		IntentFilter filter = new IntentFilter();
@@ -225,7 +225,7 @@ public class UsbConnection extends Connection {
 					Log.e(LOG_TAG, "Error writing " + writeLength + " bytes at offset " + offset + " length=" + src.length);
 					return;
 				}
-				Log.d(LOG_TAG, "UsbConnection.write() numberOfWrittenBytes=" + numberOfWrittenBytes + " attempted=" + writeLength);
+				Log.d(LOG_TAG, "UsbConnection: write: numberOfWrittenBytes=" + numberOfWrittenBytes + " attempted=" + writeLength);
 				offset += numberOfWrittenBytes;
 			}
 		} catch (Exception e) {
@@ -243,14 +243,14 @@ public class UsbConnection extends Connection {
 				while (UsbConnection.this.isConnected()) {
 					ByteBuffer buf = ByteBuffer.wrap(buffer);
 					if (!request.queue(buf, buffer.length)) {
-						Log.e(LOG_TAG, "UsbReadThread.run() Failed to queueing request!");
+						Log.e(LOG_TAG, "UsbReadThread: run: Failed to queueing request!");
 						disconnect();
 						break;
 					}
 
 					final UsbRequest response = deviceConnection.requestWait();
 					if (response == null) {
-						Log.e(LOG_TAG, "UsbReadThread.run() requestWait() returned null!");
+						Log.e(LOG_TAG, "UsbReadThread: run: requestWait() returned null!");
 						disconnect();
 						break;
 					}
@@ -263,7 +263,7 @@ public class UsbConnection extends Connection {
 					}
 				}
 			} catch (Exception e) {
-				Log.e(LOG_TAG, "run()", e);
+				Log.e(LOG_TAG, "UsbReadThread: run:", e);
 				disconnect();
 			}
 			request.close();
