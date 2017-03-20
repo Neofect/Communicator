@@ -196,6 +196,11 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void write(byte[] src) {
+		if (!isConnected()) {
+			Log.e(LOG_TAG, "write: Not connected!");
+			return;
+		}
+
 		try {
 			int offset = 0;
 			while (offset < src.length) {
