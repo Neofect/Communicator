@@ -44,37 +44,13 @@ public class UsbConnection extends Connection {
 	private UsbEndpoint writeEndpoint;
 	private UsbSerialDriver driver;
 	private Thread readThread;
-	private boolean receiverRegistered = false;
+	private BroadcastReceiver usbEventReceiver;
 
 	public UsbConnection(Context context, UsbDevice device, CommunicationController<? extends Device> controller) {
 		super(ConnectionType.USB_SERIAL, controller);
 		this.context = context.getApplicationContext();
 		this.device = device;
 	}
-
-	private final BroadcastReceiver usbEventReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-			if (device == null || !UsbConnection.this.device.equals(device)) {
-				return;
-			}
-			String action = intent.getAction();
-			Log.d(LOG_TAG, "USB event is received. action=" + action + ", device=" + UsbConnection.this.getDescription());
-
-			if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-				Log.i(LOG_TAG, "USB device is detached. device=" + device);
-				disconnect();
-			} else if (ACTION_USB_PERMISSION.equals(action)) {
-				if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-					Log.d(LOG_TAG, "Permission granted for the device " + device);
-					startConnecting();
-				}  else {
-					Log.d(LOG_TAG, "Permission denied for the device " + device);
-				}
-			}
-		}
-	};
 
 	@Override
 	public String getDeviceName() {
@@ -140,9 +116,12 @@ public class UsbConnection extends Connection {
 			readThread = null;
 		}
 
-		if (receiverRegistered) {
-			context.unregisterReceiver(usbEventReceiver);
-			receiverRegistered = false;
+		if (usbEventReceiver != null) {
+			synchronized (usbEventReceiver) {
+				context.unregisterReceiver(usbEventReceiver);
+				usbEventReceiver = null;
+				Log.d(LOG_TAG, "cleanUp: Receiver unregistered.");
+			}
 		}
 
 		try {
@@ -182,16 +161,43 @@ public class UsbConnection extends Connection {
 		handleConnected();
 	}
 
-	private void registerReceiver() {
-		if (receiverRegistered) {
-			Log.e(LOG_TAG, "registerReceiver: Already registered!");
+	private synchronized void registerReceiver() {
+		if (usbEventReceiver != null) {
+			Log.e(LOG_TAG, "USB event receiver is already registered!");
 			return;
 		}
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(ACTION_USB_PERMISSION);
 		filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+		usbEventReceiver = createReceiver();
 		context.registerReceiver(usbEventReceiver, filter);
-		receiverRegistered = true;
+		Log.d(LOG_TAG, "USB event receiver is registered.");
+	}
+
+	private BroadcastReceiver createReceiver() {
+		return new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+				if (device == null || !UsbConnection.this.device.equals(device)) {
+					return;
+				}
+				String action = intent.getAction();
+				Log.d(LOG_TAG, "USB event is received. action=" + action + ", device=" + UsbConnection.this.getDescription());
+
+				if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+					Log.i(LOG_TAG, "USB device is detached. device=" + device);
+					disconnect();
+				} else if (ACTION_USB_PERMISSION.equals(action)) {
+					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+						Log.d(LOG_TAG, "Permission granted for the device " + device);
+						startConnecting();
+					}  else {
+						Log.d(LOG_TAG, "Permission denied for the device " + device);
+					}
+				}
+			}
+		};
 	}
 
 	@Override
