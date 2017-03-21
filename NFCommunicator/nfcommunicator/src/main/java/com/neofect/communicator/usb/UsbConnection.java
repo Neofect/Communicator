@@ -118,9 +118,13 @@ public class UsbConnection extends Connection {
 
 		if (usbEventReceiver != null) {
 			synchronized (usbEventReceiver) {
-				context.unregisterReceiver(usbEventReceiver);
+				try {
+					context.unregisterReceiver(usbEventReceiver);
+					Log.d(LOG_TAG, "cleanUp: Receiver unregistered.");
+				} catch (IllegalArgumentException e) {
+					Log.e(LOG_TAG, "cleanUp: Failed to unregister the receiver!", e);
+				}
 				usbEventReceiver = null;
-				Log.d(LOG_TAG, "cleanUp: Receiver unregistered.");
 			}
 		}
 
