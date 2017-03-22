@@ -1,0 +1,27 @@
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+bintray {
+    user = BINTRAY_USER
+    key = BINTRAY_KEY
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = rootProject.name
+        userOrg = 'neofect'
+        publish = true
+        publicDownloadNumbers = true
+        version {
+            name = project.version
+        }
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
