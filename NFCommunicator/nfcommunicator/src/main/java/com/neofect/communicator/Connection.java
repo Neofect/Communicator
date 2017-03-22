@@ -34,17 +34,17 @@ public abstract class Connection {
 		CONNECTED,
 	}
 	
-	public abstract void	connect();
-	public abstract void	disconnect();
+	public abstract void connect();
+	public abstract void disconnect();
 	public abstract String getDeviceName();
-	public abstract String	getRemoteAddress();
-	public abstract String	getDescription();
+	public abstract String getRemoteAddress();
+	public abstract String getDescription();
 	
-	private final CommunicationController<? extends Device>	controller;
+	private final CommunicationController<? extends Device> controller;
 	
-	private ConnectionType	connectionType;
-	private Status			status = Status.NOT_CONNECTED;
-	private ByteRingBuffer	ringBuffer = new ByteRingBuffer();
+	private ConnectionType connectionType;
+	private Status status = Status.NOT_CONNECTED;
+	private ByteRingBuffer ringBuffer = new ByteRingBuffer();
 	
 	public Connection(ConnectionType connectionType, CommunicationController<? extends Device> controller) {
 		this.connectionType = connectionType;
