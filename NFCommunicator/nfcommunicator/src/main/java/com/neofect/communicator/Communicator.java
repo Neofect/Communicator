@@ -60,6 +60,8 @@ public class Communicator {
 	private HandlerListMap handlers = new HandlerListMap();
 
 	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
+		Log.i(LOG_TAG, "connect: connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
+
 		if (isConnected(connectionType, connectIdentifier)) {
 			Exception exception = new Exception("The device is already connected! connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
 			instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
@@ -100,6 +102,7 @@ public class Communicator {
 
 		try {
 			connection.connect();
+			Log.d(LOG_TAG, "connect: " + connection.getClass().getSimpleName() + " is created and started to connect.");
 			return true;
 		} catch(Exception e) {
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);

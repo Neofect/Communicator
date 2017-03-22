@@ -73,6 +73,7 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void connect() {
+		Log.d(LOG_TAG, "connect:");
 		if (deviceConnection != null) {
 			Log.e(LOG_TAG, "connect: Already connected!");
 			return;
@@ -97,6 +98,7 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void disconnect() {
+		Log.d(LOG_TAG, "disconnect:");
 		if (deviceConnection == null) {
 			Log.e(LOG_TAG, "disconnect: Already disconnected");
 			return;
@@ -253,7 +255,7 @@ public class UsbConnection extends Connection {
 				while (UsbConnection.this.isConnected()) {
 					ByteBuffer buf = ByteBuffer.wrap(buffer);
 					if (!request.queue(buf, buffer.length)) {
-						Log.e(LOG_TAG, "UsbReadThread: run: Failed to queueing request!");
+						Log.e(LOG_TAG, "UsbReadThread: run: Failed queueing request!");
 						disconnect();
 						break;
 					}
