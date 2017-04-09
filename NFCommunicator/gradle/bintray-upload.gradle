@@ -2,17 +2,23 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 bintray {
-    user = BINTRAY_USER
-    key = BINTRAY_KEY
-    configurations = ['archives']
-    pkg {
-        repo = 'maven'
-        name = rootProject.name
-        userOrg = 'neofect'
-        publish = true
-        publicDownloadNumbers = true
-        version {
-            name = project.version
+    if (!project.hasProperty('BINTRAY_USER')) {
+        println "Cannot perform bintray task because 'BINTRAY_USER' is not defined."
+    } else if (project.hasProperty('BINTRAY_KEY')) {
+        println "Cannot perform bintray task because 'BINTRAY_KEY' is not defined."
+    } else {
+        user = BINTRAY_USER
+        key = BINTRAY_KEY
+        configurations = ['archives']
+        pkg {
+            repo = 'maven'
+            name = rootProject.name
+            userOrg = 'neofect'
+            publish = true
+            publicDownloadNumbers = true
+            version {
+                name = project.version
+            }
         }
     }
 }
