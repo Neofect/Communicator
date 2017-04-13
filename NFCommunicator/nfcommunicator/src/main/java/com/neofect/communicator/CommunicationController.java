@@ -15,13 +15,15 @@
  */
 package com.neofect.communicator;
 
+import android.util.Log;
+
 import com.neofect.communicator.exception.InappropriateDeviceException;
 import com.neofect.communicator.message.CommunicationMessage;
 import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
-
-import android.util.Log;
+import com.neofect.communicator.util.ByteArrayConverter;
+import com.neofect.communicator.util.ByteRingBuffer;
 
 /**
  * @author neo.kim@neofect.com
@@ -169,12 +171,24 @@ public class CommunicationController<T extends Device> {
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
+				printBuffer(connection);
 				handleExceptionFromDecodeMessage(e, connection);
 			}
 			if(message == null) {
 				break;
 			}
 			processInboundMessage(connection, message);
+		}
+	}
+
+	private static void printBuffer(Connection connection) {
+		try {
+			ByteRingBuffer buffer = connection.getRingBuffer();
+			int length = Math.min(50, buffer.getContentSize());
+			byte[] byteArrays = buffer.readWithoutConsume(length);
+			ByteArrayConverter.byteArrayToHex(byteArrays);
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "printBuffer: ", e);
 		}
 	}
 
