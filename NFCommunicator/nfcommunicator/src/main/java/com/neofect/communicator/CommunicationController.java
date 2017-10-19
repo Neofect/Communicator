@@ -49,8 +49,6 @@ public class CommunicationController<T extends Device> {
 		this.decoder = decoder;
 	}
 	
-	protected void onStartConnecting(Connection connection) {}
-	protected void onFailedToConnect(Connection connection, Exception cause) {}
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
 	/**
@@ -86,31 +84,16 @@ public class CommunicationController<T extends Device> {
 		return device;
 	}
 	
-	void onStartConnectingInner(Connection connection) {
-		onStartConnecting(connection);
-		Communicator.getInstance().notifyStartConnecting(connection, deviceClass);
-	}
-	
 	void onConnectedInner(Connection connection) {
 		device = createDeviceInstance(connection, deviceClass);
 		onConnected(device);
 		Communicator.getInstance().notifyConnected(device);
 	}
-	
-	void onDisconnectedInner(Connection connection) {
-		onDisconnected(connection);
-		Communicator.getInstance().notifyDisconnected(connection, deviceClass);
-	}
-	
-	void onFailedToConnectInner(Connection connection, Exception cause) {
-		onFailedToConnect(connection, cause);
-		Communicator.getInstance().notifyFailedToConnect(connection, deviceClass, cause);
-	}
-	
+
 	protected final T getDevice() {
 		return device;
 	}
-	
+
 	final Class<T> getDeviceClass() {
 		return deviceClass;
 	}
@@ -202,14 +185,6 @@ public class CommunicationController<T extends Device> {
 	
 	public void setMessageDecoder(MessageDecoder decoder) {
 		this.decoder = decoder;
-	}
-	
-	public void setMessageClassMapperForEncoder(MessageClassMapper mapper) {
-		encoder.setMessageClassMapper(mapper);
-	}
-	
-	public void setMessageClassMapperForDecoder(MessageClassMapper mapper) {
-		decoder.setMessageClassMapper(mapper);
 	}
 	
 	public void setMessageClassMapper(MessageClassMapper mapper) {
