@@ -15,22 +15,20 @@
  */
 package com.neofect.communicator;
 
-import android.util.Log;
-
 import com.neofect.communicator.message.CommunicationMessage;
 
 /**
- * Subclass must have a constructor which has one parameter of {@link Connection} instance.
+ * Subclass must have a constructor which has one parameter of {@link Connection} instance. Because,
+ * the subclass will be instantiated via reflection.
  * 
  * @author neo.kim@neofect.com
  * @date 2014. 2. 4.
  */
 public abstract class Device {
 	
-	private String		deviceName;
-	private Connection	connection;
-	private boolean		ready;
-	
+	private String deviceName;
+	private Connection connection;
+
 	/**
 	 * A subclass must return true if this device is updated by message processing.
 	 * If it returns true, an event for device update is dispatched.
@@ -56,20 +54,6 @@ public abstract class Device {
 		return connection;
 	}
 	
-	void setReady(boolean ready) {
-		this.ready = ready;
-	}
-	
-	public boolean isReady() {
-		return ready;
-	}
-	
-	protected void sendMessage(CommunicationMessage message) {
-		if(connection == null) {
-			Log.e("Device", "The connection is null!");
-			return;
-		}
-		connection.sendMessage(message);
-	}
-	
+	protected void sendMessage(CommunicationMessage message) {}
+
 }

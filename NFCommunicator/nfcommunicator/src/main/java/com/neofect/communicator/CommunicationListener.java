@@ -24,7 +24,6 @@ public abstract class CommunicationListener<T extends Device> {
 	public void onFailedToConnect(Connection connection, Exception cause) {}
 	public void onDeviceConnected(T device, boolean alreadyExisting) {}
 	public void onDeviceDisconnected(T device) {}
-	public void onDeviceReady(T device, boolean alreadyExisting) {}
 	public void onDeviceMessageProcessed(T device, CommunicationMessage message) {}
 	public void onDeviceUpdated(T device) {}
 	

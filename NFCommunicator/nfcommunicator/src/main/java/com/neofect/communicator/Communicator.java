@@ -241,9 +241,6 @@ public class Communicator {
 	@SuppressWarnings("unchecked")
 	private static <T extends Device> void notifyNewListenerOfExistingDevices(CommunicationHandler<T> handler, Device device) {
 		handler.onDeviceConnected((T) device, true);
-		if(device.isReady()) {
-			handler.onDeviceReady((T) device, true);
-		}
 	}
 
 	/**
@@ -326,17 +323,6 @@ public class Communicator {
 				handler.onDeviceDisconnected(device);
 			}
 			break;
-		}
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	synchronized void notifyDeviceReady(Device device) {
-		Class<? extends Device> deviceClass = device.getClass();
-		if(!handlers.containsKey(deviceClass)) {
-			return;
-		}
-		for(CommunicationHandler handler : handlers.get(deviceClass)) {
-			handler.onDeviceReady(device, false);
 		}
 	}
 

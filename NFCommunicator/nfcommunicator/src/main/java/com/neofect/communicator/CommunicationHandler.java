@@ -15,10 +15,10 @@
  */
 package com.neofect.communicator;
 
-import com.neofect.communicator.message.CommunicationMessage;
-
 import android.os.Handler;
 import android.util.Log;
+
+import com.neofect.communicator.message.CommunicationMessage;
 
 /**
  * @author neo.kim@neofect.com
@@ -76,18 +76,6 @@ class CommunicationHandler<T extends Device> extends Handler {
 			public void run() {
 				try {
 					listener.onDeviceDisconnected(device);
-				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
-				}
-			}
-		});
-	}
-	
-	void onDeviceReady(final T device, final boolean alreadyExisting) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onDeviceReady(device, alreadyExisting);
 				} catch(Exception e) {
 					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
 				}
