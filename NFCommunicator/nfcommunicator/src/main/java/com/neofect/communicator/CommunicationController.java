@@ -38,9 +38,7 @@ public class CommunicationController<T extends Device> {
 	
 	private MessageEncoder encoder;
 	private MessageDecoder decoder;
-	private boolean deviceConnected = false;
-	private boolean notifiedDeviceReady = false;
-	
+
 	public CommunicationController(Class<T> deviceClass) {
 		this.deviceClass = deviceClass;
 	}
@@ -88,22 +86,6 @@ public class CommunicationController<T extends Device> {
 		return device;
 	}
 	
-	/**
-	 * This method should be called by subclass when it is determined whether a device is connected AND ready.
-	 * @param device
-	 */
-	protected final void notifyDeviceReady(T device) {
-		if(device.isReady()) {
-			Log.e(LOG_TAG, "Device is already ready!");
-			return;
-		}
-		device.setReady(true);
-		if(deviceConnected) {
-			Communicator.getInstance().notifyDeviceReady(device);
-			notifiedDeviceReady = true;
-		}
-	}
-	
 	void onStartConnectingInner(Connection connection) {
 		onStartConnecting(connection);
 		Communicator.getInstance().notifyStartConnecting(connection, deviceClass);
@@ -113,12 +95,6 @@ public class CommunicationController<T extends Device> {
 		device = createDeviceInstance(connection, deviceClass);
 		onConnected(device);
 		Communicator.getInstance().notifyConnected(device);
-		
-		deviceConnected = true;
-		if(device.isReady() && !notifiedDeviceReady) {
-			Communicator.getInstance().notifyDeviceReady(device);
-			notifiedDeviceReady = true;
-		}
 	}
 	
 	void onDisconnectedInner(Connection connection) {
@@ -202,7 +178,7 @@ public class CommunicationController<T extends Device> {
 			if(device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
-				if(device.isReady() && deviceUpdated) {
+				if(deviceUpdated) {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}
