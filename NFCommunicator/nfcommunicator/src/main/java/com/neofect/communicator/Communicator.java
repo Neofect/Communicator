@@ -42,7 +42,7 @@ import static com.neofect.communicator.ConnectionType.BLUETOOTH_A2DP;
  */
 public class Communicator {
 
-	private static final String LOG_TAG = Communicator.class.getSimpleName();
+	private static final String LOG_TAG = "Communicator";
 
 	private static Communicator instance = new Communicator();
 

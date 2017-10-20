@@ -26,9 +26,9 @@ import com.neofect.communicator.util.ByteRingBuffer;
  */
 public abstract class Connection {
 
-	private static final String LOG_TAG = Connection.class.getSimpleName();
+	private static final String LOG_TAG = "Connection";
 	
-	public static enum Status {
+	public enum Status {
 		NOT_CONNECTED,
 		CONNECTING,
 		CONNECTED,
@@ -61,10 +61,6 @@ public abstract class Connection {
 	
 	public Device getDevice() {
 		return controller.getDevice();
-	}
-	
-	public Class<? extends Device> getDeviceClass() {
-		return controller.getDeviceClass();
 	}
 	
 	public Status getStatus() {
@@ -112,7 +108,8 @@ public abstract class Connection {
 	protected final void handleConnected() {
 		try {
 			status = Status.CONNECTED;
-			controller.onConnectedInner(this);
+			Device device = controller.startControl(this);
+			Communicator.getInstance().notifyConnected(device);
 		} catch(Exception e) {
 			try {
 				this.disconnect();
