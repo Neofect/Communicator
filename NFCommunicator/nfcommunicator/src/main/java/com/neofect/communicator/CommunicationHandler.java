@@ -25,13 +25,12 @@ import com.neofect.communicator.message.CommunicationMessage;
  * @date 2014. 2. 4.
  */
 class CommunicationHandler<T extends Device> extends Handler {
+
+	private static final String LOG_TAG = "CommunicationHandler";
 	
 	CommunicationListener<T> listener;
 	
 	CommunicationHandler(CommunicationListener<T> listener) {
-		if(listener == null) {
-			throw new IllegalArgumentException("Listener must not be null!");
-		}
 		this.listener = listener;
 	}
 
@@ -41,7 +40,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onStartConnecting(connection);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -53,7 +52,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onFailedToConnect(connection, cause);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -65,7 +64,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceConnected(device, alreadyExisting);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -77,7 +76,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceDisconnected(device);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -89,7 +88,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceMessageProcessed(device, message);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -101,7 +100,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceUpdated(device);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});

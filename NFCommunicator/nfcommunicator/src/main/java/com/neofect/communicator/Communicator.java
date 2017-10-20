@@ -20,6 +20,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.os.Handler;
 import android.util.Log;
 
 import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
@@ -133,7 +134,7 @@ public class Communicator {
 		}
 	}
 
-	public static <T extends Device> void registerListener(CommunicationListener<T> listener) {
+	public static <T extends Device> Handler registerListener(CommunicationListener<T> listener) {
 		synchronized(instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
 			HandlerList handlerList;
@@ -142,7 +143,7 @@ public class Communicator {
 				int handlerIndex = getHandlerIndexByListener(handlerList, listener);
 				if(handlerIndex != -1) {
 					Log.w(LOG_TAG,  "The listener is already registered!");
-					return;
+					return null;
 				}
 			} else {
 				handlerList = new HandlerList();
@@ -158,6 +159,7 @@ public class Communicator {
 					notifyNewListenerOfExistingDevices(handler, device);
 				}
 			}
+			return handler;
 		}
 	}
 
