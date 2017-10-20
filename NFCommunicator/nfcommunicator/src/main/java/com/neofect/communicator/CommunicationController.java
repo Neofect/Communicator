@@ -42,6 +42,8 @@ public abstract class CommunicationController<T extends Device> {
 	private MessageEncoder encoder;
 	private MessageDecoder decoder;
 
+	private boolean halted = false;
+
 	public CommunicationController() {
 		this.deviceClass = getClassFromGeneric(this);
 	}
@@ -51,7 +53,7 @@ public abstract class CommunicationController<T extends Device> {
 		this.encoder = encoder;
 		this.decoder = decoder;
 	}
-	
+
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
 
@@ -100,19 +102,32 @@ public abstract class CommunicationController<T extends Device> {
 	
 	private static <T extends Device> T createDeviceInstance(Connection connection, Class<T> deviceClass) {
 		// Create an instance of the device.
-		T device = null;
 		try {
-			device = deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
+			return deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
 		}
+	}
+
+	protected T initializeDevice(Connection connection) {
+		if (device != null) {
+			throw new IllegalStateException("The device is already initialized!");
+		}
+		device = createDeviceInstance(connection, deviceClass);
 		return device;
 	}
-	
-	Device startControl(Connection connection) {
-		device = createDeviceInstance(connection, deviceClass);
+
+	void startControl() {
 		onConnected(device);
-		return device;
+	}
+
+	public void halt() {
+		Log.i(LOG_TAG, "halt: Controller halted. deviceName=" + device.getDeviceName());
+		halted = true;
+	}
+
+	protected boolean isHalted() {
+		return halted;
 	}
 
 	protected final T getDevice() {
@@ -150,7 +165,7 @@ public abstract class CommunicationController<T extends Device> {
 			return;
 		}
 		
-		while(true) {
+		while(!halted) {
 			CommunicationMessage message = null;
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());

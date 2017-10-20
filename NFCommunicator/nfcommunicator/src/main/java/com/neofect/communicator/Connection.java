@@ -40,7 +40,7 @@ public abstract class Connection {
 	public abstract String getRemoteAddress();
 	public abstract String getDescription();
 	
-	private final CommunicationController<? extends Device> controller;
+	private CommunicationController<? extends Device> controller;
 	
 	private ConnectionType connectionType;
 	private Status status = Status.NOT_CONNECTED;
@@ -78,16 +78,29 @@ public abstract class Connection {
 	public void	write(byte[] data) {
 		Log.e(LOG_TAG, "write() is not implemented for this connection type!");
 	}
-	
+
 	public void sendMessage(CommunicationMessage message) {
 		write(controller.encodeMessage(message));
 	}
-	
+
+	public void replaceController(CommunicationController<? extends Device> controller) {
+		synchronized (this) {
+			controller.halt();
+			this.controller = controller;
+			if (status == Status.CONNECTED) {
+				controller.initializeDevice(this);
+				controller.decodeRawMessageAndProcess(this);
+			}
+		}
+	}
+
 	protected final void handleReadData(byte[] data) {
 		ringBuffer.put(data);
 		
 		// Process message
-		controller.decodeRawMessageAndProcess(this);
+		synchronized (this) {
+			controller.decodeRawMessageAndProcess(this);
+		}
 	}
 	
 	protected final void handleConnecting() {
@@ -104,11 +117,12 @@ public abstract class Connection {
 		status = Status.NOT_CONNECTED;
 		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
 	}
-	
+
 	protected final void handleConnected() {
 		try {
 			status = Status.CONNECTED;
-			Device device = controller.startControl(this);
+			Device device = controller.initializeDevice(this);
+			controller.startControl();
 			Communicator.getInstance().notifyConnected(device);
 		} catch(Exception e) {
 			try {
