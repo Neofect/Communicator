@@ -117,12 +117,16 @@ public abstract class CommunicationController<T extends Device> {
 		return device;
 	}
 
-	void startControl() {
+	protected void startControl() {
 		onConnected(device);
 	}
 
-	public void halt() {
-		Log.i(LOG_TAG, "halt: Controller halted. deviceName=" + device.getDeviceName());
+	void halt() {
+		String message = "";
+		if (device != null) {
+			message = " connection=" + device.getConnection().getDescription();
+		}
+		Log.i(LOG_TAG, "halt: Controller halted." + message);
 		halted = true;
 	}
 

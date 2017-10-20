@@ -85,7 +85,7 @@ public abstract class Connection {
 
 	public void replaceController(CommunicationController<? extends Device> controller) {
 		synchronized (this) {
-			controller.halt();
+			this.controller.halt();
 			this.controller = controller;
 			if (status == Status.CONNECTED) {
 				controller.initializeDevice(this);
