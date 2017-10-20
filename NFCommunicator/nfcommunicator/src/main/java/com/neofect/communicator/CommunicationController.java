@@ -29,9 +29,9 @@ import com.neofect.communicator.util.ByteRingBuffer;
  * @author neo.kim@neofect.com
  * @date Jan 24, 2014
  */
-public class CommunicationController<T extends Device> {
+public abstract class CommunicationController<T extends Device> {
 	
-	private static final String LOG_TAG = CommunicationController.class.getSimpleName();
+	private static final String LOG_TAG = "CommunicationController";
 	
 	private Class<T> deviceClass;
 	private T device;
@@ -49,10 +49,9 @@ public class CommunicationController<T extends Device> {
 		this.decoder = decoder;
 	}
 	
-	protected void onStartConnecting(Connection connection) {}
-	protected void onFailedToConnect(Connection connection, Exception cause) {}
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
+
 	/**
 	 * This delegate API returns true if the given message must not processed by the device after this method.
 	 * 
@@ -62,7 +61,28 @@ public class CommunicationController<T extends Device> {
 	 */
 	protected boolean onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
 	protected void onAfterDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
-	
+
+	public MessageEncoder getMessageEncoder() {
+		return encoder;
+	}
+
+	public void setMessageEncoder(MessageEncoder encoder) {
+		this.encoder = encoder;
+	}
+
+	public MessageDecoder getMessageDecoder() {
+		return decoder;
+	}
+
+	public void setMessageDecoder(MessageDecoder decoder) {
+		this.decoder = decoder;
+	}
+
+	public void setMessageClassMapper(MessageClassMapper mapper) {
+		encoder.setMessageClassMapper(mapper);
+		decoder.setMessageClassMapper(mapper);
+	}
+
 	protected void handleExceptionFromDecodeMessage(Exception exception, Connection connection) {
 		Log.e(LOG_TAG, "Failed to decode message!", exception);
 	}
@@ -86,36 +106,21 @@ public class CommunicationController<T extends Device> {
 		return device;
 	}
 	
-	void onStartConnectingInner(Connection connection) {
-		onStartConnecting(connection);
-		Communicator.getInstance().notifyStartConnecting(connection, deviceClass);
-	}
-	
-	void onConnectedInner(Connection connection) {
+	Device startControl(Connection connection) {
 		device = createDeviceInstance(connection, deviceClass);
 		onConnected(device);
-		Communicator.getInstance().notifyConnected(device);
+		return device;
 	}
-	
-	void onDisconnectedInner(Connection connection) {
-		onDisconnected(connection);
-		Communicator.getInstance().notifyDisconnected(connection, deviceClass);
-	}
-	
-	void onFailedToConnectInner(Connection connection, Exception cause) {
-		onFailedToConnect(connection, cause);
-		Communicator.getInstance().notifyFailedToConnect(connection, deviceClass, cause);
-	}
-	
+
 	protected final T getDevice() {
 		return device;
 	}
-	
+
 	final Class<T> getDeviceClass() {
 		return deviceClass;
 	}
 	
-	public final byte[] encodeMessage(CommunicationMessage message) {
+	final byte[] encodeMessage(CommunicationMessage message) {
 		if(encoder == null) {
 			Log.e(LOG_TAG, "Message encoder is not set!");
 			return null;
@@ -170,8 +175,8 @@ public class CommunicationController<T extends Device> {
 
 	private void processInboundMessage(Connection connection, CommunicationMessage message) {
 		try {
-			boolean passMessageProcessingByDevice = onBeforeDeviceProcessInboundMessage(connection, message);
-			if(passMessageProcessingByDevice) {
+			boolean skipMessageProcessingByDevice = onBeforeDeviceProcessInboundMessage(connection, message);
+			if(skipMessageProcessingByDevice) {
 				return;
 			}
 			
@@ -186,35 +191,6 @@ public class CommunicationController<T extends Device> {
 		} catch(Exception e) {
 			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
-	}
-	
-	public MessageEncoder getMessageEncoder() {
-		return encoder;
-	}
-	
-	public void setMessageEncoder(MessageEncoder encoder) {
-		this.encoder = encoder;
-	}
-	
-	public MessageDecoder getMessageDecoder() {
-		return decoder;
-	}
-	
-	public void setMessageDecoder(MessageDecoder decoder) {
-		this.decoder = decoder;
-	}
-	
-	public void setMessageClassMapperForEncoder(MessageClassMapper mapper) {
-		encoder.setMessageClassMapper(mapper);
-	}
-	
-	public void setMessageClassMapperForDecoder(MessageClassMapper mapper) {
-		decoder.setMessageClassMapper(mapper);
-	}
-	
-	public void setMessageClassMapper(MessageClassMapper mapper) {
-		encoder.setMessageClassMapper(mapper);
-		decoder.setMessageClassMapper(mapper);
 	}
 	
 }
