@@ -4,6 +4,12 @@ public class AngleSmoothingFilter implements SmoothingFilter {
 	
 	private FloatSmoothingFilter sinFilter = new FloatSmoothingFilter();
 	private FloatSmoothingFilter cosFilter = new FloatSmoothingFilter();
+
+	/**
+	 * The angle range is -180 ~ 180 as default. The range can be changed by this min value.
+	 * If min value is -90, then the range is -90 ~ 270.
+	 */
+	private float minValue = -180f;
 	
 	@Override
 	public boolean add(float angleInDegree, int samplingSize) {
@@ -21,7 +27,13 @@ public class AngleSmoothingFilter implements SmoothingFilter {
 		float cosAverage = cosFilter.getAverage();
 		
 		float radian = (float) Math.atan2(sinAverage, cosAverage);
-		return (float) Math.toDegrees(radian);
+		float degree = (float) Math.toDegrees(radian);
+		if (degree < minValue) {
+			degree += 360;
+		} else if (degree > minValue + 360) {
+			degree -= 360;
+		}
+		return degree;
 	}
 	
 	@Override
@@ -35,4 +47,12 @@ public class AngleSmoothingFilter implements SmoothingFilter {
 		cosFilter.clearSamples();
 	}
 
+	public void setMinValue(float minValue) {
+		if (minValue < -360) {
+			throw new IllegalArgumentException("Min value must not be smaller than -360.");
+		} else if (minValue > 0) {
+			throw new IllegalArgumentException("Min value must not be larger than 0.");
+		}
+		this.minValue = minValue;
+	}
 }

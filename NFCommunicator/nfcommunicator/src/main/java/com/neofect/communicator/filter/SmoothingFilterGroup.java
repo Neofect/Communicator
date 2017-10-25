@@ -19,6 +19,10 @@ public class SmoothingFilterGroup<T extends SmoothingFilter> {
 			filters.add(createFilterInstance(filterClass));
 		}
 	}
+
+	public List<T> getFilters() {
+		return filters;
+	}
 	
 	@SuppressWarnings("unchecked")
 	private static <T extends SmoothingFilter> Class<T> getClassFromGeneric(SmoothingFilterGroup<T> filterGroup) {
