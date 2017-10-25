@@ -62,7 +62,7 @@ public abstract class Connection {
 	public Device getDevice() {
 		return controller.getDevice();
 	}
-	
+
 	public Status getStatus() {
 		return status;
 	}
@@ -83,13 +83,15 @@ public abstract class Connection {
 		write(controller.encodeMessage(message));
 	}
 
-	public void replaceController(CommunicationController<? extends Device> controller) {
+	public void replaceController(CommunicationController<? extends Device> newController) {
 		synchronized (this) {
-			this.controller.halt();
-			this.controller = controller;
+			CommunicationController<? extends Device> oldController = this.controller;
+			this.controller = newController;
+			oldController.halt();
 			if (status == Status.CONNECTED) {
-				controller.initializeDevice(this);
-				controller.decodeRawMessageAndProcess(this);
+				newController.initializeDevice(this);
+				Communicator.getInstance().onControllerReplaced(this, oldController, newController);
+				newController.decodeRawMessageAndProcess(this);
 			}
 		}
 	}

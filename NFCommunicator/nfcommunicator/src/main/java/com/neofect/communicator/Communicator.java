@@ -319,6 +319,10 @@ public class Communicator {
 		}
 	}
 
+	void onControllerReplaced(Connection connection, CommunicationController<?> oldController, CommunicationController<?> newController) {
+		// TODO
+	}
+
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {
 		connections.add(connection);
 
