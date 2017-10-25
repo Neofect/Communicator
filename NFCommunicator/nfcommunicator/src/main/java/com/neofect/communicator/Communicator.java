@@ -61,8 +61,8 @@ public class Communicator {
 
 	private final List<Connection> connections = new ArrayList<>();
 	private final List<Device> devices = new ArrayList<>();
-	private final HandlerListMap handlers = new HandlerListMap();
-	private final HandlerListMap subclassedHandlers = new HandlerListMap();
+	private final HandlerListMap registeredHandlers = new HandlerListMap();
+	private final HandlerListMap connectedDeviceHandlers = new HandlerListMap();
 
 	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
 		Log.i(LOG_TAG, "connect: connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
@@ -152,8 +152,8 @@ public class Communicator {
 		synchronized(instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
 			HandlerList handlerList;
-			if(instance.handlers.containsKey(deviceClass)) {
-				handlerList = instance.handlers.get(deviceClass);
+			if(instance.registeredHandlers.containsKey(deviceClass)) {
+				handlerList = instance.registeredHandlers.get(deviceClass);
 				int handlerIndex = getHandlerIndexByListener(handlerList, listener);
 				if(handlerIndex != -1) {
 					Log.w(LOG_TAG,  "registerListener: The listener is already registered!");
@@ -161,12 +161,12 @@ public class Communicator {
 				}
 			} else {
 				handlerList = new HandlerList();
-				instance.handlers.put(deviceClass, handlerList);
+				instance.registeredHandlers.put(deviceClass, handlerList);
 			}
 
 			CommunicationHandler<T> handler = new CommunicationHandler<>(listener);
 			handlerList.add(handler);
-			instance.reorganizeSubclassedHandlers();
+			instance.refreshConnectedDeviceHandlers();
 
 			// Notify of already existing devices
 			for(Device device : instance.devices) {
@@ -181,19 +181,19 @@ public class Communicator {
 	public static <T extends Device> void unregisterListener(CommunicationListener<T> listener) {
 		synchronized (instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
-			if(!instance.handlers.containsKey(deviceClass)) {
+			if(!instance.registeredHandlers.containsKey(deviceClass)) {
 				Log.w(LOG_TAG,  "unregisterListener: The listener is not registered!");
 				return;
 			}
 
-			HandlerList handlerList = instance.handlers.get(deviceClass);
+			HandlerList handlerList = instance.registeredHandlers.get(deviceClass);
 			int handlerIndex = getHandlerIndexByListener(handlerList, listener);
 			if(handlerIndex == -1) {
 				Log.w(LOG_TAG,  "The listener is not existing!");
 				return;
 			}
 			handlerList.remove(handlerIndex);
-			instance.reorganizeSubclassedHandlers();
+			instance.refreshConnectedDeviceHandlers();
 		}
 	}
 
@@ -289,38 +289,40 @@ public class Communicator {
 			subClass.asSubclass(superClass);
 			return true;
 		} catch (Exception e) {
-			Log.e(LOG_TAG, "", e);
 			return false;
 		}
 	}
 
-	synchronized private void reorganizeSubclassedHandlers() {
-		subclassedHandlers.clear();
-		List<Class<? extends Device>> deviceClassList = new ArrayList<>(handlers.keySet());
-		for (int i = 0; i < deviceClassList.size(); ++i) {
-			Class<? extends Device> deviceClass = deviceClassList.get(i);
-			HandlerList subclassedHandlerList = new HandlerList();
-			subclassedHandlerList.addAll(handlers.get(deviceClass));
 
-			for (int j = 0; j < deviceClassList.size(); ++j) {
-				if (i == j) {
-					continue;
-				}
-				if (isSameOrSuperClassDevice(deviceClassList.get(j), deviceClass)) {
-					subclassedHandlerList.addAll(handlers.get(deviceClass));
+	synchronized private HandlerList getCorrespondingHandlers(Class<? extends Device> deviceClass) {
+		synchronized (registeredHandlers) {
+			HandlerList result = new HandlerList();
+			List<Class<? extends Device>> handlerDeviceClassList = new ArrayList<>(registeredHandlers.keySet());
+			for (int i = 0; i < handlerDeviceClassList.size(); ++i) {
+				Class<? extends Device> handlerDeviceClass = handlerDeviceClassList.get(i);
+				if (isSameOrSuperClassDevice(deviceClass, handlerDeviceClass)) {
+					result.addAll(registeredHandlers.get(handlerDeviceClass));
 				}
 			}
-			subclassedHandlers.put(deviceClass, subclassedHandlerList);
+			return result;
+		}
+	}
+
+	synchronized private void refreshConnectedDeviceHandlers() {
+		connectedDeviceHandlers.clear();
+		for (Device device : devices) {
+			Class<? extends Device> connectedDeviceClass = device.getClass();
+			if (connectedDeviceHandlers.get(connectedDeviceClass) != null) {
+				continue;
+			}
+			connectedDeviceHandlers.put(connectedDeviceClass, getCorrespondingHandlers(connectedDeviceClass));
 		}
 	}
 
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {
 		connections.add(connection);
 
-		HandlerList handlerList = subclassedHandlers.get(deviceClass);
-		if (handlerList == null) {
-			return;
-		}
+		HandlerList handlerList = getCorrespondingHandlers(deviceClass);
 		for(CommunicationHandler handler : handlerList) {
 			handler.onStartConnecting(connection);
 		}
@@ -329,10 +331,7 @@ public class Communicator {
 	synchronized void notifyFailedToConnect(Connection connection, Class<? extends Device> deviceClass, Exception cause) {
 		connections.remove(connection);
 
-		HandlerList handlerList = subclassedHandlers.get(deviceClass);
-		if (handlerList == null) {
-			return;
-		}
+		HandlerList handlerList = getCorrespondingHandlers(deviceClass);
 		for(CommunicationHandler handler : handlerList) {
 			handler.onFailedToConnect(connection, cause);
 		}
@@ -343,9 +342,10 @@ public class Communicator {
 		Log.d(LOG_TAG, "notifyConnected: device=" + device.getConnection().getDescription());
 		connections.remove(device.getConnection());
 		devices.add(device);
+		refreshConnectedDeviceHandlers();
 
 		Class<? extends Device> deviceClass = device.getClass();
-		HandlerList handlerList = subclassedHandlers.get(deviceClass);
+		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
 		if (handlerList == null) {
 			return;
 		}
@@ -364,15 +364,14 @@ public class Communicator {
 			if(device.getConnection() != connection) {
 				continue;
 			}
+			HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
+			if (handlerList != null) {
+				for(CommunicationHandler handler : handlerList) {
+					handler.onDeviceDisconnected(device);
+				}
+			}
 			devices.remove(device);
-
-			HandlerList handlerList = subclassedHandlers.get(deviceClass);
-			if (handlerList == null) {
-				return;
-			}
-			for(CommunicationHandler handler : handlerList) {
-				handler.onDeviceDisconnected(device);
-			}
+			refreshConnectedDeviceHandlers();
 			break;
 		}
 	}
@@ -380,7 +379,7 @@ public class Communicator {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceMessageProcessed(Device device, CommunicationMessage message) {
 		Class<? extends Device> deviceClass = device.getClass();
-		HandlerList handlerList = subclassedHandlers.get(deviceClass);
+		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
 		if (handlerList == null) {
 			return;
 		}
@@ -392,7 +391,7 @@ public class Communicator {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDeviceUpdated(Device device) {
 		Class<? extends Device> deviceClass = device.getClass();
-		HandlerList handlerList = subclassedHandlers.get(deviceClass);
+		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
 		if (handlerList == null) {
 			return;
 		}
