@@ -170,7 +170,7 @@ public class Communicator {
 
 			// Notify of already existing devices
 			for(Device device : instance.devices) {
-				if(device.getClass() == deviceClass) {
+				if (isSameOrSuperClassDevice(device.getClass(), deviceClass)) {
 					notifyNewListenerOfExistingDevices(handler, device);
 				}
 			}
@@ -189,7 +189,7 @@ public class Communicator {
 			HandlerList handlerList = instance.handlers.get(deviceClass);
 			int handlerIndex = getHandlerIndexByListener(handlerList, listener);
 			if(handlerIndex == -1) {
-				Log.w(LOG_TAG,  "The listener is not registered!");
+				Log.w(LOG_TAG,  "The listener is not existing!");
 				return;
 			}
 			handlerList.remove(handlerIndex);
@@ -284,6 +284,16 @@ public class Communicator {
 		return -1;
 	}
 
+	static boolean isSameOrSuperClassDevice(Class<? extends Device> subClass, Class<? extends Device> superClass) {
+		try {
+			subClass.asSubclass(superClass);
+			return true;
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "", e);
+			return false;
+		}
+	}
+
 	synchronized private void reorganizeSubclassedHandlers() {
 		subclassedHandlers.clear();
 		List<Class<? extends Device>> deviceClassList = new ArrayList<>(handlers.keySet());
@@ -296,14 +306,8 @@ public class Communicator {
 				if (i == j) {
 					continue;
 				}
-
-				Class<?> clazz = deviceClassList.get(j).getSuperclass();
-				while (clazz != Object.class) {
-					if (clazz == deviceClass) {
-						subclassedHandlerList.addAll(handlers.get(clazz));
-						break;
-					}
-					clazz = clazz.getSuperclass();
+				if (isSameOrSuperClassDevice(deviceClassList.get(j), deviceClass)) {
+					subclassedHandlerList.addAll(handlers.get(deviceClass));
 				}
 			}
 			subclassedHandlers.put(deviceClass, subclassedHandlerList);
