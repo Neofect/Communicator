@@ -7,8 +7,6 @@ import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
 
-import static com.neofect.communicator.util.ByteArrayConverter.byteArrayToHex;
-
 /**
  * @author neo.kim@neofect.com
  * @date Nov 02, 2017
@@ -64,11 +62,10 @@ public class DummyConnection extends Connection {
 
 	@Override
 	public void write(byte[] data) {
-		device.write(data);
+		device.receive(data);
 	}
 
 	void onRead(byte[] data) {
-		Log.i(LOG_TAG, "onRead: data=[" + byteArrayToHex(data) + "]");
 		handleReadData(data);
 	}
 
