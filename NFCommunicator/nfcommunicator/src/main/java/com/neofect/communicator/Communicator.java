@@ -25,6 +25,8 @@ import android.util.Log;
 
 import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
 import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
+import com.neofect.communicator.dummy.DummyConnection;
+import com.neofect.communicator.dummy.DummyPhysicalDevice;
 import com.neofect.communicator.message.CommunicationMessage;
 import com.neofect.communicator.usb.UsbConnection;
 
@@ -109,6 +111,13 @@ public class Communicator {
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
 			return false;
 		}
+	}
+
+	public static boolean connectDummy(DummyPhysicalDevice device, CommunicationController<? extends Device> controller) {
+		Log.i(LOG_TAG, "connectDummy: deviceName=" + device.getDeviceName() + ", deviceIdentifier=" + device.getDeviceIdentifier());
+		DummyConnection connection = new DummyConnection(device, controller);
+		connection.connect();
+		return true;
 	}
 
 	public static void disconnect(Device device) {

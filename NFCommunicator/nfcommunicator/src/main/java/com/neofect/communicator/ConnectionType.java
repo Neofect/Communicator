@@ -26,4 +26,6 @@ public enum ConnectionType {
 	BLUETOOTH_LOW_ENERGY,	// Not used for now
 
 	USB_SERIAL,
+
+	DUMMY,
 }

@@ -55,6 +55,10 @@ public class Crc16Util {
 		0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78
 	};
 	
+	public static int calculateCrc(byte[] bytes) {
+		return calculateCrc(bytes, 0, bytes.length);
+	}
+
 	public static int calculateCrc(byte[] bytes, int startIndex, int length) {
         int crc = 0x0000;
         for(int i = 0; i < length; ++i) {
