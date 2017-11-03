@@ -13,13 +13,20 @@ public abstract class DummyPhysicalDevice {
 	private static final String LOG_TAG = "DummyPhysicalDevice";
 
 	protected DummyConnection connection;
+	protected String deviceIdentifier;
+	protected String deviceName;
 
-	public String getDeviceName() {
-		return "DummyPhysicalDevice";
+	public DummyPhysicalDevice(String deviceIdentifier, String deviceName) {
+		this.deviceIdentifier = deviceIdentifier;
+		this.deviceName = deviceName;
 	}
 
 	public String getDeviceIdentifier() {
-		return "DummyPhysicalDeviceIdentifier";
+		return deviceIdentifier;
+	}
+
+	public String getDeviceName() {
+		return deviceName;
 	}
 
 	protected void connect(final DummyConnection connection) {

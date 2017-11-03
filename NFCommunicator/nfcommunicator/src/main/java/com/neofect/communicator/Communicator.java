@@ -27,6 +27,7 @@ import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
 import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
 import com.neofect.communicator.dummy.DummyConnection;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
+import com.neofect.communicator.dummy.DummyPhysicalDeviceManager;
 import com.neofect.communicator.message.CommunicationMessage;
 import com.neofect.communicator.usb.UsbConnection;
 
@@ -96,6 +97,16 @@ public class Communicator {
 				connection = new UsbConnection(context, device, controller);
 				break;
 			}
+			case DUMMY: {
+				DummyPhysicalDevice device = DummyPhysicalDeviceManager.getDevice(connectIdentifier);
+				if (device == null) {
+					Exception exception = new Exception("Not existing Dummy physical device! identifier=" + connectIdentifier);
+					instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
+					return false;
+				}
+				connection = new DummyConnection(device, controller);
+				break;
+			}
 			default: {
 				Exception exception = new Exception("Unsupported connection type! '" + connectionType + "'");
 				instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
@@ -111,13 +122,6 @@ public class Communicator {
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
 			return false;
 		}
-	}
-
-	public static boolean connectDummy(DummyPhysicalDevice device, CommunicationController<? extends Device> controller) {
-		Log.i(LOG_TAG, "connectDummy: deviceName=" + device.getDeviceName() + ", deviceIdentifier=" + device.getDeviceIdentifier());
-		DummyConnection connection = new DummyConnection(device, controller);
-		connection.connect();
-		return true;
 	}
 
 	public static void disconnect(Device device) {
