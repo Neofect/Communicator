@@ -109,16 +109,22 @@ public abstract class CommunicationController<T extends Device> {
 		}
 	}
 
-	protected T initializeDevice(Connection connection) {
+	protected void startControl(Connection connection) {
+		initializeDevice(connection);
+		onConnected(device);
+		decodeRawMessageAndProcess(connection);
+	}
+
+	protected void startAfterReplaced(Connection connection) {
+		initializeDevice(connection);
+		decodeRawMessageAndProcess(connection);
+	}
+
+	protected void initializeDevice(Connection connection) {
 		if (device != null) {
 			throw new IllegalStateException("The device is already initialized!");
 		}
 		device = createDeviceInstance(connection, deviceClass);
-		return device;
-	}
-
-	protected void startControl() {
-		onConnected(device);
 	}
 
 	void halt() {
@@ -138,7 +144,7 @@ public abstract class CommunicationController<T extends Device> {
 		return device;
 	}
 
-	final Class<T> getDeviceClass() {
+	protected final Class<T> getDeviceClass() {
 		return deviceClass;
 	}
 	

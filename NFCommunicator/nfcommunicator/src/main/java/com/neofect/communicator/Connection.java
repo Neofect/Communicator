@@ -83,38 +83,25 @@ public abstract class Connection {
 		write(controller.encodeMessage(message));
 	}
 
-	public void replaceController(CommunicationController<? extends Device> newController) {
-		synchronized (this) {
-			CommunicationController<? extends Device> oldController = this.controller;
-			this.controller = newController;
-			oldController.halt();
-			if (status == Status.CONNECTED) {
-				newController.initializeDevice(this);
-				Communicator.getInstance().onControllerReplaced(this, oldController, newController);
-				newController.decodeRawMessageAndProcess(this);
-			}
-		}
-	}
-
 	protected final void handleReadData(byte[] data) {
 		ringBuffer.put(data);
-		
+
 		// Process message
 		synchronized (this) {
 			controller.decodeRawMessageAndProcess(this);
 		}
 	}
-	
+
 	protected final void handleConnecting() {
 		status = Status.CONNECTING;
 		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
 	}
-	
+
 	void forceFailedToConnectFromController(Exception cause) {
 		disconnect();
 		handleFailedToConnect(cause);
 	}
-	
+
 	protected final void handleFailedToConnect(Exception cause) {
 		status = Status.NOT_CONNECTED;
 		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
@@ -123,9 +110,8 @@ public abstract class Connection {
 	protected final void handleConnected() {
 		try {
 			status = Status.CONNECTED;
-			Device device = controller.initializeDevice(this);
-			controller.startControl();
-			Communicator.getInstance().notifyConnected(device);
+			controller.startControl(this);
+			Communicator.getInstance().notifyConnected(controller.getDevice());
 		} catch(Exception e) {
 			try {
 				this.disconnect();
@@ -135,11 +121,23 @@ public abstract class Connection {
 			handleFailedToConnect(new Exception("Failed to process the connected device!", e));
 		}
 	}
-	
+
 	protected final void handleDisconnected() {
 		status = Status.NOT_CONNECTED;
 		controller.onDisconnected(this);
 		Communicator.getInstance().notifyDisconnected(this, controller.getDeviceClass());
 	}
-	
+
+	public void replaceController(CommunicationController<? extends Device> newController) {
+		synchronized (this) {
+			CommunicationController<? extends Device> oldController = this.controller;
+			this.controller = newController;
+			oldController.halt();
+			if (status == Status.CONNECTED) {
+				newController.startAfterReplaced(this);
+				Communicator.getInstance().onControllerReplaced(this, oldController, newController);
+			}
+		}
+	}
+
 }
