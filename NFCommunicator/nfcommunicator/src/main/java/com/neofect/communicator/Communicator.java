@@ -316,11 +316,14 @@ public class Communicator {
 	synchronized private void refreshConnectedDeviceHandlers() {
 		connectedDeviceHandlers.clear();
 		for(Connection connection : instance.connections) {
-			Class<? extends Device> connectedDeviceClass = connection.getDevice().getClass();
-			if (connectedDeviceHandlers.get(connectedDeviceClass) != null) {
+			if (connection.getDevice() == null) {
 				continue;
 			}
-			connectedDeviceHandlers.put(connectedDeviceClass, getCorrespondingHandlers(connectedDeviceClass));
+			Class<? extends Device> deviceClass = connection.getDevice().getClass();
+			if (connectedDeviceHandlers.get(deviceClass) != null) {
+				continue;
+			}
+			connectedDeviceHandlers.put(deviceClass, getCorrespondingHandlers(deviceClass));
 		}
 	}
 

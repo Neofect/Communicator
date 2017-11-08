@@ -2,8 +2,6 @@ package com.neofect.communicator.dummy;
 
 import android.util.Log;
 
-import static com.neofect.communicator.util.ByteArrayConverter.byteArrayToHex;
-
 /**
  * @author neo.kim@neofect.com
  * @date Nov 02, 2017
@@ -43,11 +41,9 @@ public abstract class DummyPhysicalDevice {
 	}
 
 	protected void receive(byte[] data) {
-		Log.d(LOG_TAG, "receive: [" + byteArrayToHex(data) + "]");
 	}
 
 	protected void notifyRead(byte[] data) {
-		Log.d(LOG_TAG, "notifyRead: [" + byteArrayToHex(data) + "]");
 		connection.onRead(data);
 	}
 }
