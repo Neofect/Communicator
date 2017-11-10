@@ -97,11 +97,6 @@ public abstract class Connection {
 		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
 	}
 
-	void forceFailedToConnectFromController(Exception cause) {
-		disconnect();
-		handleFailedToConnect(cause);
-	}
-
 	protected final void handleFailedToConnect(Exception cause) {
 		status = Status.NOT_CONNECTED;
 		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
