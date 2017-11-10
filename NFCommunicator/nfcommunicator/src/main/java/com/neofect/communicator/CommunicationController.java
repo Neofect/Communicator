@@ -64,8 +64,8 @@ public abstract class CommunicationController<T extends Device> {
 	 * @param message
 	 * @return If true returned, the message processing by device will be bypassed. 
 	 */
-	protected boolean onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
-	protected void onAfterDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
+	protected boolean onBeforeProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
+	protected void onAfterProcessInboundMessage(Connection connection, CommunicationMessage message) {}
 
 	public MessageEncoder getMessageEncoder() {
 		return encoder;
@@ -203,7 +203,7 @@ public abstract class CommunicationController<T extends Device> {
 
 	private void processInboundMessage(Connection connection, CommunicationMessage message) {
 		try {
-			boolean skipMessageProcessingByDevice = onBeforeDeviceProcessInboundMessage(connection, message);
+			boolean skipMessageProcessingByDevice = onBeforeProcessInboundMessage(connection, message);
 			if(skipMessageProcessingByDevice) {
 				return;
 			}
@@ -215,7 +215,7 @@ public abstract class CommunicationController<T extends Device> {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}
-			onAfterDeviceProcessInboundMessage(connection, message);
+			onAfterProcessInboundMessage(connection, message);
 		} catch(Exception e) {
 			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
