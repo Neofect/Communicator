@@ -27,6 +27,8 @@ import com.neofect.communicator.util.ByteRingBuffer;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author neo.kim@neofect.com
@@ -35,12 +37,19 @@ import java.lang.reflect.Type;
 public abstract class Controller<T extends Device> {
 	
 	private static final String LOG_TAG = "Controller";
+
+	public interface InboundMessageCallback {
+		boolean process(Connection connection, Message message);
+	}
 	
 	private Class<T> deviceClass;
 	private T device;
 	
 	private MessageEncoder encoder;
 	private MessageDecoder decoder;
+
+	private List<InboundMessageCallback> beforeCallbacks = new ArrayList<>();
+	private List<InboundMessageCallback> afterCallbacks = new ArrayList<>();
 
 	private boolean halted = false;
 
@@ -57,15 +66,29 @@ public abstract class Controller<T extends Device> {
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
 
-	/**
-	 * This delegate API returns true if the given message must not processed by the device after this method.
-	 * 
-	 * @param connection
-	 * @param message
-	 * @return If true returned, the message processing by device will be bypassed. 
-	 */
-	protected boolean onBeforeProcessInboundMessage(Connection connection, Message message) { return false; }
-	protected void onAfterProcessInboundMessage(Connection connection, Message message) {}
+	public void addCallbackBeforeProcessInboundMessage(InboundMessageCallback callback) {
+		beforeCallbacks.add(callback);
+	}
+
+	public void addCallbackBeforeProcessInboundMessageAtFront(InboundMessageCallback callback) {
+		beforeCallbacks.add(0, callback);
+	}
+
+	public boolean removeCallbackBeforeProcessInboundMessage(InboundMessageCallback callback) {
+		return beforeCallbacks.remove(callback);
+	}
+
+	public void addCallbackAfterProcessInboundMessage(InboundMessageCallback callback) {
+		afterCallbacks.add(callback);
+	}
+
+	public void addCallbackAfterProcessInboundMessageAtFront(InboundMessageCallback callback) {
+		afterCallbacks.add(0, callback);
+	}
+
+	public boolean removeCallbackAfterProcessInboundMessage(InboundMessageCallback callback) {
+		return afterCallbacks.remove(callback);
+	}
 
 	public MessageEncoder getMessageEncoder() {
 		return encoder;
@@ -140,7 +163,7 @@ public abstract class Controller<T extends Device> {
 		return halted;
 	}
 
-	protected final T getDevice() {
+	public final T getDevice() {
 		return device;
 	}
 
@@ -203,11 +226,12 @@ public abstract class Controller<T extends Device> {
 
 	private void processInboundMessage(Connection connection, Message message) {
 		try {
-			boolean skipMessageProcessingByDevice = onBeforeProcessInboundMessage(connection, message);
-			if(skipMessageProcessingByDevice) {
-				return;
+			for (InboundMessageCallback callback : beforeCallbacks) {
+				if (callback.process(connection, message)) {
+					return;
+				}
 			}
-			
+
 			if(device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
@@ -215,7 +239,12 @@ public abstract class Controller<T extends Device> {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}
-			onAfterProcessInboundMessage(connection, message);
+
+			for (InboundMessageCallback callback : afterCallbacks) {
+				if (callback.process(connection, message)) {
+					return;
+				}
+			}
 		} catch(Exception e) {
 			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
