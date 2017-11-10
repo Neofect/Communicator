@@ -111,11 +111,11 @@ public abstract class Controller<T extends Device> {
 		decoder.setMessageClassMapper(mapper);
 	}
 
-	protected void handleExceptionFromDecodeMessage(Exception exception, Connection connection) {
+	protected void handleExceptionWhenDecodingMessage(Exception exception, Connection connection) {
 		Log.e(LOG_TAG, "Failed to decode message!", exception);
 	}
 	
-	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, Message message) {
+	protected void handleExceptionWhenProcessingInboundMessage(Exception exception, Connection connection, Message message) {
 		if(exception instanceof InappropriateDeviceException) {
 			connection.forceFailedToConnectFromController(exception);
 		} else {
@@ -204,7 +204,7 @@ public abstract class Controller<T extends Device> {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
 				printBuffer(connection);
-				handleExceptionFromDecodeMessage(e, connection);
+				handleExceptionWhenDecodingMessage(e, connection);
 			}
 			if(message == null) {
 				break;
@@ -246,7 +246,7 @@ public abstract class Controller<T extends Device> {
 				}
 			}
 		} catch(Exception e) {
-			handleExceptionFromProcessInboundMessage(e, connection, message);
+			handleExceptionWhenProcessingInboundMessage(e, connection, message);
 		}
 	}
 
