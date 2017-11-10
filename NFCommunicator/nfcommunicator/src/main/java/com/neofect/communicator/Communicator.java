@@ -55,7 +55,7 @@ public class Communicator {
 
 	/** Aliases for short type names */
 	@SuppressWarnings("serial")
-	private static class HandlerList extends ArrayList<CommunicationHandler<? extends Device>> {}
+	private static class HandlerList extends ArrayList<CommunicatorHandler<? extends Device>> {}
 	@SuppressWarnings("serial")
 	private static class HandlerListMap extends LinkedHashMap<Class<? extends Device>, HandlerList> {}
 
@@ -160,7 +160,7 @@ public class Communicator {
 				instance.registeredHandlers.put(deviceClass, handlerList);
 			}
 
-			CommunicationHandler<T> handler = new CommunicationHandler<>(listener);
+			CommunicatorHandler<T> handler = new CommunicatorHandler<>(listener);
 			handlerList.add(handler);
 			instance.refreshConnectedDeviceHandlers();
 
@@ -262,7 +262,7 @@ public class Communicator {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static <T extends Device> void notifyNewListenerOfExistingDevices(CommunicationHandler<T> handler, Device device) {
+	private static <T extends Device> void notifyNewListenerOfExistingDevices(CommunicatorHandler<T> handler, Device device) {
 		handler.onDeviceConnected((T) device, true);
 	}
 
@@ -335,7 +335,7 @@ public class Communicator {
 		connections.add(connection);
 
 		HandlerList handlerList = getCorrespondingHandlers(deviceClass);
-		for(CommunicationHandler handler : handlerList) {
+		for(CommunicatorHandler handler : handlerList) {
 			handler.onStartConnecting(connection);
 		}
 	}
@@ -344,7 +344,7 @@ public class Communicator {
 		connections.remove(connection);
 
 		HandlerList handlerList = getCorrespondingHandlers(deviceClass);
-		for(CommunicationHandler handler : handlerList) {
+		for(CommunicatorHandler handler : handlerList) {
 			handler.onFailedToConnect(connection, cause);
 		}
 	}
@@ -359,7 +359,7 @@ public class Communicator {
 		if (handlerList == null) {
 			return;
 		}
-		for(CommunicationHandler handler : handlerList) {
+		for(CommunicatorHandler handler : handlerList) {
 			handler.onDeviceConnected(device, false);
 		}
 	}
@@ -369,7 +369,7 @@ public class Communicator {
 		Log.d(LOG_TAG, "notifyDisconnected: connection=" + connection.getDescription());
 		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
 		if (handlerList != null) {
-			for(CommunicationHandler handler : handlerList) {
+			for(CommunicatorHandler handler : handlerList) {
 				handler.onDeviceDisconnected(connection.getDevice());
 			}
 		}
@@ -384,7 +384,7 @@ public class Communicator {
 		if (handlerList == null) {
 			return;
 		}
-		for(CommunicationHandler handler : handlerList) {
+		for(CommunicatorHandler handler : handlerList) {
 			handler.onDeviceMessageProcessed(device, message);
 		}
 	}
@@ -396,7 +396,7 @@ public class Communicator {
 		if (handlerList == null) {
 			return;
 		}
-		for(CommunicationHandler handler : handlerList) {
+		for(CommunicatorHandler handler : handlerList) {
 			handler.onDeviceUpdated(device);
 		}
 	}

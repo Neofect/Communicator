@@ -24,13 +24,13 @@ import com.neofect.communicator.message.Message;
  * @author neo.kim@neofect.com
  * @date 2014. 2. 4.
  */
-class CommunicationHandler<T extends Device> extends Handler {
+class CommunicatorHandler<T extends Device> extends Handler {
 
-	private static final String LOG_TAG = "CommunicationHandler";
+	private static final String LOG_TAG = "CommunicatorHandler";
 	
 	CommunicationListener<T> listener;
 	
-	CommunicationHandler(CommunicationListener<T> listener) {
+	CommunicatorHandler(CommunicationListener<T> listener) {
 		this.listener = listener;
 	}
 
