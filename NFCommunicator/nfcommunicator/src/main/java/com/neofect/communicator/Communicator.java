@@ -60,7 +60,6 @@ public class Communicator {
 	private static class HandlerListMap extends LinkedHashMap<Class<? extends Device>, HandlerList> {}
 
 	private final List<Connection> connections = new ArrayList<>();
-	private final List<Device> devices = new ArrayList<>();
 	private final HandlerListMap registeredHandlers = new HandlerListMap();
 	private final HandlerListMap connectedDeviceHandlers = new HandlerListMap();
 
@@ -135,9 +134,6 @@ public class Communicator {
 
 	public static void disconnectAllConnections() {
 		synchronized (instance) {
-			for(Device device : instance.devices) {
-				disconnect(device);
-			}
 			for(Connection connection : instance.connections) {
 				try {
 					connection.disconnect();
@@ -169,7 +165,11 @@ public class Communicator {
 			instance.refreshConnectedDeviceHandlers();
 
 			// Notify of already existing devices
-			for(Device device : instance.devices) {
+			for(Connection connection : instance.connections) {
+				if (!connection.isConnected()) {
+					continue;
+				}
+				Device device = connection.getDevice();
 				if (isSameOrSuperClassDevice(device.getClass(), deviceClass)) {
 					notifyNewListenerOfExistingDevices(handler, device);
 				}
@@ -206,20 +206,19 @@ public class Communicator {
 					}
 				}
 			}
-			for(Device device : instance.devices) {
-				Connection connection = device.getConnection();
-				if (connection.getConnectionType() == connectionType) {
-					if (connection.getRemoteAddress().equals(connectIdentifier)) {
-						return true;
-					}
-				}
-			}
 		}
 		return false;
 	}
 
 	public static List<Device> getConnectedDevices() {
-		return instance.devices;
+		List<Device> devices = new ArrayList<>();
+		for (Connection connection : instance.connections) {
+			if (!connection.isConnected()) {
+				continue;
+			}
+			devices.add(connection.getDevice());
+		}
+		return devices;
 	}
 
 	/**
@@ -228,14 +227,18 @@ public class Communicator {
 	 * @param deviceClass
 	 * @return
 	 */
-	public static int getNumberOfConnectedDevices(Class<? extends Device> deviceClass) {
+	public static int getNumberOfConnections(Class<? extends Device> deviceClass) {
 		synchronized (instance) {
 			if(deviceClass == null) {
-				return instance.devices.size();
+				return instance.connections.size();
 			}
 
 			int count = 0;
-			for(Device device : instance.devices) {
+			for(Connection connection : instance.connections) {
+				if (!connection.isConnected()) {
+					continue;
+				}
+				Device device = connection.getDevice();
 				if(device.getClass() == deviceClass) {
 					++count;
 				}
@@ -245,11 +248,13 @@ public class Communicator {
 	}
 
 	public static Device findConnectedDevice(ConnectionType connectionType, String connectIdentifier) {
-		synchronized (instance.devices) {
-			for (Device device : instance.devices) {
-				Connection connection = device.getConnection();
+		synchronized (instance.connections) {
+			for(Connection connection : instance.connections) {
+				if (!connection.isConnected()) {
+					continue;
+				}
 				if (connection.getConnectionType() != connectionType && connection.getRemoteAddress().equals(connectIdentifier)) {
-					return device;
+					return connection.getDevice();
 				}
 			}
 			return null;
@@ -310,13 +315,20 @@ public class Communicator {
 
 	synchronized private void refreshConnectedDeviceHandlers() {
 		connectedDeviceHandlers.clear();
-		for (Device device : devices) {
-			Class<? extends Device> connectedDeviceClass = device.getClass();
-			if (connectedDeviceHandlers.get(connectedDeviceClass) != null) {
+		for(Connection connection : instance.connections) {
+			if (connection.getDevice() == null) {
 				continue;
 			}
-			connectedDeviceHandlers.put(connectedDeviceClass, getCorrespondingHandlers(connectedDeviceClass));
+			Class<? extends Device> deviceClass = connection.getDevice().getClass();
+			if (connectedDeviceHandlers.get(deviceClass) != null) {
+				continue;
+			}
+			connectedDeviceHandlers.put(deviceClass, getCorrespondingHandlers(deviceClass));
 		}
+	}
+
+	void onControllerReplaced(Connection connection, CommunicationController<?> oldController, CommunicationController<?> newController) {
+		refreshConnectedDeviceHandlers();
 	}
 
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {
@@ -340,8 +352,6 @@ public class Communicator {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyConnected(Device device) {
 		Log.d(LOG_TAG, "notifyConnected: device=" + device.getConnection().getDescription());
-		connections.remove(device.getConnection());
-		devices.add(device);
 		refreshConnectedDeviceHandlers();
 
 		Class<? extends Device> deviceClass = device.getClass();
@@ -357,23 +367,14 @@ public class Communicator {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	synchronized void notifyDisconnected(Connection connection, Class<? extends Device> deviceClass) {
 		Log.d(LOG_TAG, "notifyDisconnected: connection=" + connection.getDescription());
-		connections.remove(connection);
-
-		// Find a device with the disconnected connection
-		for(Device device : devices) {
-			if(device.getConnection() != connection) {
-				continue;
+		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
+		if (handlerList != null) {
+			for(CommunicationHandler handler : handlerList) {
+				handler.onDeviceDisconnected(connection.getDevice());
 			}
-			HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
-			if (handlerList != null) {
-				for(CommunicationHandler handler : handlerList) {
-					handler.onDeviceDisconnected(device);
-				}
-			}
-			devices.remove(device);
-			refreshConnectedDeviceHandlers();
-			break;
 		}
+		connections.remove(connection);
+		refreshConnectedDeviceHandlers();
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

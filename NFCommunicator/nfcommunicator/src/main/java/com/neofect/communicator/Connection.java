@@ -40,7 +40,7 @@ public abstract class Connection {
 	public abstract String getRemoteAddress();
 	public abstract String getDescription();
 	
-	private final CommunicationController<? extends Device> controller;
+	private CommunicationController<? extends Device> controller;
 	
 	private ConnectionType connectionType;
 	private Status status = Status.NOT_CONNECTED;
@@ -62,7 +62,7 @@ public abstract class Connection {
 	public Device getDevice() {
 		return controller.getDevice();
 	}
-	
+
 	public Status getStatus() {
 		return status;
 	}
@@ -78,38 +78,40 @@ public abstract class Connection {
 	public void	write(byte[] data) {
 		Log.e(LOG_TAG, "write() is not implemented for this connection type!");
 	}
-	
+
 	public void sendMessage(CommunicationMessage message) {
 		write(controller.encodeMessage(message));
 	}
-	
+
 	protected final void handleReadData(byte[] data) {
 		ringBuffer.put(data);
-		
+
 		// Process message
-		controller.decodeRawMessageAndProcess(this);
+		synchronized (this) {
+			controller.decodeRawMessageAndProcess(this);
+		}
 	}
-	
+
 	protected final void handleConnecting() {
 		status = Status.CONNECTING;
 		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
 	}
-	
+
 	void forceFailedToConnectFromController(Exception cause) {
 		disconnect();
 		handleFailedToConnect(cause);
 	}
-	
+
 	protected final void handleFailedToConnect(Exception cause) {
 		status = Status.NOT_CONNECTED;
 		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
 	}
-	
+
 	protected final void handleConnected() {
 		try {
 			status = Status.CONNECTED;
-			Device device = controller.startControl(this);
-			Communicator.getInstance().notifyConnected(device);
+			controller.startControl(this);
+			Communicator.getInstance().notifyConnected(controller.getDevice());
 		} catch(Exception e) {
 			try {
 				this.disconnect();
@@ -119,11 +121,23 @@ public abstract class Connection {
 			handleFailedToConnect(new Exception("Failed to process the connected device!", e));
 		}
 	}
-	
+
 	protected final void handleDisconnected() {
 		status = Status.NOT_CONNECTED;
 		controller.onDisconnected(this);
 		Communicator.getInstance().notifyDisconnected(this, controller.getDeviceClass());
 	}
-	
+
+	public void replaceController(CommunicationController<? extends Device> newController) {
+		synchronized (this) {
+			CommunicationController<? extends Device> oldController = this.controller;
+			this.controller = newController;
+			oldController.halt();
+			if (status == Status.CONNECTED) {
+				newController.startAfterReplaced(this);
+				Communicator.getInstance().onControllerReplaced(this, oldController, newController);
+			}
+		}
+	}
+
 }

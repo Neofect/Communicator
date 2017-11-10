@@ -25,6 +25,9 @@ import com.neofect.communicator.message.MessageEncoder;
 import com.neofect.communicator.util.ByteArrayConverter;
 import com.neofect.communicator.util.ByteRingBuffer;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+
 /**
  * @author neo.kim@neofect.com
  * @date Jan 24, 2014
@@ -39,16 +42,18 @@ public abstract class CommunicationController<T extends Device> {
 	private MessageEncoder encoder;
 	private MessageDecoder decoder;
 
-	public CommunicationController(Class<T> deviceClass) {
-		this.deviceClass = deviceClass;
+	private boolean halted = false;
+
+	public CommunicationController() {
+		this.deviceClass = getClassFromGeneric(this);
 	}
-	
-	public CommunicationController(Class<T> deviceClass, MessageEncoder encoder, MessageDecoder decoder) {
-		this.deviceClass = deviceClass;
+
+	public CommunicationController(MessageEncoder encoder, MessageDecoder decoder) {
+		this.deviceClass = getClassFromGeneric(this);
 		this.encoder = encoder;
 		this.decoder = decoder;
 	}
-	
+
 	protected void onConnected(T device) {}
 	protected void onDisconnected(Connection connection) {}
 
@@ -97,26 +102,49 @@ public abstract class CommunicationController<T extends Device> {
 	
 	private static <T extends Device> T createDeviceInstance(Connection connection, Class<T> deviceClass) {
 		// Create an instance of the device.
-		T device = null;
 		try {
-			device = deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
+			return deviceClass.getDeclaredConstructor(Connection.class).newInstance(connection);
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
 		}
-		return device;
 	}
-	
-	Device startControl(Connection connection) {
-		device = createDeviceInstance(connection, deviceClass);
+
+	protected void startControl(Connection connection) {
+		initializeDevice(connection);
 		onConnected(device);
-		return device;
+		decodeRawMessageAndProcess(connection);
+	}
+
+	protected void startAfterReplaced(Connection connection) {
+		initializeDevice(connection);
+		decodeRawMessageAndProcess(connection);
+	}
+
+	protected void initializeDevice(Connection connection) {
+		if (device != null) {
+			throw new IllegalStateException("The device is already initialized!");
+		}
+		device = createDeviceInstance(connection, deviceClass);
+	}
+
+	void halt() {
+		String message = "";
+		if (device != null) {
+			message = " connection=" + device.getConnection().getDescription();
+		}
+		Log.i(LOG_TAG, "halt: Controller halted." + message);
+		halted = true;
+	}
+
+	protected boolean isHalted() {
+		return halted;
 	}
 
 	protected final T getDevice() {
 		return device;
 	}
 
-	final Class<T> getDeviceClass() {
+	protected final Class<T> getDeviceClass() {
 		return deviceClass;
 	}
 	
@@ -147,7 +175,7 @@ public abstract class CommunicationController<T extends Device> {
 			return;
 		}
 		
-		while(true) {
+		while(!halted) {
 			CommunicationMessage message = null;
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
@@ -192,5 +220,19 @@ public abstract class CommunicationController<T extends Device> {
 			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
 	}
-	
+
+	/**
+	 * A neat way to get class type of generic.
+	 * http://stackoverflow.com/a/3403976/576440
+	 */
+	@SuppressWarnings("unchecked")
+	private static <T extends Device> Class<T> getClassFromGeneric(CommunicationController<T> controller) {
+		try {
+			Type superClass = controller.getClass().getGenericSuperclass();
+			return (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
+		} catch(Exception e) {
+			throw new IllegalArgumentException("Failed to get parameterized class type from the given generic!", e);
+		}
+	}
+
 }
