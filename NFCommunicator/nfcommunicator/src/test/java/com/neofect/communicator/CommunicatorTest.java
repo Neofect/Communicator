@@ -1,6 +1,6 @@
 package com.neofect.communicator;
 
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,12 +19,12 @@ public class CommunicatorTest {
 
 	private static class DummyDevice extends Device {
 		DummyDevice(Connection connection) { super(connection); }
-		@Override protected boolean processMessage(CommunicationMessage message) { return false; }
+		@Override protected boolean processMessage(Message message) { return false; }
 	}
 
 	private static class DummySubclassDevice extends DummyDevice {
 		DummySubclassDevice(Connection connection) { super(connection); }
-		@Override protected boolean processMessage(CommunicationMessage message) { return false; }
+		@Override protected boolean processMessage(Message message) { return false; }
 	}
 
 	@Test

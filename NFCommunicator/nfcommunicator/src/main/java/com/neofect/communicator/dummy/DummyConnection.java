@@ -2,7 +2,7 @@ package com.neofect.communicator.dummy;
 
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
@@ -20,7 +20,7 @@ public class DummyConnection extends Connection {
 
 	private DummyPhysicalDevice device;
 
-	public DummyConnection(DummyPhysicalDevice device, CommunicationController<? extends Device> controller) {
+	public DummyConnection(DummyPhysicalDevice device, Controller<? extends Device> controller) {
 		super(ConnectionType.DUMMY, controller);
 		this.device = device;
 	}

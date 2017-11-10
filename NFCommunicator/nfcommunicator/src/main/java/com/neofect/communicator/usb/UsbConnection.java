@@ -13,7 +13,7 @@ import android.hardware.usb.UsbRequest;
 import android.os.Build;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
@@ -46,7 +46,7 @@ public class UsbConnection extends Connection {
 	private Thread readThread;
 	private BroadcastReceiver usbEventReceiver;
 
-	public UsbConnection(Context context, UsbDevice device, CommunicationController<? extends Device> controller) {
+	public UsbConnection(Context context, UsbDevice device, Controller<? extends Device> controller) {
 		super(ConnectionType.USB_SERIAL, controller);
 		this.context = context.getApplicationContext();
 		this.device = device;

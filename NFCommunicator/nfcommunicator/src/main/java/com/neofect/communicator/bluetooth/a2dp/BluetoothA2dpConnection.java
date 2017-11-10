@@ -26,7 +26,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
@@ -87,7 +87,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 
 	};
 	
-	public BluetoothA2dpConnection(BluetoothDevice device, CommunicationController<? extends Device> controller) {
+	public BluetoothA2dpConnection(BluetoothDevice device, Controller<? extends Device> controller) {
 		super(device, controller, ConnectionType.BLUETOOTH_A2DP);
 	}
 

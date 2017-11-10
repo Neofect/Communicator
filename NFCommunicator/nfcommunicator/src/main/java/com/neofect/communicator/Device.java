@@ -15,7 +15,7 @@
  */
 package com.neofect.communicator;
 
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 
 /**
  * Subclass must have a constructor which has one parameter of {@link Connection} instance. Because,
@@ -36,7 +36,7 @@ public abstract class Device {
 	 * @param message
 	 * @return
 	 */
-	protected abstract boolean processMessage(CommunicationMessage message);
+	protected abstract boolean processMessage(Message message);
 	
 	public Device(Connection connection) {
 		this.connection = connection;
@@ -54,6 +54,6 @@ public abstract class Device {
 		return connection;
 	}
 	
-	protected void sendMessage(CommunicationMessage message) {}
+	protected void sendMessage(Message message) {}
 
 }

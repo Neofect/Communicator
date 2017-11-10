@@ -18,7 +18,7 @@ package com.neofect.communicator;
 import android.util.Log;
 
 import com.neofect.communicator.exception.InappropriateDeviceException;
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
@@ -32,9 +32,9 @@ import java.lang.reflect.Type;
  * @author neo.kim@neofect.com
  * @date Jan 24, 2014
  */
-public abstract class CommunicationController<T extends Device> {
+public abstract class Controller<T extends Device> {
 	
-	private static final String LOG_TAG = "CommunicationController";
+	private static final String LOG_TAG = "Controller";
 	
 	private Class<T> deviceClass;
 	private T device;
@@ -44,11 +44,11 @@ public abstract class CommunicationController<T extends Device> {
 
 	private boolean halted = false;
 
-	public CommunicationController() {
+	public Controller() {
 		this.deviceClass = getClassFromGeneric(this);
 	}
 
-	public CommunicationController(MessageEncoder encoder, MessageDecoder decoder) {
+	public Controller(MessageEncoder encoder, MessageDecoder decoder) {
 		this.deviceClass = getClassFromGeneric(this);
 		this.encoder = encoder;
 		this.decoder = decoder;
@@ -64,8 +64,8 @@ public abstract class CommunicationController<T extends Device> {
 	 * @param message
 	 * @return If true returned, the message processing by device will be bypassed. 
 	 */
-	protected boolean onBeforeDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
-	protected void onAfterDeviceProcessInboundMessage(Connection connection, CommunicationMessage message) {}
+	protected boolean onBeforeProcessInboundMessage(Connection connection, Message message) { return false; }
+	protected void onAfterProcessInboundMessage(Connection connection, Message message) {}
 
 	public MessageEncoder getMessageEncoder() {
 		return encoder;
@@ -92,7 +92,7 @@ public abstract class CommunicationController<T extends Device> {
 		Log.e(LOG_TAG, "Failed to decode message!", exception);
 	}
 	
-	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, CommunicationMessage message) {
+	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, Message message) {
 		if(exception instanceof InappropriateDeviceException) {
 			connection.forceFailedToConnectFromController(exception);
 		} else {
@@ -148,7 +148,7 @@ public abstract class CommunicationController<T extends Device> {
 		return deviceClass;
 	}
 	
-	final byte[] encodeMessage(CommunicationMessage message) {
+	final byte[] encodeMessage(Message message) {
 		if(encoder == null) {
 			Log.e(LOG_TAG, "Message encoder is not set!");
 			return null;
@@ -176,7 +176,7 @@ public abstract class CommunicationController<T extends Device> {
 		}
 		
 		while(!halted) {
-			CommunicationMessage message = null;
+			Message message = null;
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
@@ -201,9 +201,9 @@ public abstract class CommunicationController<T extends Device> {
 		}
 	}
 
-	private void processInboundMessage(Connection connection, CommunicationMessage message) {
+	private void processInboundMessage(Connection connection, Message message) {
 		try {
-			boolean skipMessageProcessingByDevice = onBeforeDeviceProcessInboundMessage(connection, message);
+			boolean skipMessageProcessingByDevice = onBeforeProcessInboundMessage(connection, message);
 			if(skipMessageProcessingByDevice) {
 				return;
 			}
@@ -215,7 +215,7 @@ public abstract class CommunicationController<T extends Device> {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}
-			onAfterDeviceProcessInboundMessage(connection, message);
+			onAfterProcessInboundMessage(connection, message);
 		} catch(Exception e) {
 			handleExceptionFromProcessInboundMessage(e, connection, message);
 		}
@@ -226,7 +226,7 @@ public abstract class CommunicationController<T extends Device> {
 	 * http://stackoverflow.com/a/3403976/576440
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T extends Device> Class<T> getClassFromGeneric(CommunicationController<T> controller) {
+	private static <T extends Device> Class<T> getClassFromGeneric(Controller<T> controller) {
 		try {
 			Type superClass = controller.getClass().getGenericSuperclass();
 			return (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
