@@ -27,7 +27,7 @@ import com.neofect.communicator.util.ByteRingBuffer;
  */
 public abstract class MessageDecoder {
 
-	private static final String LOG_TAG = MessageDecoder.class.getSimpleName();
+	private static final String LOG_TAG = "MessageDecoder";
 	
 	private MessageClassMapper messageClassMapper;
 	
@@ -43,20 +43,18 @@ public abstract class MessageDecoder {
 		this.messageClassMapper = messageClassMapper;
 	}
 	
-	private Message createCommunicationMessageInstance(byte[] messageId) {
+	private Message createMessage(byte[] messageId) {
 		// Get message class from class mapper
 		Class<? extends Message> messageClass = messageClassMapper.getMessageClassById(messageId);
 		if(messageClass == null) {
 			throw new UndefinedMessageIdException(messageId, "Not existing message ID! '0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'");
 		}
 		
-		Message message = null;
 		try {
-			message = (Message) messageClass.newInstance();
+			return messageClass.newInstance();
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to instantiate a message class from message bytes! messageId='0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'", e);
 		}
-		return message;
 	}
 	
 	/**
@@ -74,8 +72,8 @@ public abstract class MessageDecoder {
 			return null;
 		}
 		
-		// Create a message class
-		Message message = createCommunicationMessageInstance(messageId);
+		// Create a message instance
+		Message message = createMessage(messageId);
 		
 		// Decode payload data
 		try {

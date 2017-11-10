@@ -19,7 +19,6 @@ import android.util.Log;
 
 import com.neofect.communicator.exception.InappropriateDeviceException;
 import com.neofect.communicator.message.Message;
-import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
 import com.neofect.communicator.util.ByteArrayConverter;
@@ -104,11 +103,6 @@ public abstract class Controller<T extends Device> {
 
 	public void setMessageDecoder(MessageDecoder decoder) {
 		this.decoder = decoder;
-	}
-
-	public void setMessageClassMapper(MessageClassMapper mapper) {
-		encoder.setMessageClassMapper(mapper);
-		decoder.setMessageClassMapper(mapper);
 	}
 
 	protected void handleExceptionWhenDecodingMessage(Exception exception, Connection connection) {
