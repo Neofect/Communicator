@@ -18,7 +18,7 @@ package com.neofect.communicator;
 import android.os.Handler;
 import android.util.Log;
 
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 
 /**
  * @author neo.kim@neofect.com
@@ -82,7 +82,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 		});
 	}
 	
-	void onDeviceMessageProcessed(final T device, final CommunicationMessage message) {
+	void onDeviceMessageProcessed(final T device, final Message message) {
 		post(new Runnable() {
 			public void run() {
 				try {

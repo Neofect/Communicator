@@ -18,7 +18,7 @@ package com.neofect.communicator;
 import android.util.Log;
 
 import com.neofect.communicator.exception.InappropriateDeviceException;
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 import com.neofect.communicator.message.MessageClassMapper;
 import com.neofect.communicator.message.MessageDecoder;
 import com.neofect.communicator.message.MessageEncoder;
@@ -64,8 +64,8 @@ public abstract class CommunicationController<T extends Device> {
 	 * @param message
 	 * @return If true returned, the message processing by device will be bypassed. 
 	 */
-	protected boolean onBeforeProcessInboundMessage(Connection connection, CommunicationMessage message) { return false; }
-	protected void onAfterProcessInboundMessage(Connection connection, CommunicationMessage message) {}
+	protected boolean onBeforeProcessInboundMessage(Connection connection, Message message) { return false; }
+	protected void onAfterProcessInboundMessage(Connection connection, Message message) {}
 
 	public MessageEncoder getMessageEncoder() {
 		return encoder;
@@ -92,7 +92,7 @@ public abstract class CommunicationController<T extends Device> {
 		Log.e(LOG_TAG, "Failed to decode message!", exception);
 	}
 	
-	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, CommunicationMessage message) {
+	protected void handleExceptionFromProcessInboundMessage(Exception exception, Connection connection, Message message) {
 		if(exception instanceof InappropriateDeviceException) {
 			connection.forceFailedToConnectFromController(exception);
 		} else {
@@ -148,7 +148,7 @@ public abstract class CommunicationController<T extends Device> {
 		return deviceClass;
 	}
 	
-	final byte[] encodeMessage(CommunicationMessage message) {
+	final byte[] encodeMessage(Message message) {
 		if(encoder == null) {
 			Log.e(LOG_TAG, "Message encoder is not set!");
 			return null;
@@ -176,7 +176,7 @@ public abstract class CommunicationController<T extends Device> {
 		}
 		
 		while(!halted) {
-			CommunicationMessage message = null;
+			Message message = null;
 			try {
 				message = decoder.decodeMessage(connection.getRingBuffer());
 			} catch(Exception e) {
@@ -201,7 +201,7 @@ public abstract class CommunicationController<T extends Device> {
 		}
 	}
 
-	private void processInboundMessage(Connection connection, CommunicationMessage message) {
+	private void processInboundMessage(Connection connection, Message message) {
 		try {
 			boolean skipMessageProcessingByDevice = onBeforeProcessInboundMessage(connection, message);
 			if(skipMessageProcessingByDevice) {

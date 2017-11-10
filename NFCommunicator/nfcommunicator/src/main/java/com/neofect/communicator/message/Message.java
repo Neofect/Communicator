@@ -17,23 +17,12 @@ package com.neofect.communicator.message;
 
 /**
  * @author neo.kim@neofect.com
- * @date 2014. 5. 22.
+ * @date Jan 24, 2014
  */
-public class CommunicationMessageImpl implements CommunicationMessage {
-
-	@Override
-	public String getDescription() {
-		return "[" + getClass().getSimpleName() + "]";
-	}
-
-	@Override
-	public byte[] encodePayload() {
-		throw new UnsupportedOperationException("This message is designed only for receiving, not sending. So not supposed to be encoded.");
-	}
-
-	@Override
-	public void decodePayload(byte[] data, int startIndex, int length) {
-		throw new UnsupportedOperationException("This message is designed only for sending, not receiving. So not supposed to be decoded.");
-	}
+public interface Message {
+	
+	String getDescription();
+	byte[] encodePayload();
+	void decodePayload(byte[] data, int startIndex, int length);
 	
 }

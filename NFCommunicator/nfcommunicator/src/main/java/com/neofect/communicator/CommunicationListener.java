@@ -15,7 +15,7 @@
  */
 package com.neofect.communicator;
 
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 
 
 public abstract class CommunicationListener<T extends Device> {
@@ -24,7 +24,7 @@ public abstract class CommunicationListener<T extends Device> {
 	public void onFailedToConnect(Connection connection, Exception cause) {}
 	public void onDeviceConnected(T device, boolean alreadyExisting) {}
 	public void onDeviceDisconnected(T device) {}
-	public void onDeviceMessageProcessed(T device, CommunicationMessage message) {}
+	public void onDeviceMessageProcessed(T device, Message message) {}
 	public void onDeviceUpdated(T device) {}
 	
 }

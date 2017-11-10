@@ -28,7 +28,7 @@ import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
 import com.neofect.communicator.dummy.DummyConnection;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
 import com.neofect.communicator.dummy.DummyPhysicalDeviceManager;
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 import com.neofect.communicator.usb.UsbConnection;
 
 import java.lang.reflect.ParameterizedType;
@@ -378,7 +378,7 @@ public class Communicator {
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	synchronized void notifyDeviceMessageProcessed(Device device, CommunicationMessage message) {
+	synchronized void notifyDeviceMessageProcessed(Device device, Message message) {
 		Class<? extends Device> deviceClass = device.getClass();
 		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
 		if (handlerList == null) {

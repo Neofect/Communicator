@@ -17,7 +17,7 @@ package com.neofect.communicator;
 
 import android.util.Log;
 
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 import com.neofect.communicator.util.ByteRingBuffer;
 
 /**
@@ -79,7 +79,7 @@ public abstract class Connection {
 		Log.e(LOG_TAG, "write() is not implemented for this connection type!");
 	}
 
-	public void sendMessage(CommunicationMessage message) {
+	public void sendMessage(Message message) {
 		write(controller.encodeMessage(message));
 	}
 
