@@ -21,7 +21,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
@@ -38,7 +38,7 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	
 	private BluetoothSppTransferThread transferThread;
 	
-	public BluetoothSppConnection(BluetoothDevice device, CommunicationController<? extends Device> controller, ConnectionType connectionType) {
+	public BluetoothSppConnection(BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
 		if(connectionType != ConnectionType.BLUETOOTH_SPP && connectionType != ConnectionType.BLUETOOTH_SPP_INSECURE) {
 			throw new IllegalArgumentException("Only SPP connection type is allowed!");

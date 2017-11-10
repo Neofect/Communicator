@@ -40,13 +40,13 @@ public abstract class Connection {
 	public abstract String getRemoteAddress();
 	public abstract String getDescription();
 	
-	private CommunicationController<? extends Device> controller;
+	private Controller<? extends Device> controller;
 	
 	private ConnectionType connectionType;
 	private Status status = Status.NOT_CONNECTED;
 	private ByteRingBuffer ringBuffer = new ByteRingBuffer();
 	
-	public Connection(ConnectionType connectionType, CommunicationController<? extends Device> controller) {
+	public Connection(ConnectionType connectionType, Controller<? extends Device> controller) {
 		this.connectionType = connectionType;
 		this.controller	= controller;
 	}
@@ -71,7 +71,7 @@ public abstract class Connection {
 		return ringBuffer;
 	}
 	
-	public CommunicationController<? extends Device> getController() {
+	public Controller<? extends Device> getController() {
 		return controller;
 	}
 	
@@ -128,9 +128,9 @@ public abstract class Connection {
 		Communicator.getInstance().notifyDisconnected(this, controller.getDeviceClass());
 	}
 
-	public void replaceController(CommunicationController<? extends Device> newController) {
+	public void replaceController(Controller<? extends Device> newController) {
 		synchronized (this) {
-			CommunicationController<? extends Device> oldController = this.controller;
+			Controller<? extends Device> oldController = this.controller;
 			this.controller = newController;
 			oldController.halt();
 			if (status == Status.CONNECTED) {

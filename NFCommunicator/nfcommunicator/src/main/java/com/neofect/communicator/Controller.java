@@ -32,9 +32,9 @@ import java.lang.reflect.Type;
  * @author neo.kim@neofect.com
  * @date Jan 24, 2014
  */
-public abstract class CommunicationController<T extends Device> {
+public abstract class Controller<T extends Device> {
 	
-	private static final String LOG_TAG = "CommunicationController";
+	private static final String LOG_TAG = "Controller";
 	
 	private Class<T> deviceClass;
 	private T device;
@@ -44,11 +44,11 @@ public abstract class CommunicationController<T extends Device> {
 
 	private boolean halted = false;
 
-	public CommunicationController() {
+	public Controller() {
 		this.deviceClass = getClassFromGeneric(this);
 	}
 
-	public CommunicationController(MessageEncoder encoder, MessageDecoder decoder) {
+	public Controller(MessageEncoder encoder, MessageDecoder decoder) {
 		this.deviceClass = getClassFromGeneric(this);
 		this.encoder = encoder;
 		this.decoder = decoder;
@@ -226,7 +226,7 @@ public abstract class CommunicationController<T extends Device> {
 	 * http://stackoverflow.com/a/3403976/576440
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T extends Device> Class<T> getClassFromGeneric(CommunicationController<T> controller) {
+	private static <T extends Device> Class<T> getClassFromGeneric(Controller<T> controller) {
 		try {
 			Type superClass = controller.getClass().getGenericSuperclass();
 			return (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];

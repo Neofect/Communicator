@@ -18,7 +18,7 @@ package com.neofect.communicator.bluetooth;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Device;
@@ -33,7 +33,7 @@ public abstract class BluetoothConnection extends Connection {
 	private BluetoothDevice	bluetoothDevice;
 	private	boolean			disconnectRequested = false;
 	
-	public BluetoothConnection(BluetoothDevice device, CommunicationController<? extends Device> controller, ConnectionType connectionType) {
+	public BluetoothConnection(BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(connectionType, controller);
 		this.bluetoothDevice = device;
 	}

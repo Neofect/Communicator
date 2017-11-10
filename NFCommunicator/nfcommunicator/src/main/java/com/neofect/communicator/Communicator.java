@@ -63,7 +63,7 @@ public class Communicator {
 	private final HandlerListMap registeredHandlers = new HandlerListMap();
 	private final HandlerListMap connectedDeviceHandlers = new HandlerListMap();
 
-	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, CommunicationController<? extends Device> controller) {
+	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, Controller<? extends Device> controller) {
 		Log.i(LOG_TAG, "connect: connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
 
 		if (isConnected(connectionType, connectIdentifier)) {
@@ -327,7 +327,7 @@ public class Communicator {
 		}
 	}
 
-	void onControllerReplaced(Connection connection, CommunicationController<?> oldController, CommunicationController<?> newController) {
+	void onControllerReplaced(Connection connection, Controller<?> oldController, Controller<?> newController) {
 		refreshConnectedDeviceHandlers();
 	}
 
