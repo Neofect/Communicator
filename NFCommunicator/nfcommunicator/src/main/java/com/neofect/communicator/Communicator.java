@@ -63,11 +63,11 @@ public class Communicator {
 	private final HandlerListMap registeredHandlers = new HandlerListMap();
 	private final HandlerListMap connectedDeviceHandlers = new HandlerListMap();
 
-	public static boolean connect(Context context, ConnectionType connectionType, String connectIdentifier, Controller<? extends Device> controller) {
-		Log.i(LOG_TAG, "connect: connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
+	public static boolean connect(Context context, ConnectionType connectionType, String deviceIdentifier, Controller<? extends Device> controller) {
+		Log.i(LOG_TAG, "connect: connectionType=" + connectionType + ", deviceIdentifier=" + deviceIdentifier);
 
-		if (isConnected(connectionType, connectIdentifier)) {
-			Exception exception = new Exception("The device is already connected! connectionType=" + connectionType + ", connectIdentifier=" + connectIdentifier);
+		if (isConnected(connectionType, deviceIdentifier)) {
+			Exception exception = new Exception("The device is already connected! connectionType=" + connectionType + ", deviceIdentifier=" + deviceIdentifier);
 			instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 			return false;
 		}
@@ -78,7 +78,7 @@ public class Communicator {
 			case BLUETOOTH_SPP_INSECURE:
 			case BLUETOOTH_A2DP: {
 				BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(connectIdentifier);
+				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceIdentifier);
 				if (connectionType == BLUETOOTH_A2DP) {
 					connection = new BluetoothA2dpConnection(device, controller);
 				} else {
@@ -88,9 +88,9 @@ public class Communicator {
 			}
 			case USB_SERIAL: {
 				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-				UsbDevice device = usbManager.getDeviceList().get(connectIdentifier);
+				UsbDevice device = usbManager.getDeviceList().get(deviceIdentifier);
 				if (device == null) {
-					Exception exception = new Exception("Not existing USB device! connectIdentifier=" + connectIdentifier);
+					Exception exception = new Exception("Not existing USB device! deviceIdentifier=" + deviceIdentifier);
 					instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 					return false;
 				}
@@ -98,9 +98,9 @@ public class Communicator {
 				break;
 			}
 			case DUMMY: {
-				DummyPhysicalDevice device = DummyPhysicalDeviceManager.getDevice(connectIdentifier);
+				DummyPhysicalDevice device = DummyPhysicalDeviceManager.getDevice(deviceIdentifier);
 				if (device == null) {
-					Exception exception = new Exception("Not existing Dummy physical device! identifier=" + connectIdentifier);
+					Exception exception = new Exception("Not existing Dummy physical device! identifier=" + deviceIdentifier);
 					instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 					return false;
 				}
@@ -197,11 +197,11 @@ public class Communicator {
 		}
 	}
 
-	public static boolean isConnected(ConnectionType connectionType, String connectIdentifier) {
+	public static boolean isConnected(ConnectionType connectionType, String deviceIdentifier) {
 		synchronized (instance) {
 			for(Connection connection : instance.connections) {
 				if (connection.getConnectionType() == connectionType) {
-					if (connection.getRemoteAddress().equals(connectIdentifier)) {
+					if (connection.getRemoteAddress().equals(deviceIdentifier)) {
 						return true;
 					}
 				}
@@ -247,13 +247,14 @@ public class Communicator {
 		}
 	}
 
-	public static Device findConnectedDevice(ConnectionType connectionType, String connectIdentifier) {
+	public static Device findConnectedDevice(ConnectionType connectionType, String deviceIdentifier) {
 		synchronized (instance.connections) {
 			for(Connection connection : instance.connections) {
 				if (!connection.isConnected()) {
 					continue;
 				}
-				if (connection.getConnectionType() != connectionType && connection.getRemoteAddress().equals(connectIdentifier)) {
+				if (connection.getConnectionType() != connectionType &&
+						connection.getRemoteAddress().equals(deviceIdentifier)) {
 					return connection.getDevice();
 				}
 			}
