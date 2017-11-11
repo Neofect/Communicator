@@ -52,7 +52,7 @@ public abstract class BluetoothConnection extends Connection {
 	}
 	
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return bluetoothDevice.getAddress();
 	}
 
@@ -71,7 +71,7 @@ public abstract class BluetoothConnection extends Connection {
 	}
 	
 	public final String	getDescriptionWithAddress() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")-" + getConnectionType();
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")-" + getConnectionType();
 	}
 	
 	@Override

@@ -62,13 +62,13 @@ public class UsbConnection extends Connection {
 	}
 
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return device.getDeviceName();
 	}
 
 	@Override
 	public String getDescription() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")";
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")";
 	}
 
 	@Override

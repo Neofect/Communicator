@@ -36,8 +36,8 @@ public abstract class Connection {
 	
 	public abstract void connect();
 	public abstract void disconnect();
+	public abstract String getDeviceIdentifier();
 	public abstract String getDeviceName();
-	public abstract String getRemoteAddress();
 	public abstract String getDescription();
 	
 	private Controller<? extends Device> controller;
@@ -76,7 +76,7 @@ public abstract class Connection {
 	}
 	
 	public void	write(byte[] data) {
-		Log.e(LOG_TAG, "write() is not implemented for this connection type!");
+		Log.e(LOG_TAG, "write: is not implemented for this connection type!");
 	}
 
 	public void sendMessage(Message message) {

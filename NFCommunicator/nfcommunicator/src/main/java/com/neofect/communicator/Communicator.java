@@ -201,7 +201,7 @@ public class Communicator {
 		synchronized (instance) {
 			for(Connection connection : instance.connections) {
 				if (connection.getConnectionType() == connectionType) {
-					if (connection.getRemoteAddress().equals(deviceIdentifier)) {
+					if (connection.getDeviceIdentifier().equals(deviceIdentifier)) {
 						return true;
 					}
 				}
@@ -254,7 +254,7 @@ public class Communicator {
 					continue;
 				}
 				if (connection.getConnectionType() != connectionType &&
-						connection.getRemoteAddress().equals(deviceIdentifier)) {
+						connection.getDeviceIdentifier().equals(deviceIdentifier)) {
 					return connection.getDevice();
 				}
 			}

@@ -51,13 +51,13 @@ public class DummyConnection extends Connection {
 	}
 
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return device.getDeviceIdentifier();
 	}
 
 	@Override
 	public String getDescription() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")-" + getConnectionType();
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")-" + getConnectionType();
 	}
 
 	@Override
