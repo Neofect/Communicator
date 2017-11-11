@@ -169,7 +169,7 @@ public class Communicator {
 				if (!connection.isConnected()) {
 					continue;
 				}
-				Device device = connection.getDevice();
+				Device device = connection.getController().getDevice();
 				if (isSameOrSuperClassDevice(device.getClass(), deviceClass)) {
 					notifyNewListenerOfExistingDevices(handler, device);
 				}
@@ -216,7 +216,7 @@ public class Communicator {
 			if (!connection.isConnected()) {
 				continue;
 			}
-			devices.add(connection.getDevice());
+			devices.add(connection.getController().getDevice());
 		}
 		return devices;
 	}
@@ -238,7 +238,7 @@ public class Communicator {
 				if (!connection.isConnected()) {
 					continue;
 				}
-				Device device = connection.getDevice();
+				Device device = connection.getController().getDevice();
 				if(device.getClass() == deviceClass) {
 					++count;
 				}
@@ -253,9 +253,9 @@ public class Communicator {
 				if (!connection.isConnected()) {
 					continue;
 				}
-				if (connection.getConnectionType() != connectionType &&
+				if (connection.getConnectionType() == connectionType &&
 						connection.getDeviceIdentifier().equals(deviceIdentifier)) {
-					return connection.getDevice();
+					return connection.getController().getDevice();
 				}
 			}
 			return null;
@@ -317,10 +317,11 @@ public class Communicator {
 	synchronized private void refreshConnectedDeviceHandlers() {
 		connectedDeviceHandlers.clear();
 		for(Connection connection : instance.connections) {
-			if (connection.getDevice() == null) {
+			Device device = connection.getController().getDevice();
+			if (device == null) {
 				continue;
 			}
-			Class<? extends Device> deviceClass = connection.getDevice().getClass();
+			Class<? extends Device> deviceClass = device.getClass();
 			if (connectedDeviceHandlers.get(deviceClass) != null) {
 				continue;
 			}
@@ -371,7 +372,7 @@ public class Communicator {
 		HandlerList handlerList = connectedDeviceHandlers.get(deviceClass);
 		if (handlerList != null) {
 			for(CommunicatorHandler handler : handlerList) {
-				handler.onDeviceDisconnected(connection.getDevice());
+				handler.onDeviceDisconnected(connection.getController().getDevice());
 			}
 		}
 		connections.remove(connection);
