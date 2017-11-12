@@ -13,9 +13,9 @@ import android.hardware.usb.UsbRequest;
 import android.os.Build;
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 import java.nio.ByteBuffer;

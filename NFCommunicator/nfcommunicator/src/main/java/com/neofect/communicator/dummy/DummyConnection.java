@@ -2,9 +2,9 @@ package com.neofect.communicator.dummy;
 
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 /**

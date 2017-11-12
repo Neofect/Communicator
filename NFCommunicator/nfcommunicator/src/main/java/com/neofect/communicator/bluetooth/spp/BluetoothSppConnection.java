@@ -15,16 +15,16 @@
  */
 package com.neofect.communicator.bluetooth.spp;
 
-import java.io.IOException;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
+
+import java.io.IOException;
 
 /**
  * This class contains all information regarding to bluetooth connection and

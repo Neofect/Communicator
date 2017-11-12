@@ -15,8 +15,6 @@
  */
 package com.neofect.communicator.bluetooth.a2dp;
 
-import java.lang.reflect.Method;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothA2dp;
 import android.content.ComponentName;
@@ -26,10 +24,12 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
+
+import java.lang.reflect.Method;
 
 /**
  * @author neo.kim@neofect.com

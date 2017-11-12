@@ -15,9 +15,9 @@
  */
 package com.neofect.communicator.bluetooth.a2dp;
 
-import java.util.concurrent.TimeoutException;
-
 import android.util.Log;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author neo.kim@neofect.com

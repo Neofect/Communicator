@@ -3,7 +3,6 @@ package com.neofect.communicator.dummy;
 import android.util.Log;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

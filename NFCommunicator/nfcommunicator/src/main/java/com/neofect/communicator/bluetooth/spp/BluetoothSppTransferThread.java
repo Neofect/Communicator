@@ -15,14 +15,14 @@
  */
 package com.neofect.communicator.bluetooth.spp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import com.neofect.communicator.bluetooth.BluetoothConnection;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * This thread is to read data from connected Bluetooth socket with synchronous manner. The read() function in run() is being blocked until any data received.

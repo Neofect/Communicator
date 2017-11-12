@@ -18,9 +18,9 @@ package com.neofect.communicator.bluetooth;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 /**

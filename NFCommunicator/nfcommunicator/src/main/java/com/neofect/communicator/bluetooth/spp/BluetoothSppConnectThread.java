@@ -15,15 +15,15 @@
  */
 package com.neofect.communicator.bluetooth.spp;
 
-import java.io.IOException;
-import java.util.UUID;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import com.neofect.communicator.ConnectionType;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * @author neo.kim@neofect.com
