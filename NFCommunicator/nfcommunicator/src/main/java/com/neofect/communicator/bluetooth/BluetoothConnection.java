@@ -31,7 +31,7 @@ public abstract class BluetoothConnection extends Connection {
 	private static final String LOG_TAG = BluetoothConnection.class.getSimpleName();
 	
 	private BluetoothDevice	bluetoothDevice;
-	private	boolean			disconnectRequested = false;
+	private	boolean disconnectRequested = false;
 	
 	public BluetoothConnection(BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(connectionType, controller);
@@ -76,12 +76,12 @@ public abstract class BluetoothConnection extends Connection {
 	
 	@Override
 	public final void connect() {
-		Log.d(LOG_TAG, "connect() device= '" + getDescriptionWithAddress() + "'");
+		Log.d(LOG_TAG, "connect: device= '" + getDescriptionWithAddress() + "'");
 		if(getStatus() == Status.NOT_CONNECTED) {
 			disconnectRequested = false;
 			connectProcess();
 		} else {
-			Log.e(LOG_TAG, "connect() '" + getDescriptionWithAddress() + "' is not in the status of to connect! Status=" + getStatus());
+			Log.e(LOG_TAG, "connect: '" + getDescriptionWithAddress() + "' is not in the status of to connect! Status=" + getStatus());
 			return;
 		}
 		
@@ -89,7 +89,7 @@ public abstract class BluetoothConnection extends Connection {
 	
 	@Override
 	public final void disconnect() {
-		Log.d(LOG_TAG, "disconnect() device='" + getDescriptionWithAddress() + "'");
+		Log.d(LOG_TAG, "disconnect: device='" + getDescriptionWithAddress() + "'");
 		disconnectRequested = true;
 		
 		disconnectProcess();
