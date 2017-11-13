@@ -61,8 +61,9 @@ public abstract class Controller<T extends Device> {
 		this.decoder = decoder;
 	}
 
-	protected void onConnected(T device) {}
+	protected void onConnected(Connection connection) {}
 	protected void onDisconnected(Connection connection) {}
+	protected void onReplaced(Connection connection) {}
 
 	public void addCallbackBeforeProcessInboundMessage(InboundMessageCallback callback) {
 		beforeCallbacks.add(callback);
@@ -119,17 +120,6 @@ public abstract class Controller<T extends Device> {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to instantiate an instance of device class!", e);
 		}
-	}
-
-	protected void startControl(Connection connection) {
-		initializeDevice(connection);
-		onConnected(device);
-		decodeRawMessageAndProcess(connection);
-	}
-
-	protected void startAfterReplaced(Connection connection) {
-		initializeDevice(connection);
-		decodeRawMessageAndProcess(connection);
 	}
 
 	protected void initializeDevice(Connection connection) {

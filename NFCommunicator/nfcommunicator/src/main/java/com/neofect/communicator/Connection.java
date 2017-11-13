@@ -101,7 +101,8 @@ public abstract class Connection {
 	protected final void handleConnected() {
 		try {
 			status = Status.CONNECTED;
-			controller.startControl(this);
+			controller.initializeDevice(this);
+			controller.onConnected(this);
 			Communicator.getInstance().notifyConnected(controller.getDevice());
 		} catch(Exception e) {
 			try {
@@ -125,8 +126,10 @@ public abstract class Connection {
 			this.controller = newController;
 			oldController.halt();
 			if (status == Status.CONNECTED) {
-				newController.startAfterReplaced(this);
+				newController.initializeDevice(this);
+				newController.onReplaced(this);
 				Communicator.getInstance().onControllerReplaced(this, oldController, newController);
+				newController.decodeRawMessageAndProcess(this);
 			}
 		}
 	}
