@@ -49,8 +49,9 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 	@Override
 	public void run() {
 		// Store the started time
-		if(connectingStartTimestamp == 0)
+		if(connectingStartTimestamp == 0) {
 			connectingStartTimestamp = System.currentTimeMillis();
+		}
 			
 		while(!canceled) {
 			try {
@@ -62,9 +63,9 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 						break;
 					case CONNECTED: {
 						// Check connectivity
-						if(!isConnected)
+						if(!isConnected) {
 							connection.onDisconnected();
-						else {
+						} else {
 							// Sleep between connectivity check
 							Thread.sleep(1000);
 						}
