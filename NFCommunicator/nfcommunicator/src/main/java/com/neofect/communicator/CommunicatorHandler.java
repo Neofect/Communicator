@@ -18,6 +18,7 @@ package com.neofect.communicator;
 import android.os.Handler;
 import android.util.Log;
 
+import com.neofect.communicator.Communicator.Listener;
 import com.neofect.communicator.message.Message;
 
 /**
@@ -28,9 +29,9 @@ class CommunicatorHandler<T extends Device> extends Handler {
 
 	private static final String LOG_TAG = "CommunicatorHandler";
 	
-	CommunicationListener<T> listener;
+	Listener<T> listener;
 	
-	CommunicatorHandler(CommunicationListener<T> listener) {
+	CommunicatorHandler(Listener<T> listener) {
 		this.listener = listener;
 	}
 

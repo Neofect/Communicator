@@ -47,6 +47,15 @@ public class Communicator {
 
 	private static final String LOG_TAG = "Communicator";
 
+	public static abstract class Listener<T extends Device> {
+		public void onStartConnecting(Connection connection) {}
+		public void onFailedToConnect(Connection connection, Exception cause) {}
+		public void onDeviceConnected(T device, boolean alreadyExisting) {}
+		public void onDeviceDisconnected(T device) {}
+		public void onDeviceMessageProcessed(T device, Message message) {}
+		public void onDeviceUpdated(T device) {}
+	}
+
 	private static final Communicator instance = new Communicator();
 
 	static Communicator getInstance() {
@@ -144,7 +153,7 @@ public class Communicator {
 		}
 	}
 
-	public static <T extends Device> Handler registerListener(CommunicationListener<T> listener) {
+	public static <T extends Device> Handler registerListener(Listener<T> listener) {
 		synchronized(instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
 			HandlerList handlerList;
@@ -178,7 +187,7 @@ public class Communicator {
 		}
 	}
 
-	public static <T extends Device> void unregisterListener(CommunicationListener<T> listener) {
+	public static <T extends Device> void unregisterListener(Listener<T> listener) {
 		synchronized (instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
 			if (!instance.registeredHandlers.containsKey(deviceClass)) {
@@ -272,7 +281,7 @@ public class Communicator {
 	 * http://stackoverflow.com/a/3403976/576440
 	 */
 	@SuppressWarnings("unchecked")
-	private static <T extends Device> Class<T> getClassFromGeneric(CommunicationListener<T> listener) {
+	private static <T extends Device> Class<T> getClassFromGeneric(Listener<T> listener) {
 		try {
 			Type superClass = listener.getClass().getGenericSuperclass();
 			return (Class<T>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
@@ -281,7 +290,7 @@ public class Communicator {
 		}
 	}
 
-	private static int getHandlerIndexByListener(HandlerList handlerList, CommunicationListener<? extends Device> listener) {
+	private static int getHandlerIndexByListener(HandlerList handlerList, Listener<? extends Device> listener) {
 		for(int i = 0; i < handlerList.size(); ++i) {
 			if (handlerList.get(i).listener == listener) {
 				return i;
