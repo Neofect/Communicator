@@ -48,7 +48,7 @@ public abstract class Connection {
 	
 	public Connection(ConnectionType connectionType, Controller<? extends Device> controller) {
 		this.connectionType = connectionType;
-		this.controller	= controller;
+		this.controller = controller;
 	}
 	
 	public ConnectionType getConnectionType() {
@@ -71,7 +71,7 @@ public abstract class Connection {
 		return controller;
 	}
 	
-	public void	write(byte[] data) {
+	public void write(byte[] data) {
 		Log.e(LOG_TAG, "write: is not implemented for this connection type!");
 	}
 

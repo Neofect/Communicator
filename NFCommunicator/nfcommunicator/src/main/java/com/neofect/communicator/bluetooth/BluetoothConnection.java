@@ -30,8 +30,8 @@ public abstract class BluetoothConnection extends Connection {
 
 	private static final String LOG_TAG = BluetoothConnection.class.getSimpleName();
 	
-	private BluetoothDevice	bluetoothDevice;
-	private	boolean disconnectRequested = false;
+	private BluetoothDevice bluetoothDevice;
+	private boolean disconnectRequested = false;
 	
 	public BluetoothConnection(BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(connectionType, controller);
@@ -70,7 +70,7 @@ public abstract class BluetoothConnection extends Connection {
 		return deviceName;
 	}
 	
-	public final String	getDescriptionWithAddress() {
+	public final String getDescriptionWithAddress() {
 		return getDeviceName() + "(" + getDeviceIdentifier() + ")-" + getConnectionType();
 	}
 	
@@ -95,7 +95,7 @@ public abstract class BluetoothConnection extends Connection {
 		disconnectProcess();
 	}
 	
-	protected abstract void	connectProcess();
-	protected abstract void	disconnectProcess();
+	protected abstract void connectProcess();
+	protected abstract void disconnectProcess();
 
 }

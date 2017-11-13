@@ -59,8 +59,8 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		}
 	}
 	
-	private IBluetoothA2dp					a2dpService = null;
-	BluetoothA2dpConnectivityCheckThread	connectivityCheckThread;
+	private IBluetoothA2dp a2dpService = null;
+	private BluetoothA2dpConnectivityCheckThread connectivityCheckThread;
 	
 	private void cancelConnectivityCheckThread() {
 		connectivityCheckThread.cancel();
@@ -217,11 +217,11 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		}
 	}
 	
-	void	onConnected() {
+	void onConnected() {
 		handleConnected();
 	}
 	
-	void	onDisconnected() {
+	void onDisconnected() {
 		handleDisconnected();
 		cancelConnectivityCheckThread();
 	}

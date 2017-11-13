@@ -33,7 +33,7 @@ import java.io.OutputStream;
 class BluetoothSppTransferThread extends Thread {
 
 	private static final String LOG_TAG = BluetoothSppTransferThread.class.getSimpleName();
-	private static final int BUFFER_SIZE	= 1024;
+	private static final int BUFFER_SIZE = 1024;
 	
 	private BluetoothSppConnection connection;
 	

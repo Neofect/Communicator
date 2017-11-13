@@ -24,13 +24,13 @@ import android.util.Log;
  */
 public class ByteRingBuffer {
 	
-	private static final int	BUFFER_DEFAULT_INIT_CAPACITY	= 128;
-	private static final int	BUFFER_DEFAULT_MAX_CAPACITY		= 2 * 1024 * 1024; // Maximum 2MB
+	private static final int BUFFER_DEFAULT_INIT_CAPACITY = 128;
+	private static final int BUFFER_DEFAULT_MAX_CAPACITY = 2 * 1024 * 1024; // Maximum 2MB
 	
-	private byte[]	buffer;
-	private int		maxCapacity	= BUFFER_DEFAULT_MAX_CAPACITY;
-	private int		contentSize	= 0;
-	private int		headIndex	= 0;
+	private byte[] buffer;
+	private int maxCapacity = BUFFER_DEFAULT_MAX_CAPACITY;
+	private int contentSize = 0;
+	private int headIndex = 0;
 
 	public ByteRingBuffer(int capacity) {
 		buffer = new byte[capacity];

@@ -26,11 +26,11 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 
 	private static final String LOG_TAG = BluetoothA2dpConnectivityCheckThread.class.getSimpleName();
 	
-	private static final int	CONNECTING_TIMEOUT_IN_SECONDS = 10;
+	private static final int CONNECTING_TIMEOUT_IN_SECONDS = 10;
 	
 	private BluetoothA2dpConnection connection;
-	private long	connectingStartTimestamp = 0;
-	private boolean	canceled = false;
+	private long connectingStartTimestamp = 0;
+	private boolean canceled = false;
 	
 	BluetoothA2dpConnectivityCheckThread(BluetoothA2dpConnection connection) {
 		super("BluetoothA2dpConnectivityCheckThread");

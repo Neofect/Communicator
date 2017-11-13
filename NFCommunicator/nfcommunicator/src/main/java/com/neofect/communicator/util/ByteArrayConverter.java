@@ -26,7 +26,7 @@ import java.nio.ByteOrder;
  */
 public class ByteArrayConverter {
 
-	private static final String	LOG_TAG	= ByteArrayConverter.class.getSimpleName();
+	private static final String LOG_TAG = "ByteArrayConverter";
 
 	/**
 	 * Convert a hex string to a byte array.
