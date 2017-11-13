@@ -196,10 +196,12 @@ public class UsbConnection extends Connection {
 					disconnect();
 				} else if (ACTION_USB_PERMISSION.equals(action)) {
 					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-						Log.d(LOG_TAG, "Permission granted for the device " + device);
+						Log.i(LOG_TAG, "Permission granted for the device " + device);
 						startConnecting();
 					}  else {
-						Log.d(LOG_TAG, "Permission denied for the device " + device);
+						Log.i(LOG_TAG, "Permission denied for the device " + device);
+						cleanUp();
+						handleFailedToConnect(new SecurityException("User denied to grant USB permission!"));
 					}
 				}
 			}
