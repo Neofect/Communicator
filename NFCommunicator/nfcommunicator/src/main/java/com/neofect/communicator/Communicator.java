@@ -148,10 +148,10 @@ public class Communicator {
 		synchronized(instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
 			HandlerList handlerList;
-			if(instance.registeredHandlers.containsKey(deviceClass)) {
+			if (instance.registeredHandlers.containsKey(deviceClass)) {
 				handlerList = instance.registeredHandlers.get(deviceClass);
 				int handlerIndex = getHandlerIndexByListener(handlerList, listener);
-				if(handlerIndex != -1) {
+				if (handlerIndex != -1) {
 					Log.w(LOG_TAG,  "registerListener: The listener is already registered!");
 					return null;
 				}
@@ -181,14 +181,14 @@ public class Communicator {
 	public static <T extends Device> void unregisterListener(CommunicationListener<T> listener) {
 		synchronized (instance) {
 			Class<T> deviceClass = getClassFromGeneric(listener);
-			if(!instance.registeredHandlers.containsKey(deviceClass)) {
+			if (!instance.registeredHandlers.containsKey(deviceClass)) {
 				Log.w(LOG_TAG,  "unregisterListener: The listener is not registered!");
 				return;
 			}
 
 			HandlerList handlerList = instance.registeredHandlers.get(deviceClass);
 			int handlerIndex = getHandlerIndexByListener(handlerList, listener);
-			if(handlerIndex == -1) {
+			if (handlerIndex == -1) {
 				Log.w(LOG_TAG,  "The listener is not existing!");
 				return;
 			}
@@ -229,7 +229,7 @@ public class Communicator {
 	 */
 	public static int getNumberOfConnections(Class<? extends Device> deviceClass) {
 		synchronized (instance) {
-			if(deviceClass == null) {
+			if (deviceClass == null) {
 				return instance.connections.size();
 			}
 
@@ -239,7 +239,7 @@ public class Communicator {
 					continue;
 				}
 				Device device = connection.getController().getDevice();
-				if(device.getClass() == deviceClass) {
+				if (device.getClass() == deviceClass) {
 					++count;
 				}
 			}
@@ -283,7 +283,7 @@ public class Communicator {
 
 	private static int getHandlerIndexByListener(HandlerList handlerList, CommunicationListener<? extends Device> listener) {
 		for(int i = 0; i < handlerList.size(); ++i) {
-			if(handlerList.get(i).listener == listener) {
+			if (handlerList.get(i).listener == listener) {
 				return i;
 			}
 		}

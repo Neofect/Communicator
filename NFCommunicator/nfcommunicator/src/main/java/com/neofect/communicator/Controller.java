@@ -161,10 +161,10 @@ public abstract class Controller<T extends Device> {
 	}
 	
 	final byte[] encodeMessage(Message message) {
-		if(encoder == null) {
+		if (encoder == null) {
 			Log.e(LOG_TAG, "Message encoder is not set!");
 			return null;
-		} else if(message == null) {
+		} else if (message == null) {
 			Log.e(LOG_TAG, "Given message instance is null!");
 			return null;
 		}
@@ -182,7 +182,7 @@ public abstract class Controller<T extends Device> {
 	 * @param connection
 	 */
 	final void decodeRawMessageAndProcess(Connection connection) {
-		if(decoder == null) {
+		if (decoder == null) {
 			Log.e(LOG_TAG, "Message decoder is not set!");
 			return;
 		}
@@ -195,7 +195,7 @@ public abstract class Controller<T extends Device> {
 				printBuffer(connection);
 				handleExceptionWhenDecodingMessage(e, connection);
 			}
-			if(message == null) {
+			if (message == null) {
 				break;
 			}
 			processInboundMessage(connection, message);
@@ -221,10 +221,10 @@ public abstract class Controller<T extends Device> {
 				}
 			}
 
-			if(device != null) {
+			if (device != null) {
 				boolean deviceUpdated = device.processMessage(message);
 				Communicator.getInstance().notifyDeviceMessageProcessed(device, message);
-				if(deviceUpdated) {
+				if (deviceUpdated) {
 					Communicator.getInstance().notifyDeviceUpdated(device);
 				}
 			}

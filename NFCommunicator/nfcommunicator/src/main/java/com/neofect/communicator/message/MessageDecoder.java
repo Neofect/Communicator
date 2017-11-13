@@ -46,7 +46,7 @@ public abstract class MessageDecoder {
 	private Message createMessage(byte[] messageId) {
 		// Get message class from class mapper
 		Class<? extends Message> messageClass = messageClassMapper.getMessageClassById(messageId);
-		if(messageClass == null) {
+		if (messageClass == null) {
 			throw new UndefinedMessageIdException(messageId, "Not existing message ID! '0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'");
 		}
 		
@@ -67,7 +67,7 @@ public abstract class MessageDecoder {
 	 * @return
 	 */
 	protected final Message decodeMessagePayload(byte[] messageId, byte[] data, int startIndex, int length) {
-		if(messageClassMapper == null) {
+		if (messageClassMapper == null) {
 			Log.e(LOG_TAG, "Message class mapper is not set!");
 			return null;
 		}

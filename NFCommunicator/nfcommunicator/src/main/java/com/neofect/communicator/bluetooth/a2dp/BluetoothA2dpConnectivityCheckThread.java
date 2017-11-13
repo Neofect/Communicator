@@ -49,7 +49,7 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 	@Override
 	public void run() {
 		// Store the started time
-		if(connectingStartTimestamp == 0) {
+		if (connectingStartTimestamp == 0) {
 			connectingStartTimestamp = System.currentTimeMillis();
 		}
 			
@@ -63,7 +63,7 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 						break;
 					case CONNECTED: {
 						// Check connectivity
-						if(!isConnected) {
+						if (!isConnected) {
 							connection.onDisconnected();
 						} else {
 							// Sleep between connectivity check
@@ -73,9 +73,9 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 					}
 					case CONNECTING: {
 						// Check connectivity
-						if(isConnected) {
+						if (isConnected) {
 							connection.onConnected();
-						} else if(System.currentTimeMillis() - connectingStartTimestamp > CONNECTING_TIMEOUT_IN_SECONDS * 1000) {
+						} else if (System.currentTimeMillis() - connectingStartTimestamp > CONNECTING_TIMEOUT_IN_SECONDS * 1000) {
 							// Check timeout
 							connection.onFailedToConnect(new TimeoutException("Timeout during connecting to A2DP."));
 						} else {

@@ -64,7 +64,7 @@ public abstract class BluetoothConnection extends Connection {
 		} catch(Exception e) {
 			Log.e(LOG_TAG, "", e);
 		}
-		if(deviceName == null) {
+		if (deviceName == null) {
 			deviceName = "Unknown";
 		}
 		return deviceName;
@@ -77,7 +77,7 @@ public abstract class BluetoothConnection extends Connection {
 	@Override
 	public final void connect() {
 		Log.d(LOG_TAG, "connect: device= '" + getDescriptionWithAddress() + "'");
-		if(getStatus() == Status.NOT_CONNECTED) {
+		if (getStatus() == Status.NOT_CONNECTED) {
 			disconnectRequested = false;
 			connectProcess();
 		} else {
