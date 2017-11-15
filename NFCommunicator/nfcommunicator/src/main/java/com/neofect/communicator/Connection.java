@@ -100,6 +100,7 @@ public abstract class Connection {
 
 	protected final void handleConnected() {
 		try {
+			Log.i(LOG_TAG, "Connected. description=" + getDescription());
 			status = Status.CONNECTED;
 			controller.initializeDevice(this);
 			controller.onConnected(this);
@@ -115,6 +116,7 @@ public abstract class Connection {
 	}
 
 	protected final void handleDisconnected() {
+		Log.i(LOG_TAG, "Disconnected. description=" + getDescription());
 		status = Status.NOT_CONNECTED;
 		controller.onDisconnected(this);
 		Communicator.getInstance().notifyDisconnected(this, controller.getDeviceClass());

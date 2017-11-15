@@ -327,21 +327,25 @@ public class Communicator {
 	}
 
 	synchronized private void refreshConnectedDeviceHandlers() {
-		connectedDeviceHandlers.clear();
-		for(Connection connection : instance.connections) {
-			Device device = connection.getController().getDevice();
-			if (device == null) {
-				continue;
+		synchronized (connectedDeviceHandlers) {
+			Log.d(LOG_TAG, "refreshConnectedDeviceHandlers: ");
+			connectedDeviceHandlers.clear();
+			for(Connection connection : instance.connections) {
+				Device device = connection.getController().getDevice();
+				if (device == null) {
+					continue;
+				}
+				Class<? extends Device> deviceClass = device.getClass();
+				if (connectedDeviceHandlers.get(deviceClass) != null) {
+					continue;
+				}
+				connectedDeviceHandlers.put(deviceClass, getCorrespondingHandlers(deviceClass));
 			}
-			Class<? extends Device> deviceClass = device.getClass();
-			if (connectedDeviceHandlers.get(deviceClass) != null) {
-				continue;
-			}
-			connectedDeviceHandlers.put(deviceClass, getCorrespondingHandlers(deviceClass));
 		}
 	}
 
 	void onControllerReplaced(Connection connection, Controller<?> oldController, Controller<?> newController) {
+		Log.d(LOG_TAG, "onControllerReplaced: ");
 		refreshConnectedDeviceHandlers();
 	}
 

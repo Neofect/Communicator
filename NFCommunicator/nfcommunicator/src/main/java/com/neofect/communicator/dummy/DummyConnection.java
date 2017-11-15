@@ -62,10 +62,18 @@ public class DummyConnection extends Connection {
 
 	@Override
 	public void write(byte[] data) {
+		if (!isConnected()) {
+			Log.e(LOG_TAG, "write: Not connected! connection=" + getDescription());
+			return;
+		}
 		device.receive(data);
 	}
 
 	void onRead(byte[] data) {
+		if (!isConnected()) {
+			Log.e(LOG_TAG, "onRead: Not connected! connection=" + getDescription());
+			return;
+		}
 		handleReadData(data);
 	}
 
