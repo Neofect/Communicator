@@ -75,8 +75,9 @@ public class Communicator {
 	public static boolean connect(Context context, ConnectionType connectionType, String deviceIdentifier, Controller<? extends Device> controller) {
 		Log.i(LOG_TAG, "connect: connectionType=" + connectionType + ", deviceIdentifier=" + deviceIdentifier);
 
-		if (isConnected(connectionType, deviceIdentifier)) {
-			Exception exception = new Exception("The device is already connected! connectionType=" + connectionType + ", deviceIdentifier=" + deviceIdentifier);
+		Connection existingConnection = getConnection(connectionType, deviceIdentifier);
+		if (existingConnection != null) {
+			Exception exception = new Exception("The connection is already in list! status=" + existingConnection.getStatus() + ", connectionType=" + connectionType + ", deviceIdentifier=" + deviceIdentifier);
 			instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
 			return false;
 		}
@@ -124,8 +125,8 @@ public class Communicator {
 		}
 
 		try {
+			Log.d(LOG_TAG, "connect: " + connection.getClass().getSimpleName() + " is created and starts to connect.");
 			connection.connect();
-			Log.d(LOG_TAG, "connect: " + connection.getClass().getSimpleName() + " is created and started to connect.");
 			return true;
 		} catch(Exception e) {
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
@@ -206,28 +207,45 @@ public class Communicator {
 		}
 	}
 
-	public static boolean isConnected(ConnectionType connectionType, String deviceIdentifier) {
-		synchronized (instance) {
-			for(Connection connection : instance.connections) {
+	public static Connection getConnection(ConnectionType connectionType, String deviceIdentifier) {
+		synchronized (instance.connections) {
+			for (Connection connection : instance.connections) {
 				if (connection.getConnectionType() == connectionType) {
 					if (connection.getDeviceIdentifier().equals(deviceIdentifier)) {
-						return true;
+						return connection;
 					}
 				}
 			}
+			return null;
 		}
-		return false;
 	}
 
 	public static List<Device> getConnectedDevices() {
-		List<Device> devices = new ArrayList<>();
-		for (Connection connection : instance.connections) {
-			if (!connection.isConnected()) {
-				continue;
+		synchronized (instance.connections) {
+			List<Device> devices = new ArrayList<>();
+			for (Connection connection : instance.connections) {
+				if (!connection.isConnected()) {
+					continue;
+				}
+				devices.add(connection.getController().getDevice());
 			}
-			devices.add(connection.getController().getDevice());
+			return devices;
 		}
-		return devices;
+	}
+
+	public static boolean isConnected(ConnectionType connectionType, String deviceIdentifier) {
+		Connection connection = getConnection(connectionType, deviceIdentifier);
+		return connection != null && connection.isConnected();
+	}
+
+	public static Device findConnectedDevice(ConnectionType connectionType, String deviceIdentifier) {
+		synchronized (instance.connections) {
+			Connection connection = getConnection(connectionType, deviceIdentifier);
+			if (connection != null) {
+				return connection.getController().getDevice();
+			}
+			return null;
+		}
 	}
 
 	/**
@@ -237,7 +255,7 @@ public class Communicator {
 	 * @return
 	 */
 	public static int getNumberOfConnections(Class<? extends Device> deviceClass) {
-		synchronized (instance) {
+		synchronized (instance.connections) {
 			if (deviceClass == null) {
 				return instance.connections.size();
 			}
@@ -253,21 +271,6 @@ public class Communicator {
 				}
 			}
 			return count;
-		}
-	}
-
-	public static Device findConnectedDevice(ConnectionType connectionType, String deviceIdentifier) {
-		synchronized (instance.connections) {
-			for(Connection connection : instance.connections) {
-				if (!connection.isConnected()) {
-					continue;
-				}
-				if (connection.getConnectionType() == connectionType &&
-						connection.getDeviceIdentifier().equals(deviceIdentifier)) {
-					return connection.getController().getDevice();
-				}
-			}
-			return null;
 		}
 	}
 
