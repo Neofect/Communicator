@@ -1,4 +1,6 @@
-# Keep constructors of Device classes
+-keepattributes Signature
+
+# Keep constructors of Device subclasses
 -keepclassmembers class * extends com.neofect.communicator.Device {
     public <init>(com.neofect.communicator.Connection);
 }
