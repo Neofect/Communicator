@@ -3,9 +3,9 @@ apply plugin: 'com.jfrog.bintray'
 
 bintray {
     if (!project.hasProperty('BINTRAY_USER')) {
-        println "Cannot perform bintray task because 'BINTRAY_USER' is not defined."
-    } else if (project.hasProperty('BINTRAY_KEY')) {
-        println "Cannot perform bintray task because 'BINTRAY_KEY' is not defined."
+        throw new GradleException("Cannot perform bintray task because 'BINTRAY_USER' is not defined.")
+    } else if (!project.hasProperty('BINTRAY_KEY')) {
+        throw new GradleException("Cannot perform bintray task because 'BINTRAY_KEY' is not defined.")
     } else {
         user = BINTRAY_USER
         key = BINTRAY_KEY
