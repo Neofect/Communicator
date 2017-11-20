@@ -15,23 +15,23 @@
  */
 package com.neofect.communicator;
 
-import com.neofect.communicator.message.CommunicationMessage;
-
 import android.os.Handler;
 import android.util.Log;
+
+import com.neofect.communicator.Communicator.Listener;
+import com.neofect.communicator.message.Message;
 
 /**
  * @author neo.kim@neofect.com
  * @date 2014. 2. 4.
  */
-class CommunicationHandler<T extends Device> extends Handler {
+class CommunicatorHandler<T extends Device> extends Handler {
+
+	private static final String LOG_TAG = "CommunicatorHandler";
 	
-	CommunicationListener<T> listener;
+	Listener<T> listener;
 	
-	CommunicationHandler(CommunicationListener<T> listener) {
-		if(listener == null) {
-			throw new IllegalArgumentException("Listener must not be null!");
-		}
+	CommunicatorHandler(Listener<T> listener) {
 		this.listener = listener;
 	}
 
@@ -41,7 +41,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onStartConnecting(connection);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -53,7 +53,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onFailedToConnect(connection, cause);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -65,7 +65,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceConnected(device, alreadyExisting);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -77,31 +77,19 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceDisconnected(device);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
 	}
 	
-	void onDeviceReady(final T device, final boolean alreadyExisting) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onDeviceReady(device, alreadyExisting);
-				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
-				}
-			}
-		});
-	}
-	
-	void onDeviceMessageProcessed(final T device, final CommunicationMessage message) {
+	void onDeviceMessageProcessed(final T device, final Message message) {
 		post(new Runnable() {
 			public void run() {
 				try {
 					listener.onDeviceMessageProcessed(device, message);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});
@@ -113,7 +101,7 @@ class CommunicationHandler<T extends Device> extends Handler {
 				try {
 					listener.onDeviceUpdated(device);
 				} catch(Exception e) {
-					Log.e(CommunicationHandler.class.getSimpleName(), "", e);
+					Log.e(LOG_TAG, "", e);
 				}
 			}
 		});

@@ -21,7 +21,7 @@ package com.neofect.communicator.message;
  */
 public interface MessageClassMapper {
 	
-	Class<? extends CommunicationMessage> getMessageClassById(byte[] messageId);
-	byte[]	getMessageIdByClass(Class<? extends CommunicationMessage> messageClass);
+	Class<? extends Message> getMessageClassById(byte[] messageId);
+	byte[] getMessageIdByClass(Class<? extends Message> messageClass);
 	
 }

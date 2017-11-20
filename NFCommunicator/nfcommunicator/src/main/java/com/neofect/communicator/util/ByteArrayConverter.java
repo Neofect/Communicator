@@ -26,7 +26,7 @@ import java.nio.ByteOrder;
  */
 public class ByteArrayConverter {
 
-	private static final String	LOG_TAG	= ByteArrayConverter.class.getSimpleName();
+	private static final String LOG_TAG = "ByteArrayConverter";
 
 	/**
 	 * Convert a hex string to a byte array.
@@ -135,20 +135,20 @@ public class ByteArrayConverter {
 	 * Convert a byte array to an integer value.
 	 */
 	public static int byteArrayToInt(byte[] bytes, int startIndex, int length, ByteOrder byteOrder) {
-    	if(bytes == null)
+    	if (bytes == null)
     		return 0;
     	
         final int newLength = Integer.SIZE / 8;
         final byte[] newBytes = new byte[newLength];
         
         for (int i = 0; i < newLength; i++) {
-        	if(byteOrder == ByteOrder.BIG_ENDIAN) {
-        		if(i < newLength - length)
+        	if (byteOrder == ByteOrder.BIG_ENDIAN) {
+        		if (i < newLength - length)
         			newBytes[i] = (byte) 0x00;
         		else
         			newBytes[i] = bytes[startIndex + i - (newLength - length)];
         	} else {
-        		if(i >= length)
+        		if (i >= length)
         			newBytes[i] = (byte) 0x00;
         		else
         			newBytes[i] = bytes[startIndex + i];
@@ -171,7 +171,7 @@ public class ByteArrayConverter {
      * @author "wjchoi@neofect.com"
 	 */
 	public static String byteArrayToHex(byte[] array, int numForRow, String format) {
-		if(array == null) {
+		if (array == null) {
 			return null;
 		}
 		
@@ -186,7 +186,7 @@ public class ByteArrayConverter {
 			byteArrayElements.append(String.format(format, b));
 
 			// intent to feed a line per a numForRow
-			if( ((loop+1)% numForRow ==0) && ((loop+1)/numForRow >=1) ) {
+			if ( ((loop+1)% numForRow ==0) && ((loop+1)/numForRow >=1) ) {
 				byteArrayElements.append("\n");
 			}
 		}

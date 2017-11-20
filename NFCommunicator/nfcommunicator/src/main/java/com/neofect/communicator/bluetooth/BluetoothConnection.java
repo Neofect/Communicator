@@ -18,9 +18,9 @@ package com.neofect.communicator.bluetooth;
 import android.bluetooth.BluetoothDevice;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 /**
@@ -30,10 +30,10 @@ public abstract class BluetoothConnection extends Connection {
 
 	private static final String LOG_TAG = BluetoothConnection.class.getSimpleName();
 	
-	private BluetoothDevice	bluetoothDevice;
-	private	boolean			disconnectRequested = false;
+	private BluetoothDevice bluetoothDevice;
+	private boolean disconnectRequested = false;
 	
-	public BluetoothConnection(BluetoothDevice device, CommunicationController<? extends Device> controller, ConnectionType connectionType) {
+	public BluetoothConnection(BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(connectionType, controller);
 		this.bluetoothDevice = device;
 	}
@@ -52,7 +52,7 @@ public abstract class BluetoothConnection extends Connection {
 	}
 	
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return bluetoothDevice.getAddress();
 	}
 
@@ -64,24 +64,24 @@ public abstract class BluetoothConnection extends Connection {
 		} catch(Exception e) {
 			Log.e(LOG_TAG, "", e);
 		}
-		if(deviceName == null) {
+		if (deviceName == null) {
 			deviceName = "Unknown";
 		}
 		return deviceName;
 	}
 	
-	public final String	getDescriptionWithAddress() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")-" + getConnectionType();
+	public final String getDescriptionWithAddress() {
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")-" + getConnectionType();
 	}
 	
 	@Override
 	public final void connect() {
-		Log.d(LOG_TAG, "connect() device= '" + getDescriptionWithAddress() + "'");
-		if(getStatus() == Status.NOT_CONNECTED) {
+		Log.d(LOG_TAG, "connect: device= '" + getDescriptionWithAddress() + "'");
+		if (getStatus() == Status.NOT_CONNECTED) {
 			disconnectRequested = false;
 			connectProcess();
 		} else {
-			Log.e(LOG_TAG, "connect() '" + getDescriptionWithAddress() + "' is not in the status of to connect! Status=" + getStatus());
+			Log.e(LOG_TAG, "connect: '" + getDescriptionWithAddress() + "' is not in the status of to connect! Status=" + getStatus());
 			return;
 		}
 		
@@ -89,13 +89,13 @@ public abstract class BluetoothConnection extends Connection {
 	
 	@Override
 	public final void disconnect() {
-		Log.d(LOG_TAG, "disconnect() device='" + getDescriptionWithAddress() + "'");
+		Log.d(LOG_TAG, "disconnect: device='" + getDescriptionWithAddress() + "'");
 		disconnectRequested = true;
 		
 		disconnectProcess();
 	}
 	
-	protected abstract void	connectProcess();
-	protected abstract void	disconnectProcess();
+	protected abstract void connectProcess();
+	protected abstract void disconnectProcess();
 
 }

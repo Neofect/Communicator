@@ -17,7 +17,7 @@ package com.neofect.communicator;
 
 import android.util.Log;
 
-import com.neofect.communicator.message.CommunicationMessage;
+import com.neofect.communicator.message.Message;
 import com.neofect.communicator.util.ByteRingBuffer;
 
 /**
@@ -26,29 +26,29 @@ import com.neofect.communicator.util.ByteRingBuffer;
  */
 public abstract class Connection {
 
-	private static final String LOG_TAG = Connection.class.getSimpleName();
+	private static final String LOG_TAG = "Connection";
 	
-	public static enum Status {
+	public enum Status {
 		NOT_CONNECTED,
 		CONNECTING,
 		CONNECTED,
 	}
 	
-	public abstract void	connect();
-	public abstract void	disconnect();
+	public abstract void connect();
+	public abstract void disconnect();
+	public abstract String getDeviceIdentifier();
 	public abstract String getDeviceName();
-	public abstract String	getRemoteAddress();
-	public abstract String	getDescription();
+	public abstract String getDescription();
 	
-	private final CommunicationController<? extends Device>	controller;
+	private Controller<? extends Device> controller;
 	
-	private ConnectionType	connectionType;
-	private Status			status = Status.NOT_CONNECTED;
-	private ByteRingBuffer	ringBuffer = new ByteRingBuffer();
+	private ConnectionType connectionType;
+	private Status status = Status.NOT_CONNECTED;
+	private ByteRingBuffer ringBuffer = new ByteRingBuffer();
 	
-	public Connection(ConnectionType connectionType, CommunicationController<? extends Device> controller) {
+	public Connection(ConnectionType connectionType, Controller<? extends Device> controller) {
 		this.connectionType = connectionType;
-		this.controller	= controller;
+		this.controller = controller;
 	}
 	
 	public ConnectionType getConnectionType() {
@@ -59,14 +59,6 @@ public abstract class Connection {
 		return status == Status.CONNECTED;
 	}
 	
-	public Device getDevice() {
-		return controller.getDevice();
-	}
-	
-	public Class<? extends Device> getDeviceClass() {
-		return controller.getDeviceClass();
-	}
-	
 	public Status getStatus() {
 		return status;
 	}
@@ -75,44 +67,44 @@ public abstract class Connection {
 		return ringBuffer;
 	}
 	
-	public CommunicationController<? extends Device> getController() {
+	public Controller<? extends Device> getController() {
 		return controller;
 	}
 	
-	public void	write(byte[] data) {
-		Log.e(LOG_TAG, "write() is not implemented for this connection type!");
+	public void write(byte[] data) {
+		Log.e(LOG_TAG, "write: is not implemented for this connection type!");
 	}
-	
-	public void sendMessage(CommunicationMessage message) {
+
+	public void sendMessage(Message message) {
 		write(controller.encodeMessage(message));
 	}
-	
+
 	protected final void handleReadData(byte[] data) {
 		ringBuffer.put(data);
-		
+
 		// Process message
-		controller.decodeRawMessageAndProcess(this);
+		synchronized (this) {
+			controller.decodeRawMessageAndProcess(this);
+		}
 	}
-	
+
 	protected final void handleConnecting() {
 		status = Status.CONNECTING;
-		controller.onStartConnectingInner(this);
+		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
 	}
-	
-	void forceFailedToConnectFromController(Exception cause) {
-		disconnect();
-		handleFailedToConnect(cause);
-	}
-	
+
 	protected final void handleFailedToConnect(Exception cause) {
 		status = Status.NOT_CONNECTED;
-		controller.onFailedToConnectInner(this, cause);
+		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
 	}
-	
+
 	protected final void handleConnected() {
 		try {
+			Log.i(LOG_TAG, "Connected. description=" + getDescription());
 			status = Status.CONNECTED;
-			controller.onConnectedInner(this);
+			controller.initializeDevice(this);
+			controller.onConnected(this);
+			Communicator.getInstance().notifyConnected(controller.getDevice());
 		} catch(Exception e) {
 			try {
 				this.disconnect();
@@ -122,10 +114,26 @@ public abstract class Connection {
 			handleFailedToConnect(new Exception("Failed to process the connected device!", e));
 		}
 	}
-	
+
 	protected final void handleDisconnected() {
+		Log.i(LOG_TAG, "Disconnected. description=" + getDescription());
 		status = Status.NOT_CONNECTED;
-		controller.onDisconnectedInner(this);
+		controller.onDisconnected(this);
+		Communicator.getInstance().notifyDisconnected(this, controller.getDeviceClass());
 	}
-	
+
+	public void replaceController(Controller<? extends Device> newController) {
+		synchronized (this) {
+			Controller<? extends Device> oldController = this.controller;
+			this.controller = newController;
+			oldController.halt();
+			if (status == Status.CONNECTED) {
+				newController.initializeDevice(this);
+				newController.onReplaced(this);
+				Communicator.getInstance().onControllerReplaced(this, oldController, newController);
+				newController.decodeRawMessageAndProcess(this);
+			}
+		}
+	}
+
 }

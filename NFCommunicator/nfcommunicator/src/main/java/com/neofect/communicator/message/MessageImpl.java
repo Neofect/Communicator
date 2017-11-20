@@ -19,7 +19,7 @@ package com.neofect.communicator.message;
  * @author neo.kim@neofect.com
  * @date 2014. 5. 22.
  */
-public class CommunicationMessageImpl implements CommunicationMessage {
+public class MessageImpl implements Message {
 
 	@Override
 	public String getDescription() {

@@ -27,7 +27,7 @@ import com.neofect.communicator.util.ByteRingBuffer;
  */
 public abstract class MessageDecoder {
 
-	private static final String LOG_TAG = MessageDecoder.class.getSimpleName();
+	private static final String LOG_TAG = "MessageDecoder";
 	
 	private MessageClassMapper messageClassMapper;
 	
@@ -43,20 +43,18 @@ public abstract class MessageDecoder {
 		this.messageClassMapper = messageClassMapper;
 	}
 	
-	private CommunicationMessage createCommunicationMessageInstance(byte[] messageId) {
+	private Message createMessage(byte[] messageId) {
 		// Get message class from class mapper
-		Class<? extends CommunicationMessage> messageClass = messageClassMapper.getMessageClassById(messageId);
-		if(messageClass == null) {
+		Class<? extends Message> messageClass = messageClassMapper.getMessageClassById(messageId);
+		if (messageClass == null) {
 			throw new UndefinedMessageIdException(messageId, "Not existing message ID! '0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'");
 		}
 		
-		CommunicationMessage message = null;
 		try {
-			message = (CommunicationMessage) messageClass.newInstance();
+			return messageClass.newInstance();
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to instantiate a message class from message bytes! messageId='0x" + ByteArrayConverter.byteArrayToHexWithoutSpace(messageId) + "'", e);
 		}
-		return message;
 	}
 	
 	/**
@@ -68,14 +66,14 @@ public abstract class MessageDecoder {
 	 * @param length
 	 * @return
 	 */
-	protected final CommunicationMessage decodeMessagePayload(byte[] messageId, byte[] data, int startIndex, int length) {
-		if(messageClassMapper == null) {
+	protected final Message decodeMessagePayload(byte[] messageId, byte[] data, int startIndex, int length) {
+		if (messageClassMapper == null) {
 			Log.e(LOG_TAG, "Message class mapper is not set!");
 			return null;
 		}
 		
-		// Create a message class
-		CommunicationMessage message = createCommunicationMessageInstance(messageId);
+		// Create a message instance
+		Message message = createMessage(messageId);
 		
 		// Decode payload data
 		try {
@@ -92,7 +90,7 @@ public abstract class MessageDecoder {
 	}
 	
 	/**
-	 * A subclass must implement this method to create a {@link CommunicationMessage}
+	 * A subclass must implement this method to create a {@link Message}
 	 * from byte data. The input buffer is passed through {@link ByteRingBuffer} class.
 	 * If the passed byte data is not long enough to create message, just return null.
 	 * This method will be called again once it gets more data from connection.
@@ -100,6 +98,6 @@ public abstract class MessageDecoder {
 	 * @param inputBuffer
 	 * @return
 	 */
-	public abstract CommunicationMessage decodeMessage(ByteRingBuffer inputBuffer);
+	public abstract Message decodeMessage(ByteRingBuffer inputBuffer);
 	
 }

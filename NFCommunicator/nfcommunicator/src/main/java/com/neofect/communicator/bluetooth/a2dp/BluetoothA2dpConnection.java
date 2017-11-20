@@ -15,8 +15,6 @@
  */
 package com.neofect.communicator.bluetooth.a2dp;
 
-import java.lang.reflect.Method;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.IBluetoothA2dp;
 import android.content.ComponentName;
@@ -26,10 +24,12 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
+
+import java.lang.reflect.Method;
 
 /**
  * @author neo.kim@neofect.com
@@ -52,15 +52,15 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		}
 		public static ConnectState getConnectState(int value) {
 			for(ConnectState connectState : ConnectState.values()) {
-				if(connectState.value == value)
+				if (connectState.value == value)
 					return connectState;
 			}
 			return STATE_UNKNOWN;
 		}
 	}
 	
-	private IBluetoothA2dp					a2dpService = null;
-	BluetoothA2dpConnectivityCheckThread	connectivityCheckThread;
+	private IBluetoothA2dp a2dpService = null;
+	private BluetoothA2dpConnectivityCheckThread connectivityCheckThread;
 	
 	private void cancelConnectivityCheckThread() {
 		connectivityCheckThread.cancel();
@@ -71,7 +71,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		@Override
 		public void onServiceConnected(ComponentName name, IBinder service) {
 			a2dpService = IBluetoothA2dp.Stub.asInterface(service);
-            if(a2dpService != null) {
+            if (a2dpService != null) {
 				Log.d(LOG_TAG, "onServiceConnected() : Bluetooth A2DP service is connected (API17+)");
 				startConnect();
             } else {
@@ -87,7 +87,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 
 	};
 	
-	public BluetoothA2dpConnection(BluetoothDevice device, CommunicationController<? extends Device> controller) {
+	public BluetoothA2dpConnection(BluetoothDevice device, Controller<? extends Device> controller) {
 		super(device, controller, ConnectionType.BLUETOOTH_A2DP);
 	}
 
@@ -100,7 +100,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 	private void tryToGetService() {
 		// Get IBluetoothA2dp service instance
 		try {
-			if(Build.VERSION.SDK_INT < 17)
+			if (Build.VERSION.SDK_INT < 17)
 			{
 				Class<?> classServiceManager = Class.forName("android.os.ServiceManager");
 				Method methodGetService = classServiceManager.getDeclaredMethod("getService", String.class);
@@ -112,7 +112,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 				methodAsInterface.setAccessible(true);
 
 				a2dpService = (IBluetoothA2dp) methodAsInterface.invoke(null, binder);
-                if(a2dpService != null) {
+                if (a2dpService != null) {
                 	startConnect();
                 }
                 else {
@@ -126,7 +126,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 //				
 //				// bluetooth service connection callback will register iBinder of bluetooth service
 //				boolean bindResult = LauncherService.getInstance().getApplicationContext().bindService(intent, bluetoothServiceConnectionCallback, Context.BIND_AUTO_CREATE );
-//				if(bindResult == false) {
+//				if (bindResult == false) {
 //					Log.e(LOG_TAG, "Failed to bind Bluetooth A2dp service (SDK > r17)");
 //                	setStatus(ConnectionEvent.FAILED_TO_CONNECT);
 //				}
@@ -149,7 +149,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 			while(tryLimitCount > 0)
 			{
 				isSucceededToStartConnect = connectWithService();
-				if(isSucceededToStartConnect) {
+				if (isSucceededToStartConnect) {
 					break;
 				}
 				tryLimitCount--;
@@ -161,11 +161,11 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 			}
 		}
 		
-		if(connectivityCheckThread != null) {
+		if (connectivityCheckThread != null) {
 			cancelConnectivityCheckThread();
 		}
 		
-		if(isSucceededToStartConnect) {
+		if (isSucceededToStartConnect) {
 			// Start a thread which checks A2DP connectivity regularly.
 			connectivityCheckThread = new BluetoothA2dpConnectivityCheckThread(this);
 			connectivityCheckThread.start();
@@ -179,7 +179,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 	protected void disconnectProcess() {
 		boolean isA2dpConnected = checkIsA2dpConnected();
 		Log.d(LOG_TAG, "disconnectProcess() isA2dpConnected=" + isA2dpConnected);
-		if(!isA2dpConnected)
+		if (!isA2dpConnected)
 			return;
 		else if (a2dpService == null)
 			Log.e(LOG_TAG, "disconnectProcess() A2DP service instance is null!");
@@ -195,7 +195,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 	boolean checkIsA2dpConnected() {
 		int connectionStateValue = 0;
 		try {
-			if(Build.VERSION.SDK_INT < 11)
+			if (Build.VERSION.SDK_INT < 11)
 				connectionStateValue = a2dpService.getSinkState(getBluetoothDevice());
 			else
 				connectionStateValue = a2dpService.getConnectionState(getBluetoothDevice());
@@ -217,11 +217,11 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 		}
 	}
 	
-	void	onConnected() {
+	void onConnected() {
 		handleConnected();
 	}
 	
-	void	onDisconnected() {
+	void onDisconnected() {
 		handleDisconnected();
 		cancelConnectivityCheckThread();
 	}
@@ -235,7 +235,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
             //wjchoi@neofect.com modified : to fix a2dp connection problem for LG optimus g pro 
 			//it seems that exception does not include failure of connection, so made it return result value 
             boolean connectResult = false;
-			if(Build.VERSION.SDK_INT < 11) {
+			if (Build.VERSION.SDK_INT < 11) {
 				connectResult = a2dpService.connectSink(getBluetoothDevice());
 				Log.d(LOG_TAG, "connectProcess() Called a2dpService.connectSink() " + connectResult);
 			}
@@ -252,7 +252,7 @@ public class BluetoothA2dpConnection extends BluetoothConnection {
 	
 	private void disconnectWithService() {
 		try {
-			if(Build.VERSION.SDK_INT < 11) {
+			if (Build.VERSION.SDK_INT < 11) {
 				a2dpService.disconnectSink(getBluetoothDevice());
 				Log.d(LOG_TAG, "disconnectProcess() Called a2dpService.disconnectSink()");
 			} else {

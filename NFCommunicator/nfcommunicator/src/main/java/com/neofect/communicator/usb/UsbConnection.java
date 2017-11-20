@@ -13,9 +13,9 @@ import android.hardware.usb.UsbRequest;
 import android.os.Build;
 import android.util.Log;
 
-import com.neofect.communicator.CommunicationController;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 import java.nio.ByteBuffer;
@@ -46,7 +46,7 @@ public class UsbConnection extends Connection {
 	private Thread readThread;
 	private BroadcastReceiver usbEventReceiver;
 
-	public UsbConnection(Context context, UsbDevice device, CommunicationController<? extends Device> controller) {
+	public UsbConnection(Context context, UsbDevice device, Controller<? extends Device> controller) {
 		super(ConnectionType.USB_SERIAL, controller);
 		this.context = context.getApplicationContext();
 		this.device = device;
@@ -62,17 +62,18 @@ public class UsbConnection extends Connection {
 	}
 
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return device.getDeviceName();
 	}
 
 	@Override
 	public String getDescription() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")";
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")";
 	}
 
 	@Override
 	public void connect() {
+		Log.d(LOG_TAG, "connect:");
 		if (deviceConnection != null) {
 			Log.e(LOG_TAG, "connect: Already connected!");
 			return;
@@ -97,6 +98,7 @@ public class UsbConnection extends Connection {
 
 	@Override
 	public void disconnect() {
+		Log.d(LOG_TAG, "disconnect:");
 		if (deviceConnection == null) {
 			Log.e(LOG_TAG, "disconnect: Already disconnected");
 			return;
@@ -194,10 +196,12 @@ public class UsbConnection extends Connection {
 					disconnect();
 				} else if (ACTION_USB_PERMISSION.equals(action)) {
 					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-						Log.d(LOG_TAG, "Permission granted for the device " + device);
+						Log.i(LOG_TAG, "Permission granted for the device " + device);
 						startConnecting();
 					}  else {
-						Log.d(LOG_TAG, "Permission denied for the device " + device);
+						Log.i(LOG_TAG, "Permission denied for the device " + device);
+						cleanUp();
+						handleFailedToConnect(new SecurityException("User denied to grant USB permission!"));
 					}
 				}
 			}
@@ -253,7 +257,7 @@ public class UsbConnection extends Connection {
 				while (UsbConnection.this.isConnected()) {
 					ByteBuffer buf = ByteBuffer.wrap(buffer);
 					if (!request.queue(buf, buffer.length)) {
-						Log.e(LOG_TAG, "UsbReadThread: run: Failed to queueing request!");
+						Log.e(LOG_TAG, "UsbReadThread: run: Failed queueing request!");
 						disconnect();
 						break;
 					}

@@ -27,7 +27,7 @@ public abstract class MessageEncoder {
 		this.messageClassMapper = messageClassMapper;
 	}
 	
-	protected final byte[] getMessageId(Class<? extends CommunicationMessage> messageClass) {
+	protected final byte[] getMessageId(Class<? extends Message> messageClass) {
 		return messageClassMapper.getMessageIdByClass(messageClass);
 	}
 	
@@ -40,11 +40,11 @@ public abstract class MessageEncoder {
 	}
 	
 	/**
-	 * A subclass must implement this method to create an encoded byte array from {@link CommunicationMessage}.
+	 * A subclass must implement this method to create an encoded byte array from {@link Message}.
 	 * 
 	 * @param message
 	 * @return
 	 */
-	public abstract byte[]	encodeMessage(CommunicationMessage message);
+	public abstract byte[] encodeMessage(Message message);
 	
 }

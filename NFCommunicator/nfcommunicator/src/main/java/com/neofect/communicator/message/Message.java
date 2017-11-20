@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.neofect.communicator;
+package com.neofect.communicator.message;
 
-import com.neofect.communicator.message.CommunicationMessage;
-
-
-public abstract class CommunicationListener<T extends Device> {
+/**
+ * @author neo.kim@neofect.com
+ * @date Jan 24, 2014
+ */
+public interface Message {
 	
-	public void onStartConnecting(Connection connection) {}
-	public void onFailedToConnect(Connection connection, Exception cause) {}
-	public void onDeviceConnected(T device, boolean alreadyExisting) {}
-	public void onDeviceDisconnected(T device) {}
-	public void onDeviceReady(T device, boolean alreadyExisting) {}
-	public void onDeviceMessageProcessed(T device, CommunicationMessage message) {}
-	public void onDeviceUpdated(T device) {}
+	String getDescription();
+	byte[] encodePayload();
+	void decodePayload(byte[] data, int startIndex, int length);
 	
 }
