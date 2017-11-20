@@ -45,6 +45,6 @@ public abstract class MessageEncoder {
 	 * @param message
 	 * @return
 	 */
-	public abstract byte[]	encodeMessage(Message message);
+	public abstract byte[] encodeMessage(Message message);
 	
 }

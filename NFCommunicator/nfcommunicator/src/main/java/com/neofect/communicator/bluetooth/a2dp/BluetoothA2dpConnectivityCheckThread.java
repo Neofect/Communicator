@@ -15,9 +15,9 @@
  */
 package com.neofect.communicator.bluetooth.a2dp;
 
-import java.util.concurrent.TimeoutException;
-
 import android.util.Log;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author neo.kim@neofect.com
@@ -26,11 +26,11 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 
 	private static final String LOG_TAG = BluetoothA2dpConnectivityCheckThread.class.getSimpleName();
 	
-	private static final int	CONNECTING_TIMEOUT_IN_SECONDS = 10;
+	private static final int CONNECTING_TIMEOUT_IN_SECONDS = 10;
 	
 	private BluetoothA2dpConnection connection;
-	private long	connectingStartTimestamp = 0;
-	private boolean	canceled = false;
+	private long connectingStartTimestamp = 0;
+	private boolean canceled = false;
 	
 	BluetoothA2dpConnectivityCheckThread(BluetoothA2dpConnection connection) {
 		super("BluetoothA2dpConnectivityCheckThread");
@@ -49,8 +49,9 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 	@Override
 	public void run() {
 		// Store the started time
-		if(connectingStartTimestamp == 0)
+		if (connectingStartTimestamp == 0) {
 			connectingStartTimestamp = System.currentTimeMillis();
+		}
 			
 		while(!canceled) {
 			try {
@@ -62,9 +63,9 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 						break;
 					case CONNECTED: {
 						// Check connectivity
-						if(!isConnected)
+						if (!isConnected) {
 							connection.onDisconnected();
-						else {
+						} else {
 							// Sleep between connectivity check
 							Thread.sleep(1000);
 						}
@@ -72,9 +73,9 @@ public class BluetoothA2dpConnectivityCheckThread extends Thread {
 					}
 					case CONNECTING: {
 						// Check connectivity
-						if(isConnected) {
+						if (isConnected) {
 							connection.onConnected();
-						} else if(System.currentTimeMillis() - connectingStartTimestamp > CONNECTING_TIMEOUT_IN_SECONDS * 1000) {
+						} else if (System.currentTimeMillis() - connectingStartTimestamp > CONNECTING_TIMEOUT_IN_SECONDS * 1000) {
 							// Check timeout
 							connection.onFailedToConnect(new TimeoutException("Timeout during connecting to A2DP."));
 						} else {

@@ -15,15 +15,15 @@
  */
 package com.neofect.communicator.bluetooth.spp;
 
-import java.io.IOException;
-import java.util.UUID;
-
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import com.neofect.communicator.ConnectionType;
+
+import java.io.IOException;
+import java.util.UUID;
 
 /**
  * @author neo.kim@neofect.com
@@ -53,9 +53,9 @@ class BluetoothSppConnectThread extends Thread {
 			// UUID for SPP connection
 			UUID sppUuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-			if(bluetoothConnection.getConnectionType() == ConnectionType.BLUETOOTH_SPP) {
+			if (bluetoothConnection.getConnectionType() == ConnectionType.BLUETOOTH_SPP) {
 				socket = device.createRfcommSocketToServiceRecord(sppUuid);
-			} else if(bluetoothConnection.getConnectionType() == ConnectionType.BLUETOOTH_SPP_INSECURE) { 
+			} else if (bluetoothConnection.getConnectionType() == ConnectionType.BLUETOOTH_SPP_INSECURE) {
 				socket = device.createInsecureRfcommSocketToServiceRecord(sppUuid);
 			} else {
 				bluetoothConnection.onFailedToConnect(new RuntimeException("Unknown bluetooth connection type! '" + bluetoothConnection.getConnectionType() + "'"));

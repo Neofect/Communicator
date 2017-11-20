@@ -24,13 +24,13 @@ import android.util.Log;
  */
 public class ByteRingBuffer {
 	
-	private static final int	BUFFER_DEFAULT_INIT_CAPACITY	= 128;
-	private static final int	BUFFER_DEFAULT_MAX_CAPACITY		= 2 * 1024 * 1024; // Maximum 2MB
+	private static final int BUFFER_DEFAULT_INIT_CAPACITY = 128;
+	private static final int BUFFER_DEFAULT_MAX_CAPACITY = 2 * 1024 * 1024; // Maximum 2MB
 	
-	private byte[]	buffer;
-	private int		maxCapacity	= BUFFER_DEFAULT_MAX_CAPACITY;
-	private int		contentSize	= 0;
-	private int		headIndex	= 0;
+	private byte[] buffer;
+	private int maxCapacity = BUFFER_DEFAULT_MAX_CAPACITY;
+	private int contentSize = 0;
+	private int headIndex = 0;
 
 	public ByteRingBuffer(int capacity) {
 		buffer = new byte[capacity];
@@ -50,7 +50,7 @@ public class ByteRingBuffer {
 	}
 
 	public void changeMaxCapacity(int maxCapacity) {
-		if(this.maxCapacity > maxCapacity) {
+		if (this.maxCapacity > maxCapacity) {
 			throw new IllegalArgumentException("Cannot reduce max capacity!");
 		}
 		this.maxCapacity = maxCapacity;
@@ -63,8 +63,8 @@ public class ByteRingBuffer {
 	 */
 	public void put(byte[] data) {
 		// Check if the internal buffer has enough room for given data.
-		if(getAvailableSize() < data.length) {
-			if(buffer.length < maxCapacity) {
+		if (getAvailableSize() < data.length) {
+			if (buffer.length < maxCapacity) {
 				expandBuffer(contentSize + data.length);
 			} else {
 				Log.w("ByteRingBuffer", "Reached max capacity of internal buffer. Oldest data will be overwritten!");
@@ -73,12 +73,12 @@ public class ByteRingBuffer {
 		
 		int dataLength = data.length;
 		int dataIndex = 0;
-		while(dataLength > 0) {
+		while (dataLength > 0) {
 			int tailIndex = headIndex + contentSize;
 			int copyLength = 0;
-			if(tailIndex + dataLength < buffer.length) {
+			if (tailIndex + dataLength < buffer.length) {
 				copyLength = dataLength;
-			} else if(tailIndex < buffer.length) {
+			} else if (tailIndex < buffer.length) {
 				copyLength = buffer.length - tailIndex;
 			} else {
 				copyLength = Math.min(dataLength, buffer.length - (tailIndex - buffer.length));
@@ -94,14 +94,14 @@ public class ByteRingBuffer {
 	}
 	
 	private void fillByteArrayFromInternalBuffer(byte[] target, int targetIndex, int sourceIndex, int length) {
-		if(targetIndex + length > target.length) {
+		if (targetIndex + length > target.length) {
 			throw new ArrayIndexOutOfBoundsException();
-		} else if(length > contentSize - sourceIndex) {
+		} else if (length > contentSize - sourceIndex) {
 			throw new ArrayIndexOutOfBoundsException();
 		}
 		
 		int localHeadIndex = (headIndex + sourceIndex) % buffer.length;
-		while(length > 0) {
+		while (length > 0) {
 			int copyLength = Math.min(length, buffer.length - localHeadIndex);
 			System.arraycopy(buffer, localHeadIndex, target, targetIndex, copyLength);
 			localHeadIndex = (localHeadIndex + copyLength) % buffer.length;
@@ -124,7 +124,7 @@ public class ByteRingBuffer {
 	 * @param size
 	 */
 	public void consume(int size) {
-		if(size > contentSize) {
+		if (size > contentSize) {
 			throw new IllegalArgumentException("Not enough data to consume! remaining=" + contentSize + ", requested=" + size);
 		}
 		headIndex = (headIndex + size) % buffer.length;
@@ -132,7 +132,7 @@ public class ByteRingBuffer {
 	}
 	
 	public byte peek(int index) {
-		if(index >= contentSize) {
+		if (index >= contentSize) {
 			throw new ArrayIndexOutOfBoundsException(index + " out of " + contentSize);
 		}
 		return buffer[(headIndex + index) % buffer.length];
@@ -160,7 +160,7 @@ public class ByteRingBuffer {
 	 * @return
 	 */
 	public byte[] readWithoutConsume(int length) {
-		if(length > contentSize) {
+		if (length > contentSize) {
 			throw new ArrayIndexOutOfBoundsException("Possible length=" + contentSize + ", but requested=" + length);
 		}
 		byte[] result = new byte[length];

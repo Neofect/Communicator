@@ -2,9 +2,9 @@ package com.neofect.communicator.dummy;
 
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 /**
@@ -27,7 +27,7 @@ public class DummyConnection extends Connection {
 
 	@Override
 	public void connect() {
-		if(getStatus() != Status.NOT_CONNECTED) {
+		if (getStatus() != Status.NOT_CONNECTED) {
 			Log.e(LOG_TAG, "connect: '" + getDescription() + "' is not in the status of to connect! Status=" + getStatus());
 			return;
 		}
@@ -51,21 +51,29 @@ public class DummyConnection extends Connection {
 	}
 
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return device.getDeviceIdentifier();
 	}
 
 	@Override
 	public String getDescription() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")-" + getConnectionType();
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")-" + getConnectionType();
 	}
 
 	@Override
 	public void write(byte[] data) {
+		if (!isConnected()) {
+			Log.e(LOG_TAG, "write: Not connected! connection=" + getDescription());
+			return;
+		}
 		device.receive(data);
 	}
 
 	void onRead(byte[] data) {
+		if (!isConnected()) {
+			Log.e(LOG_TAG, "onRead: Not connected! connection=" + getDescription());
+			return;
+		}
 		handleReadData(data);
 	}
 

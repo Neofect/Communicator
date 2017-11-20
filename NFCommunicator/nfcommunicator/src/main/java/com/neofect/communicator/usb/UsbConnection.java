@@ -13,9 +13,9 @@ import android.hardware.usb.UsbRequest;
 import android.os.Build;
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
 import java.nio.ByteBuffer;
@@ -62,13 +62,13 @@ public class UsbConnection extends Connection {
 	}
 
 	@Override
-	public String getRemoteAddress() {
+	public String getDeviceIdentifier() {
 		return device.getDeviceName();
 	}
 
 	@Override
 	public String getDescription() {
-		return getDeviceName() + "(" + getRemoteAddress() + ")";
+		return getDeviceName() + "(" + getDeviceIdentifier() + ")";
 	}
 
 	@Override
@@ -196,10 +196,12 @@ public class UsbConnection extends Connection {
 					disconnect();
 				} else if (ACTION_USB_PERMISSION.equals(action)) {
 					if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-						Log.d(LOG_TAG, "Permission granted for the device " + device);
+						Log.i(LOG_TAG, "Permission granted for the device " + device);
 						startConnecting();
 					}  else {
-						Log.d(LOG_TAG, "Permission denied for the device " + device);
+						Log.i(LOG_TAG, "Permission denied for the device " + device);
+						cleanUp();
+						handleFailedToConnect(new SecurityException("User denied to grant USB permission!"));
 					}
 				}
 			}

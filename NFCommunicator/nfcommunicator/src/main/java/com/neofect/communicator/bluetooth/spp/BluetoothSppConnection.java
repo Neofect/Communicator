@@ -15,16 +15,16 @@
  */
 package com.neofect.communicator.bluetooth.spp;
 
-import java.io.IOException;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.ConnectionType;
+import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
+
+import java.io.IOException;
 
 /**
  * This class contains all information regarding to bluetooth connection and
@@ -40,7 +40,7 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	
 	public BluetoothSppConnection(BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
-		if(connectionType != ConnectionType.BLUETOOTH_SPP && connectionType != ConnectionType.BLUETOOTH_SPP_INSECURE) {
+		if (connectionType != ConnectionType.BLUETOOTH_SPP && connectionType != ConnectionType.BLUETOOTH_SPP_INSECURE) {
 			throw new IllegalArgumentException("Only SPP connection type is allowed!");
 		}
 	}
@@ -64,14 +64,14 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	
 	@Override
 	protected void disconnectProcess() {
-		if(transferThread != null)
+		if (transferThread != null)
 			cancelTransferThread();
 	}
 	
 	@Override
 	public void write(byte[] data) {
 		synchronized(this) {
-			if(transferThread == null) {
+			if (transferThread == null) {
 				Log.e(LOG_TAG, "Couldn't write data! The connection might not be established or already disconnected.");
 				return;
 			}
@@ -89,11 +89,11 @@ public class BluetoothSppConnection extends BluetoothConnection {
 		Log.v(LOG_TAG, "onSucceededToConnect() connection=" + getDescription());
 		
 		// If a transfer thread is alive, cancel the thread.
-		if(transferThread != null)
+		if (transferThread != null)
 			cancelTransferThread();
 		
 		// This connection is requested to be disconnected.
-		if(isDisconnectRequested()) {
+		if (isDisconnectRequested()) {
 			try {
 				socket.close();
 			} catch (IOException e) {
