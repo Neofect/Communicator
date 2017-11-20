@@ -20,7 +20,7 @@ dependencies {
 }
 
 group = 'com.neofect.communicator'
-version = '1.2.7'
+version = '1.9.0'
 
 if (rootProject.name == 'NFCommunicator') {
     apply from: project.file('../gradle/bintray-upload.gradle')
