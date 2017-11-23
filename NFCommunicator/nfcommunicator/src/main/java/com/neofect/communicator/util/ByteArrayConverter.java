@@ -99,9 +99,9 @@ public class ByteArrayConverter {
 	 * Convert a byte array to a hex string.
 	 */
 	public static String byteArrayToHex(byte[] ba, int startIndex, int endIndex, boolean includeSpace) {
-		if (ba == null || ba.length == 0 || startIndex == endIndex)
+		if (ba == null || ba.length == 0 || startIndex == endIndex) {
 			return "";
-		else if (startIndex > endIndex) {
+		} else if (startIndex > endIndex) {
 			Log.e(LOG_TAG, "byteArrayToHex() The input byte array is not valid!");
 			return "";
 		}
@@ -110,8 +110,9 @@ public class ByteArrayConverter {
 
 		StringBuffer sb = new StringBuffer(endIndex * 2);
 		for (int x = startIndex; x < endIndex; x++) {
-			if (includeSpace && x != startIndex)
+			if (includeSpace && x != startIndex) {
 				sb.append(" ");
+			}
 			sb.append(byteToHex(ba[x]));
 		}
 		return sb.toString();
@@ -135,23 +136,26 @@ public class ByteArrayConverter {
 	 * Convert a byte array to an integer value.
 	 */
 	public static int byteArrayToInt(byte[] bytes, int startIndex, int length, ByteOrder byteOrder) {
-    	if (bytes == null)
-    		return 0;
+    	if (bytes == null) {
+		    return 0;
+	    }
     	
         final int newLength = Integer.SIZE / 8;
         final byte[] newBytes = new byte[newLength];
         
         for (int i = 0; i < newLength; i++) {
         	if (byteOrder == ByteOrder.BIG_ENDIAN) {
-        		if (i < newLength - length)
-        			newBytes[i] = (byte) 0x00;
-        		else
-        			newBytes[i] = bytes[startIndex + i - (newLength - length)];
+        		if (i < newLength - length) {
+			        newBytes[i] = (byte) 0x00;
+		        } else {
+			        newBytes[i] = bytes[startIndex + i - (newLength - length)];
+		        }
         	} else {
-        		if (i >= length)
-        			newBytes[i] = (byte) 0x00;
-        		else
-        			newBytes[i] = bytes[startIndex + i];
+        		if (i >= length) {
+			        newBytes[i] = (byte) 0x00;
+		        } else {
+			        newBytes[i] = bytes[startIndex + i];
+		        }
         	}
         }
         	

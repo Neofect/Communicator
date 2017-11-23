@@ -34,7 +34,7 @@ import java.io.IOException;
  */
 public class BluetoothSppConnection extends BluetoothConnection {
 
-	private static final String LOG_TAG = BluetoothSppConnection.class.getSimpleName();
+	private static final String LOG_TAG = "BluetoothSppConnection";
 	
 	private BluetoothSppTransferThread transferThread;
 	
@@ -64,15 +64,16 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	
 	@Override
 	protected void disconnectProcess() {
-		if (transferThread != null)
+		if (transferThread != null) {
 			cancelTransferThread();
+		}
 	}
 	
 	@Override
 	public void write(byte[] data) {
 		synchronized(this) {
 			if (transferThread == null) {
-				Log.e(LOG_TAG, "Couldn't write data! The connection might not be established or already disconnected.");
+				Log.e(LOG_TAG, "Could not write data! The connection might not be established or already disconnected.");
 				return;
 			}
 			transferThread.write(data);
@@ -86,11 +87,12 @@ public class BluetoothSppConnection extends BluetoothConnection {
 	 * @param socket
 	 */
 	void onSucceededToConnect(BluetoothSocket socket) {
-		Log.v(LOG_TAG, "onSucceededToConnect() connection=" + getDescription());
+		Log.v(LOG_TAG, "onSucceededToConnect: connection=" + getDescription());
 		
 		// If a transfer thread is alive, cancel the thread.
-		if (transferThread != null)
+		if (transferThread != null) {
 			cancelTransferThread();
+		}
 		
 		// This connection is requested to be disconnected.
 		if (isDisconnectRequested()) {

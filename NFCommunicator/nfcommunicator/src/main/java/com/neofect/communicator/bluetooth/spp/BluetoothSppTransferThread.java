@@ -68,21 +68,21 @@ class BluetoothSppTransferThread extends Thread {
 				}
 			}
 		} catch (IOException e) {
-			Log.e(LOG_TAG, "cancel() Failed to close the socket", e);
+			Log.e(LOG_TAG, "cancel: Failed to close the socket", e);
 		}
 	}
 	
 	void write(byte[] data) {
 		synchronized(this) {
 			if (!connection.isConnected()) {
-				Log.e(LOG_TAG, "write() Connection is closed!");
+				Log.e(LOG_TAG, "write: Connection is closed!");
 				return;
 			}
 			try {
 				outputStream.write(data);
 				connection.onWroteMessage(data);
 			} catch (Exception e) {
-				Log.e(LOG_TAG, "write() Failed to write!", e);
+				Log.e(LOG_TAG, "write: Failed to write!", e);
 				onDisconnected();
 			}
 		}
@@ -129,7 +129,7 @@ class BluetoothSppTransferThread extends Thread {
 				System.arraycopy(buffer, 0, readData, 0, numberOfReadBytes);
 				connection.onReadMessage(readData);
 			} catch (IOException e) {
-				Log.d(LOG_TAG, "run() IOException on read(), device=" + connection.getDescriptionWithAddress());
+				Log.d(LOG_TAG, "run: IOException on read(), device=" + connection.getDescriptionWithAddress());
 				onDisconnected();
 			}
 		}

@@ -32,11 +32,11 @@ class BluetoothSppConnectThread extends Thread {
 	
 	private static final String LOG_TAG = BluetoothSppConnectThread.class.getSimpleName();
 	
-	private final BluetoothSppConnection bluetoothConnection;
+	private final BluetoothSppConnection connection;
 	
-	BluetoothSppConnectThread(BluetoothSppConnection bluetoothConnection) {
+	BluetoothSppConnectThread(BluetoothSppConnection connection) {
 		super("BluetoothSppConnectThread");
-		this.bluetoothConnection = bluetoothConnection;
+		this.connection = connection;
 	}
 	
 	@Override
@@ -45,24 +45,24 @@ class BluetoothSppConnectThread extends Thread {
 		// As recommended in http://developer.android.com/guide/topics/connectivity/bluetooth.html#ConnectingAsAClient
 		BluetoothAdapter.getDefaultAdapter().cancelDiscovery();
 		
-		BluetoothDevice device = bluetoothConnection.getBluetoothDevice();
+		BluetoothDevice device = connection.getBluetoothDevice();
 		
 		// Get a BluetoothSocket for a connection with the given BluetoothDevice.
-		BluetoothSocket socket = null;
+		BluetoothSocket socket;
 		try {
 			// UUID for SPP connection
 			UUID sppUuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-			if (bluetoothConnection.getConnectionType() == ConnectionType.BLUETOOTH_SPP) {
+			if (connection.getConnectionType() == ConnectionType.BLUETOOTH_SPP) {
 				socket = device.createRfcommSocketToServiceRecord(sppUuid);
-			} else if (bluetoothConnection.getConnectionType() == ConnectionType.BLUETOOTH_SPP_INSECURE) {
+			} else if (connection.getConnectionType() == ConnectionType.BLUETOOTH_SPP_INSECURE) {
 				socket = device.createInsecureRfcommSocketToServiceRecord(sppUuid);
 			} else {
-				bluetoothConnection.onFailedToConnect(new RuntimeException("Unknown bluetooth connection type! '" + bluetoothConnection.getConnectionType() + "'"));
+				connection.onFailedToConnect(new RuntimeException("Unknown bluetooth connection type! '" + connection.getConnectionType() + "'"));
 				return;
 			}
 		} catch (IOException e) {
-			bluetoothConnection.onFailedToConnect(new RuntimeException("Failed to create bluetooth socket!", e));
+			connection.onFailedToConnect(new RuntimeException("Failed to create bluetooth socket!", e));
 			return;
 		}
 
@@ -76,11 +76,11 @@ class BluetoothSppConnectThread extends Thread {
 			} catch (IOException e1) {
 				Log.e(LOG_TAG, "", e1);
 			}
-			bluetoothConnection.onFailedToConnect(new RuntimeException("Failed to connect to device '" + bluetoothConnection.getDescriptionWithAddress() + "'", e));
+			connection.onFailedToConnect(new RuntimeException("Failed to connect to device '" + connection.getDescriptionWithAddress() + "'", e));
 			return;
 		}
 
-		bluetoothConnection.onSucceededToConnect(socket);
+		connection.onSucceededToConnect(socket);
 	}
 
 }
