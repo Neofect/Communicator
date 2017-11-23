@@ -18,8 +18,6 @@ package com.neofect.communicator.bluetooth.spp;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.neofect.communicator.bluetooth.BluetoothConnection;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -110,16 +108,6 @@ class BluetoothSppTransferThread extends Thread {
 	
 	@Override
 	public void run() {
-		// If it is still trying to connect, wait some time.
-		while(connection.getStatus() == BluetoothConnection.Status.CONNECTING) {
-			try {
-				Thread.sleep(200);
-			} catch (InterruptedException e) {
-				Log.e(LOG_TAG, "", e);
-			}
-		}
-		
-		// Read loop
 		while (connection.isConnected()) {
 			try {
 				// Read data from the input stream

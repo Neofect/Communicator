@@ -104,7 +104,8 @@ public class BluetoothSppConnection extends BluetoothConnection {
 			handleDisconnected();
 			return;
 		}
-		
+		setStatus(Status.CONNECTED);
+
 		// Create a thread which reads data from the socket
 		try {
 			transferThread = new BluetoothSppTransferThread(this, socket);
@@ -113,7 +114,7 @@ public class BluetoothSppConnection extends BluetoothConnection {
 			return;
 		}
 		transferThread.start();
-		
+
 		// It is connected!
 		handleConnected();
 	}
