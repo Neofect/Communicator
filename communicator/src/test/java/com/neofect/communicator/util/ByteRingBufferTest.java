@@ -44,8 +44,9 @@ public class ByteRingBufferTest {
 	
 	private byte[] createByteArray(int numberOfElement) {
 		byte[] result = new byte[numberOfElement];
-		for(int i = 0; i < numberOfElement; ++i)
+		for (int i = 0; i < numberOfElement; ++i) {
 			result[i] = (byte) (sequenceNumber++);
+		}
 		return result;
 	}
 
