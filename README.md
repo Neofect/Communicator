@@ -1,7 +1,7 @@
-# NFCommunicator
-NFCommunicator is a library for Bluetooth communication on Android. It mainly works with devices which an Android device connects to via Bluetooth SPP. But it can be used for any Bluetooth SPP communication which defines binary communication protocol.
+# Communicator
+Communicator is a library for Bluetooth communication on Android. It mainly works with devices which an Android device connects to via Bluetooth SPP. But it can be used for any Bluetooth SPP communication which defines binary communication protocol.
 
-NFCommunicator wraps the communication related implementations internally so help developers focus on the business logic. Due to its event handling architecture, an application using it only needs to implement its behavior corresponding with the communication events such as connection established, message received, connection disconnected and so on. Events are being dispatched by NFCommunicator to the listeners which are registered by application.
+Communicator wraps the communication related implementations internally so help developers focus on the business logic. Due to its event handling architecture, an application using it only needs to implement its behavior corresponding with the communication events such as connection established, message received, connection disconnected and so on. Events are being dispatched by Communicator to the listeners which are registered by application.
 
 Device specific binary protocols can be easily implemented since the structure for packet encoder, decoder and protocol control is constructed modularly. Consequently it is easy to modify and test.
 
@@ -503,7 +503,7 @@ Second, there are three kinds of connection types for now.
 * Bluetooth insecure SPP
 * Bluetooth A2DP
 
-As NFCommunicator is structured to extend connection types, we can implement more connection types later.
+As Communicator is structured to extend connection types, we can implement more connection types later.
 
 Third, put a newly created `SimpleRobotCommunicationController` as parameter.
 
