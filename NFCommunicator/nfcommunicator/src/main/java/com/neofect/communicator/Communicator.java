@@ -23,7 +23,6 @@ import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.util.Log;
 
-import com.neofect.communicator.bluetooth.a2dp.BluetoothA2dpConnection;
 import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
 import com.neofect.communicator.dummy.DummyConnection;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
@@ -36,8 +35,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import static com.neofect.communicator.ConnectionType.BLUETOOTH_A2DP;
 
 /**
  * @author neo.kim@neofect.com
@@ -85,15 +82,10 @@ public class Communicator {
 		Connection connection;
 		switch (connectionType) {
 			case BLUETOOTH_SPP:
-			case BLUETOOTH_SPP_INSECURE:
-			case BLUETOOTH_A2DP: {
+			case BLUETOOTH_SPP_INSECURE: {
 				BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceIdentifier);
-				if (connectionType == BLUETOOTH_A2DP) {
-					connection = new BluetoothA2dpConnection(device, controller);
-				} else {
-					connection = new BluetoothSppConnection(device, controller, connectionType);
-				}
+				connection = new BluetoothSppConnection(device, controller, connectionType);
 				break;
 			}
 			case USB_SERIAL: {
