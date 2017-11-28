@@ -92,5 +92,4 @@ public class DummySimpleRemoteTest {
 		assertTrue(result[0]);
 	}
 
-
 }

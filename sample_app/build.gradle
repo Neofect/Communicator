@@ -21,8 +21,11 @@ android {
 }
 
 dependencies {
-    compile project(':communicator')
     testCompile 'junit:junit:4.12'
     testImplementation 'junit:junit:4.12'
     testCompile 'org.robolectric:robolectric:3.1.2'
+
+    compile project(':communicator')
+
+    compile 'com.neofect.devicescanner:devicescanner:1.0.1'
 }
