@@ -135,7 +135,7 @@ public class Communicator {
 	}
 
 	public static void disconnectAllConnections() {
-		synchronized (instance) {
+		synchronized (instance.connections) {
 			for(Connection connection : instance.connections) {
 				try {
 					connection.disconnect();
@@ -342,7 +342,9 @@ public class Communicator {
 	}
 
 	synchronized void notifyStartConnecting(Connection connection, Class<? extends Device> deviceClass) {
-		connections.add(connection);
+		synchronized (connections) {
+			connections.add(connection);
+		}
 
 		HandlerList handlerList = getCorrespondingHandlers(deviceClass);
 		for(CommunicatorHandler handler : handlerList) {
@@ -351,7 +353,9 @@ public class Communicator {
 	}
 
 	synchronized void notifyFailedToConnect(Connection connection, Class<? extends Device> deviceClass, Exception cause) {
-		connections.remove(connection);
+		synchronized (connections) {
+			connections.remove(connection);
+		}
 
 		HandlerList handlerList = getCorrespondingHandlers(deviceClass);
 		for(CommunicatorHandler handler : handlerList) {
@@ -383,7 +387,9 @@ public class Communicator {
 				handler.onDeviceDisconnected(connection.getController().getDevice());
 			}
 		}
-		connections.remove(connection);
+		synchronized (connections) {
+			connections.remove(connection);
+		}
 		refreshConnectedDeviceHandlers();
 	}
 
