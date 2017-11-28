@@ -7,6 +7,9 @@ import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 /**
  * @author neo.kim@neofect.com
  * @date Nov 02, 2017
@@ -15,9 +18,7 @@ public class DummyConnection extends Connection {
 
 	private static final String LOG_TAG = "DummyConnection";
 
-	private static final int DELAY_BEFORE_CONNECTING = 1;
-	private static final int DELAY_BEFORE_DISCONNECTED = 1;
-
+	private Executor executor = Executors.newSingleThreadExecutor();
 	private DummyPhysicalDevice device;
 
 	public DummyConnection(DummyPhysicalDevice device, Controller<? extends Device> controller) {
@@ -31,18 +32,42 @@ public class DummyConnection extends Connection {
 			Log.e(LOG_TAG, "connect: '" + getDescription() + "' is not in the status of to connect! Status=" + getStatus());
 			return;
 		}
-		handleConnecting();
-		device.connect(this);
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				handleConnecting();
+				try {
+					Thread.sleep(10);
+				} catch (InterruptedException e) {
+					Log.e(LOG_TAG, "", e);
+				}
+				device.connect(DummyConnection.this);
+			}
+		});
 	}
 
 	void onConnected() {
-		handleConnected();
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				handleConnected();
+			}
+		});
 	}
 
 	@Override
 	public void disconnect() {
-		device.disconnect();
-		handleDisconnected();
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					device.disconnect();
+					handleDisconnected();
+				} catch (Exception e) {
+					Log.e(LOG_TAG, "", e);
+				}
+			}
+		});
 	}
 
 	@Override
@@ -61,20 +86,30 @@ public class DummyConnection extends Connection {
 	}
 
 	@Override
-	public void write(byte[] data) {
+	public void write(final byte[] data) {
 		if (!isConnected()) {
 			Log.e(LOG_TAG, "write: Not connected! connection=" + getDescription());
 			return;
 		}
-		device.receive(data);
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				device.receive(data);
+			}
+		});
 	}
 
-	void onRead(byte[] data) {
+	void onRead(final byte[] data) {
 		if (!isConnected()) {
 			Log.e(LOG_TAG, "onRead: Not connected! connection=" + getDescription());
 			return;
 		}
-		handleReadData(data);
+		executor.execute(new Runnable() {
+			@Override
+			public void run() {
+				handleReadData(data);
+			}
+		});
 	}
 
 }
