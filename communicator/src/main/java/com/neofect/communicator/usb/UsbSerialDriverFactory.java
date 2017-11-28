@@ -2,6 +2,11 @@ package com.neofect.communicator.usb;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
+import android.util.Pair;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author neo.kim@neofect.com
@@ -31,4 +36,14 @@ public class UsbSerialDriverFactory {
 
 		throw new IllegalArgumentException("No USB driver for the USB device! vendorId=" + vendorId + ", productId=" + productId);
 	}
+
+	public static List<Pair<Integer, Integer>> getSupportingProducts() {
+		List<Pair<Integer, Integer>> usbSupportedProducts = new ArrayList<>();
+		usbSupportedProducts.add(new Pair<>(VENDOR_SILABS, PRODUCT_SILABS_CP2102));
+		usbSupportedProducts.add(new Pair<>(VENDOR_SILABS, PRODUCT_SILABS_CP2105));
+		usbSupportedProducts.add(new Pair<>(VENDOR_SILABS, PRODUCT_SILABS_CP2108));
+		usbSupportedProducts.add(new Pair<>(VENDOR_SILABS, PRODUCT_SILABS_CP2110));
+		return Collections.unmodifiableList(usbSupportedProducts);
+	}
+
 }
