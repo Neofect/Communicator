@@ -1,612 +1,581 @@
-# NFCommunicator
-NFCommunicator is a library for Bluetooth communication on Android. It mainly works with devices which an Android device connects to via Bluetooth SPP. But it can be used for any Bluetooth SPP communication which defines binary communication protocol.
+# Communicator
 
-NFCommunicator wraps the communication related implementations internally so help developers focus on the business logic. Due to its event handling architecture, an application using it only needs to implement its behavior corresponding with the communication events such as connection established, message received, connection disconnected and so on. Events are being dispatched by NFCommunicator to the listeners which are registered by application.
+Communicator is a framework for message-based binary communication on Android.
 
-Device specific binary protocols can be easily implemented since the structure for packet encoder, decoder and protocol control is constructed modularly. Consequently it is easy to modify and test.
+It separates connection-related logic and protocol implementation so that user can focus on the protocol implementation and business logic for application.
 
-It is currently adopted into two products which are in live at the moment.
+## Gradle
 
+```gradle
+dependencies {
+    compile 'com.neofect.communicator:communicator:2.0'
+}
+```
 
 ## Features
-* Protocol is implemented as an independent module
-  * It is easy to test and maintain.
-  * It is reusable even though connection type is changed to another.
+* Independent protocol implementation
+  * No concern for low level operations on connection
+  * Reusable even though the type of connection is changed to another.
 * Event driven
-  * Processes like connecting, disconnection and packet transferring are done internally and related events are dispatched. It makes application's structure simple.
+  * Processes like connecting, disconnection and packet transferring are done internally and related events are dispatched. It makes the structure of application simple.
 * Various connection types are applicable.
-  * Actual connection process and packet communication is an independent module and pluggable.
-  * Currently there are only Bluetooth wireless connection types. But because the framework works on any type of serial protocol, it can be applicable for like USB, serial port or TCP/IP connection if we implement. Then existing applications can use it without changing other part like protocol implementation.
-
+  * Currently there are Bluetooth SPP and USB connection supported.
+  * Bluetooth LE (BLE) connection is coming.
 
 ## How to use it
 
-* [Prerequisites](#prerequisites)
+* [Counterpart](#counterpart)
+* [Protocol Definition](#protocol-definition)
 * [Protocol Implementation](#protocol-implementation)
-* [Device module representing the real device](#device-module-representing-the-real-device)
-* [Communication controller](#communication-controller)
+* [Device Instance](#device-instance)
+* [Controller](#controller)
 * [Usage](#usage)
 
 
-### Prerequisites
+### Counterpart
 
-You would already have a device you want to communicate with and a binary protocol specification for communication.
+Let say that we have a physical device as a counterpart to communicate with. The device is a tiny remote control having 4 buttons, which sends a button ID to Android app remotely via Bluetooth when any button pressed. It also alerts when battery is low. And our app can command the device to beep for some time.
 
-For tutorial, **_let say we have a simple robot device_** and we want to communicate with it through Bluetooth SPP profile with Android application.
-
-##### Simple Robot
-
-Our simple robot has two wheels under its bottom and a proximity sensor in front. We want to command the robot to move forward, backward or turn left or right. Also want to get the proximity value it detects.
-
-##### Protocol
-To communicate with with the robot, we design a simple binary protocol. The protocol has **_two types of messages_** (or called packet) as following.
+### Protocol definition
+To communicate with the device, we design a simple binary protocol. The protocol has three types of messages (also called as packet) as following.
 
 
-###### Message for operating wheels
-Type - Outgoing message (Host → Device)
+#### ButtonPressedMessage
+Incoming message (Device → App)
 
-Message ID - 0x01
-
-| |Header|Message ID|Left Wheel Speed|Right Wheel Speed|
-|:-:|:-:|:-:|:-:|:-:|:-:|
-|Length|1 byte|1 byte|1 byte|1 byte|
-|Value|0x9D|0x01|Any|Any|
+| |Header|Message ID|Button ID|
+|:-:|:-:|:-:|:-:|
+|Length|1 byte|1 byte|1 byte|
+|Value|`0x9d`|`0x01`|From 0 to 3|
 
 
-###### Message for reporting proximity sensor value
-Type - Incoming message (Device → Host)
-
-Message ID - 0x02
+#### LowBatteryAlertMessage
+Incoming message (Device → App)
 
 
-| |Header|Message ID|Proximity Sensor Value|
-|:-:|:-:|:-:|:-:|:-:|:-:|
-|Length|1 byte|1 byte|1 bytes|
-|Value|0x9D|0x02|Any|
+| |Header|Message ID|
+|:-:|:-:|:-:|
+|Length|1 byte|1 byte|
+|Value|`0x9d`|`0x02`|
 
 
-*Note : Header byte is '0x9D'. It is used to avoid malfunctioning by network interference.*
+#### StartBeepMessage
+Outgoing message (App → Device)
+
+| |Header|Message ID|Time duration|
+|:-:|:-:|:-:|:-:|
+|Length|1 byte|1 byte|2 bytes|
+|Value|`0x9d`|`0x03`|Big-endian integer|
+
+
+* Note : Any value can be picked as message header. Uncommon value is preferrable.
 
 ### Protocol Implementation
-To work with the framework, we need to create classes representing the protocol by subclassing framework classes.
 
 For implementing protocol, we need to have following four modules.
 
 * A message decoder
 * A message encoder
-* Message classes representing messages in protocol specification
+* Message classes
 * A message class mapper
 
-##### Message decoder
-Message decoder parses a binary packet and then creates an instance of message class. Decoder is used for incoming messages. Let's create a message decoder called `SimpleRobotMessageDecoder` subclassing `MessageDecoder`.
-	
-	public class SimpleRobotMessageDecoder extends MessageDecoder {
+#### Message decoder
+Message decoder parses a binary packet and then creates an instance of message class. Decoder is used for incoming messages. Let's create a message decoder called `SimpleRemoteDecoder` subclassing `MessageDecoder`.
 
-		public SimpleRobotMessageDecoder(MessageClassMapper messageClassMapper) {
-			super(messageClassMapper);
-		}
+(All source code can be found in `sample_app` in project)
 
-		@Override
-		public CommunicationMessage decodeMessage(ByteRingBuffer inputBuffer) {
-			return null;
-		}
+```java
+public class SimpleRemoteDecoder extends MessageDecoder {
 
-	}
+    public SimpleRemoteDecoder() {
+        super(new MessageMapper());
+    }
 
-Packet parsing is processed in `decodeMessage()`. The given parameter `inputBuffer` contains raw byte data received from communication channel (for now it's coming from Bluetooth SPP connection.) The method is called by framework once any additional raw data is received.
+    @Override
+    public Message decodeMessage(ByteRingBuffer inputBuffer) {
+        return null;
+    }
+
+}
+```
+
+Packet parsing is processed in `decodeMessage()`. The given parameter `inputBuffer` contains raw byte data received from communication channel like Bluetooth SPP connection. The method is called when any byte data is received.
 
 We write parsing logic which reads raw data from the buffer and creates a message instance. If it succeeds to create a message instance then returns it. In some cases, it could fail because of lack of raw data or corrupted checksum, and so on. Then it returns null. In this case, `decodeMessage()` will be called again later when more raw data is ready in the input buffer.
 
 According to the protocol, the decoder needs to find the header which locates in the very first of a message.
 
-	// Find header byte
-	while(inputBuffer.getContentSize() > 0 && inputBuffer.peek(0) != 0x9D)
-		inputBuffer.consume(1);
-		
-	// If failed to find header byte, just return null to try later
-	if(inputBuffer.getContentSize() == 0)
-		return null;
+```java
+// Find header byte
+while(inputBuffer.getContentSize() > 0 && inputBuffer.peek(0) != 0x9d) {
+    inputBuffer.consume(1);
+}
+
+// If failed to find header byte, just return null to try later
+if(inputBuffer.getContentSize() == 0) {
+    return null;
+}
+```
 
 After header, read the message ID.
 
-	// Get message ID
-	if(inputBuffer.getContentSize() < 2)
-		return null;
-	byte messageId = inputBuffer.peek(1);
+```java
+if (inputBuffer.getContentSize() < 2) {
+    return null;
+}
+byte messageId = inputBuffer.peek(1);
+```
 
-Figure out the length of message according to the message ID and make sure we have enough raw data for a message.
+Figure out the length of message according to the message ID and make sure we have enough raw data for a message. Then read the whole message data from buffer.
 
-	// Figure out the length of message
-	int messageLength = 0;
-	if(messageId == 0x01)
-		messageLength = 4;
-	else if(messageId == 0x02)
-		messageLength = 3;
-	
-	// Check if we have enough data for a message
-	if(inputBuffer.getContentSize() < messageLength)
-		return null;
+```java
+int messageLength = 0;
+if (messageId == 0x01) {
+    messageLength = 3;
+} else if (messageId == 0x02) {
+    messageLength = 2;
+}
 
-Read the whole message data from buffer.
+if (inputBuffer.getContentSize() < messageLength) {
+    return null;
+}
 
-	// Get whole message data
-	byte[] messageBytes = inputBuffer.read(messageLength);
+byte[] messageBytes = inputBuffer.read(messageLength);
+```
 
+Parsing process for the metadata like header and length is done here. Message decoder parses only common part of message. The actual payload such as button ID is processed by each message class. So the decoder passes the payload to the message class.
 
-Parsing process for the metadata like header and length is done here. Message decoder parses only common part of message. The actual payload such as wheel speed and sensor value is processed by each message class.
+```java
+// Create a message instance
+byte[] messageIdArray = new byte[] { messageId };
+CommunicationMessage message = decodeMessagePayload(messageIdArray, messageBytes, 2, messageLength - 2);
+```
 
-	// Create a message instance
-	byte[] messageIdArray = new byte[] { messageId };
-	CommunicationMessage message = decodeMessagePayload(messageIdArray, messageBytes, 2, messageLength - 2);
-
-`decodeMessagePayload()` method is not a kind of things you implement. It resides framework side. You just pass the message ID (as a byte array), message bytes and an index of payload.
+`decodeMessagePayload()` is a built-in method. Just pass the message ID (as a byte array) and payload data.
 
 The method creates an instance of message class according to the message ID and passes the payload to the message instance. These are done internally. The actual payload parsing is done by message class itself. We will look into that in message section.
 
-At last, return the message instance.
+At last, return the message instance at the end of `decodeMessage()`.
 
-	// Return the message instance
-	return message;
+Here is the complete `SimpleRemoteDecoder` source.
 
-The complete `SimpleRobotMessageDecoder` is following.
+```java
+public class SimpleRemoteDecoder extends MessageDecoder {
 
-	public class SimpleRobotMessageDecoder extends MessageDecoder {
+    public SimpleRemoteDecoder() {
+        super(new MessageMapper());
+    }
 
-		public SimpleRobotMessageDecoder(MessageClassMapper messageClassMapper) {
-			super(messageClassMapper);
-		}
+    @Override
+    public Message decodeMessage(ByteRingBuffer inputBuffer) {
+        final byte HEADER_BYTE = (byte) 0x9d;
 
-		@Override
-		public CommunicationMessage decodeMessage(ByteRingBuffer inputBuffer) {
-			// Find header byte
-			while(inputBuffer.getContentSize() > 0 && inputBuffer.peek(0) != 0x9D)
-				inputBuffer.consume(1);
-				
-			// If failed to find header byte, just return null to try later
-			if(inputBuffer.getContentSize() == 0)
-				return null;
-			
-			// Get message ID
-			if(inputBuffer.getContentSize() < 2)
-				return null;
-			byte messageId = inputBuffer.peek(1);
-			
-			// Figure out the length of message
-			int messageLength = 0;
-			if(messageId == 0x01)
-				messageLength = 4;
-			else if(messageId == 0x02)
-				messageLength = 3;
-			
-			// Check if we have enough data for a message
-			if(inputBuffer.getContentSize() < messageLength)
-				return null;
-			
-			// Get whole message data
-			byte[] messageBytes = inputBuffer.read(messageLength);
-			
-			// Create a message instance
-			byte[] messageIdArray = new byte[] { messageId };
-			CommunicationMessage message = decodeMessagePayload(messageIdArray, messageBytes, 2, messageLength - 2);
-			
-			// Return the message instance
-			return message;
-		}
+        // Find header byte
+        while(inputBuffer.getContentSize() > 0 && inputBuffer.peek(0) != HEADER_BYTE) {
+            inputBuffer.consume(1);
+        }
 
-	}
+        // If failed to find header byte, just return null to try later
+        if (inputBuffer.getContentSize() == 0) {
+            return null;
+        }
+
+        // Get message ID
+        if (inputBuffer.getContentSize() < 2) {
+            return null;
+        }
+        byte messageId = inputBuffer.peek(1);
+
+        // Figure out the length of message
+        int messageLength = 0;
+        if (messageId == 0x01) {
+            messageLength = 3;
+        } else if (messageId == 0x02) {
+            messageLength = 2;
+        }
+
+        // Check if we have enough data for a message
+        if (inputBuffer.getContentSize() < messageLength) {
+            return null;
+        }
+
+        // Get whole message data
+        byte[] messageBytes = inputBuffer.read(messageLength);
+
+        // Create a message instance
+        byte[] messageIdArray = new byte[] { messageId };
+        Message message = decodeMessagePayload(messageIdArray, messageBytes, 2, messageLength - 2);
+
+        // Return the message instance
+        return message;
+    }
+
+}
+```
 
 ##### Message encoder
-Message encoder builds a binary packet from an instance of message class. Encoder is used for outgoing messages. Let's create a message encoder called `SimpleRobotMessageEncoder` by subclassing `MessageEncoder`.
-	
-	public class SimpleRobotMessageEncoder extends MessageEncoder {
+Message encoder builds a binary packet from a message instance, which is opposite of message decoder. Encoder is used for outgoing messages. Let's create a message encoder called `SimpleRemoteEncoder` by subclassing `MessageEncoder`.
 
-		public SimpleRobotMessageEncoder(MessageClassMapper messageClassMapper) {
-			super(messageClassMapper);
-		}
+```java
+public class SimpleRemoteEncoder extends MessageEncoder {
 
-		@Override
-		public byte[] encodeMessage(CommunicationMessage message) {
-			return null;
-		}
+    public SimpleRemoteEncoder() {
+        super(new MessageMapper());
+    }
 
-	}
+    @Override
+    public byte[] encodeMessage(Message message) {
+        return null;
+    }
 
-We need to write encoding logic in `encodeMessage()` method. The method receives an instance of `CommunicationMessage` and returns a byte array of encoded result. The actual payload is encoded by message class itself like the way of decoding.
+}
+```
 
-	byte[] payload = message.encodePayload();
-	int payloadLength = (payload == null ? 0 : payload.length);
+We need to write encoding logic in `encodeMessage()` method. The method receives an instance of `Message` and returns a byte array of encoded result. The actual payload is encoded by message class itself like the way of decoding.
 
-Then create a whole message byte array. And put header byte and message ID.
+```java
+byte[] payload = message.encodePayload();
+int payloadLength = (payload == null ? 0 : payload.length);
+```
 
-	byte[] messageBytes = new byte[2 + payloadLength];
-	
-	// Header
-	messageBytes[0] = (byte) 0x9d;
-	
-	// Message ID
-	byte[] messageId = getMessageId(message.getClass());
-	System.arraycopy(messageId, 0, messageBytes, 1, messageId.length);
-	
+Then create a whole message byte array. And put header byte, message ID and payload.
+
+```java
+byte[] messageBytes = new byte[2 + payloadLength];
+
+// Header
+messageBytes[0] = (byte) 0x9d;
+
+// Message ID
+byte[] messageId = getMessageId(message.getClass());
+System.arraycopy(messageId, 0, messageBytes, 1, messageId.length);
+
+// Payload
+System.arraycopy(payload, 0, messageBytes, 2, payloadLength);
+```
+
 You get the message ID by calling `getMessageId()` method. It is provided by the framework and it is related to message class mapper which will be covered later.
 
-Next, copy the encoded payload into the message byte array.
+Then return the encoded result at the end of `encodeMessage()`.
 
-	// Payload
-	System.arraycopy(payload, 0, messageBytes, 2, payloadLength);
+Here is the complete `SimpleRemoteEncoder` source.
 
-Then return the encoded result.
+```java
+public class SimpleRemoteEncoder extends MessageEncoder {
 
-	return messageBytes;
+    public SimpleRemoteEncoder() {
+        super(new MessageMapper());
+    }
 
-The complete `SimpleRobotMessageEncoder` is following.
+    @Override
+    public byte[] encodeMessage(Message message) {
+        final byte HEADER_BYTE = (byte) 0x9d;
 
-	public class SimpleRobotMessageEncoder extends MessageEncoder {
+        byte[] payload = message.encodePayload();
+        int payloadLength = (payload == null ? 0 : payload.length);
 
-		public SimpleRobotMessageEncoder(MessageClassMapper messageClassMapper) {
-			super(messageClassMapper);
-		}
+        byte[] messageBytes = new byte[2 + payloadLength];
 
-		@Override
-		public byte[] encodeMessage(CommunicationMessage message) {
-			byte[] payload = message.encodePayload();
-			int payloadLength = (payload == null ? 0 : payload.length);
-			
-			byte[] messageBytes = new byte[2 + payloadLength];
-			
-			// Header
-			messageBytes[0] = (byte) 0x9d;
-			
-			// Message ID
-			byte[] messageId = getMessageId(message.getClass());
-			System.arraycopy(messageId, 0, messageBytes, 1, messageId.length);
-			
-			// Payload
-			System.arraycopy(payload, 0, messageBytes, 2, payloadLength);
-			
-			return messageBytes;
-		}
+        // Header
+        messageBytes[0] = HEADER_BYTE;
 
-	}
+        // Message ID
+        byte[] messageId = getMessageId(message.getClass());
+        System.arraycopy(messageId, 0, messageBytes, 1, messageId.length);
 
+        // Payload
+        System.arraycopy(payload, 0, messageBytes, 2, payloadLength);
 
+        return messageBytes;
+    }
+
+}
+```
 
 ##### Message classes
-Message classes represents messages in protocol specification. We have two messages in the protocol so create two message classes, `OperateWheelsMessage` and `ReportProximitySensorMessage` by subclassing `CommunicationMessageImpl`.
+Message class represents a message in protocol specification. We have 3 messages in the protocol so create corresponding message classes, `ButtonPressedMessage`, `LowBatteryAlertMessage` and `StartBeepMessage` by subclassing `MessageImpl`.
 
-###### OperateWheelsMessage
-This is outgoing message so it needs to override `encodePayload()` method.
+###### ButtonPressedMessage
+This is an incoming message so it needs to override `decodePayload()` method.
 
-	public class OperateWheelsMessage extends CommunicationMessageImpl {
-		
-		private int leftWheelSpeed;
-		private int rightWheelSpeed;
-		
-		public OperateWheelsMessage(int leftWheelSpeed, int rightWheelSpeed) {
-			this.leftWheelSpeed = leftWheelSpeed;
-			this.rightWheelSpeed = rightWheelSpeed;
-		}
-		
-		@Override
-		public byte[] encodePayload() {
-			byte[] payload = new byte[2];
-			payload[0] = (byte) leftWheelSpeed;
-			payload[1] = (byte) rightWheelSpeed;
-			return payload;
-		}
-		
-	}
+```java
+public class ButtonPressedMessage extends MessageImpl {
 
-###### ReportProximitySensorMessage
-This is incoming message so it needs to override `decodePayload()` method.
+    private byte buttonId;
 
-	public class ReportProximitySensorMessage extends CommunicationMessageImpl {
-		
-		private int proximitySensorValue;
+    public byte getButtonId() {
+        return buttonId;
+    }
 
-		public int getProximitySensorValue() {
-			return proximitySensorValue;
-		}
-		
-		@Override
-		public void decodePayload(byte[] data, int startIndex, int length) {
-			proximitySensorValue = data[startIndex];
-		}
+    @Override
+    public void decodePayload(byte[] data, int startIndex, int length) {
+        buttonId = data[startIndex];
+    }
 
-	}
+}
+```
+
+###### LowBatteryAlertMessage
+This is also an incoming message and it has no payload.
+
+```java
+public class LowBatteryAlertMessage extends MessageImpl {
+
+    @Override
+    public void decodePayload(byte[] data, int startIndex, int length) {
+        // No payload
+    }
+
+}
+```
+
+###### StartBeepMessage
+This is an outgoing message so it needs to override `encodePayload()` method.
+
+```java
+public class StartBeepMessage extends MessageImpl {
+
+    private int timeDuration;
+
+    public StartBeepMessage(int timeDuration) {
+        this.timeDuration = timeDuration;
+    }
+
+    @Override
+    public byte[] encodePayload() {
+        return new byte[] {
+                (byte) ((timeDuration >> 8) & 0xff),
+                (byte) (timeDuration & 0xff)
+        };
+    }
+
+}
+```
 
 ##### Message class mapper
-This class represents a table of message classes. The table is used to figure out which message class is needed for a certain message ID, or to get a message ID from a message class. For now we have only two messages, the table is simple. Let's create a message class mapper called `SimpleRobotMessageClassMapper` implementing `MessageClassMapper` interface.
+Message class mapper represents a table of message classes. The table is used to figure out which message class is needed for a certain message ID, or to get a message ID from a message class. For now we have only three messages, the table is simple. Let's create a message class mapper called `MessageMapper` implementing `MessageClassMapper` interface.
 
-	public class SimpleRobotMessageClassMapper implements MessageClassMapper {
+```java
+public class MessageMapper implements MessageClassMapper {
 
-		@Override
-		public Class<? extends CommunicationMessage> getMessageClassById(byte[] messageId) {
-			return null;
-		}
+    @Override
+    public byte[] getMessageIdByClass(Class<? extends Message> messageClass) {
+        if (messageClass == ButtonPressedMessage.class) {
+            return new byte[] { 0x01 };
+        } else if (messageClass == LowBatteryAlertMessage.class) {
+            return new byte[] { 0x02 };
+        } else if (messageClass == StartBeepMessage.class) {
+            return new byte[] { 0x03 };
+        }
+        return null;
+    }
 
-		@Override
-		public byte[] getMessageIdByClass(Class<? extends CommunicationMessage> messageClass) {
-			return null;
-		}
+    @Override
+    public Class<? extends Message> getMessageClassById(byte[] messageId) {
+        if (messageId[0] == 0x01) {
+            return ButtonPressedMessage.class;
+        } else if (messageId[0] == 0x02) {
+            return LowBatteryAlertMessage.class;
+        } else if (messageId[0] == 0x03) {
+            return StartBeepMessage.class;
+        }
+        return null;
+    }
 
-	}
+}
+```
 
-An enum class is a simple and neat way to define a table.
+* Note : Enum class can be used to keep it neat when the message table is big.
 
-	private static enum MessageType {
-		OPERATE_WHEELS		(OperateWheelsMessage.class,			(byte) 0x01),
-		REPORT_PROX_VALUE	(ReportProximitySensorMessage.class,	(byte) 0x02),
-		;
-		
-		public final Class<? extends CommunicationMessage> messageClass;
-		public final byte messageId;
-		
-		private MessageType(Class<? extends CommunicationMessage> messageClass, byte messageId) {
-			this.messageClass	= messageClass;
-			this.messageId		= messageId;
-		}
-	}
+The protocol implementation is done now. We have only two more steps.
 
-The complete `SimpleRobotMessageClassMapper` is following.
+### Device Instance
+We are going to have a virtual instance representing the real device - SimpleRemote.
+Let's create a device class called `SimpleRemote` by subclassing `Device`.
 
-	public class SimpleRobotMessageClassMapper implements MessageClassMapper {
-		
-		private static enum MessageType {
-			OPERATE_WHEELS		(OperateWheelsMessage.class,			(byte) 0x01),
-			REPORT_PROX_VALUE	(ReportProximitySensorMessage.class,	(byte) 0x01),
-			;
-			
-			public final Class<? extends CommunicationMessage> messageClass;
-			public final byte messageId;
-			
-			private MessageType(Class<? extends CommunicationMessage> messageClass, byte messageId) {
-				this.messageClass	= messageClass;
-				this.messageId		= messageId;
-			}
-		}
-		
-		@Override
-		public byte[] getMessageIdByClass(Class<? extends CommunicationMessage> messageClass) {
-			for(MessageType type : MessageType.values()) {
-				if(type.messageClass == messageClass)
-					return new byte[] { type.messageId };
-			}
-			return null;
-		}
-		
-		@Override
-		public Class<? extends CommunicationMessage> getMessageClassById(byte[] messageId) {
-			for(MessageType type : MessageType.values()) {
-				if(type.messageId == messageId[0])
-					return type.messageClass;
-			}
-			return null;
-		}
+```java
+public class SimpleRemote extends Device {
 
-	}
+    private boolean lowBattery = false;
+    private int lastPressedButtonId = -1;
 
-The protocol implementation is done now. We have only two more steps from now on.
+    public SimpleRemote(Connection connection) {
+        super(connection);
+    }
 
-### Device module representing the real device
-We are going to have a virtual instance representing the real device. The instance has same attributes as real device, such as sensor values. The instance has same operations as real device, such as operating wheels. Let's create a device class called `SimpleRobot` by subclassing `Device`.
+    public boolean isLowBattery() {
+        return lowBattery;
+    }
 
-	public class SimpleRobot extends Device {
-		
-		private short proximitySensorValue = 0;
-		
-		public SimpleRobot(Connection connection) {
-			super(connection);
-		}
-		
-		public short getProximitySensorValue() {
-			return proximitySensorValue;
-		}
-		
-		public void operateWheels(int leftWheelSpeed, int rightWheelSpeed) {
-			
-		}
-		
-		@Override
-		protected boolean processMessage(CommunicationMessage message) {
-			return false;
-		}
+    public int getLastPressedButtonId() {
+        return lastPressedButtonId;
+    }
 
-	}
+    public void startBeep(int timeDuration) {
+    }
 
-The subclass of `Device` must have a constructor which receives only one parameter of `Connection` class. This constructor is called by the framework during runtime. 
+    @Override
+    protected boolean processMessage(Message message) {
+        return false;
+    }
+}
+```
 
-First, implement the operation method.
+The subclass of `Device` must have a constructor which receives only one parameter of `Connection` class. This constructor is called by framework through reflection.
 
-	public void operateWheels(int leftWheelSpeed, int rightWheelSpeed) {
-		OperateWheelsMessage message = new OperateWheelsMessage(leftWheelSpeed, rightWheelSpeed);
-		sendMessage(message);
-	}
-	
+First, implement the operation method `startBeep()`.
+
+```java
+public void startBeep(int timeDuration) {
+    StartBeepMessage message = new StartBeepMessage(timeDuration);
+    getConnection().sendMessage(message);
+}
+```
+
 The concept is easy and clear. Operation (or command) is done by creating a message and sending it. `sendMessage()` is a framework method.
 
-Next, implement the `processMessage()` method. It handles all incoming messages. In this sample there is only one incoming message.
+Next, implement the `processMessage()` method. It handles all incoming messages. In according to the spec, there are two incoming messages.
 
-	@Override
-	protected boolean processMessage(CommunicationMessage message) {
-		if(message instanceof ReportProximitySensorMessage) {
-			ReportProximitySensorMessage msg = (ReportProximitySensorMessage) message;
-			proximitySensorValue = msg.getProximitySensorValue();
-			return true;
-		} else {
-			// Error handling
-		}
-		return false;
-	}
+```java
+@Override
+protected boolean processMessage(Message message) {
+    if (message instanceof ButtonPressedMessage) {
+        lastPressedButtonId = ((ButtonPressedMessage) message).getButtonId();
+        Log.i(LOG_TAG, "onButtonPressed: buttonId=" + lastPressedButtonId);
+        return true;
+    } else if (message instanceof LowBatteryAlertMessage) {
+        lowBattery = true;
+        return true;
+    } else {
+        Log.w(LOG_TAG, "processMessage: Unknown message! message=" + message.getDescription());
+    }
+    return false;
+}
+```
 
-It updates the instance's proximity sensor value according to the incoming message. This is how the device instance is synchronized with the remote real device.
+It updates the instance's variables with incoming messages. This is how the device instance is synchronized with the remote real device.
 
-And you need to look carefully the return value of `processMessage()`. Once a message is processed, and by its result any attributes of the device is updated, it must return true. Sometimes there are messages which don't update the device, then just return false. If device is updated, an event for the update is dispatched by framework.
+And you need to look carefully the return value of `processMessage()`. Once a message is processed, and by its result any attributes of the device is updated, it returns true. Sometimes there are messages which don't make any change on device, then just return false. If device is updated, an event for the update is dispatched by framework.
 
-The complete `SimpleRobot` is following.
+The complete `SimpleRemote` is following.
 
-	public class SimpleRobot extends Device {
-		
-		private short proximitySensorValue = 0;
-		
-		public SimpleRobot(Connection connection) {
-			super(connection);
-		}
-		
-		public short getProximitySensorValue() {
-			return proximitySensorValue;
-		}
-		
-		public void operateWheels(int leftWheelSpeed, int rightWheelSpeed) {
-			OperateWheelsMessage message = new OperateWheelsMessage(leftWheelSpeed, rightWheelSpeed);
-			sendMessage(message);
-		}
-		
-		@Override
-		protected boolean processMessage(CommunicationMessage message) {
-			if(message instanceof ReportProximitySensorMessage) {
-				ReportProximitySensorMessage reportMessage = (ReportProximitySensorMessage) message;
-				proximitySensorValue = reportMessage.getProximitySensorValue();
-				return true;
-			} else {
-				// Error handling
-			}
-			return false;
-		}
+```java
+public class SimpleRemote extends Device {
 
-	}
+    private static final String LOG_TAG = "SimpleRemote";
 
-### Communication controller
-Only one piece is left, it is communication controller. A communication controller connects the three modules, the encoder, the decoder and the device. Let's create a communication controller `SimpleRobotCommunicationController` by subclassing `CommunicationController`. It is a generic class which receives a subclass of `Device` as type.
+    private boolean lowBattery = false;
+    private int lastPressedButtonId = -1;
 
-	public class SimpleRobotCommunicationController extends CommunicationController<SimpleRobot> {
+    public SimpleRemote(Connection connection) {
+        super(connection);
+    }
 
-		public SimpleRobotCommunicationController() {
-			super(SimpleRobot.class, new SimpleRobotMessageEncoder(), new SimpleRobotMessageDecoder());
-		}
+    public boolean isLowBattery() {
+        return lowBattery;
+    }
 
-	}
+    public int getLastPressedButtonId() {
+        return lastPressedButtonId;
+    }
 
-To make it simple, the constructors of the encoder and the decoder are modified to have no parameters. The modified version is in sample project.
+    public void startBeep(int timeDuration) {
+        StartBeepMessage message = new StartBeepMessage(timeDuration);
+        sendMessage(message);
+    }
 
-In fact, there are more things customizable in `CommunicationController`, but for a simple communication this implementation is enough.
+    @Override
+    protected boolean processMessage(Message message) {
+        if (message instanceof ButtonPressedMessage) {
+            lastPressedButtonId = ((ButtonPressedMessage) message).getButtonId();
+            onButtonPressed(lastPressedButtonId);
+            return true;
+        } else if (message instanceof LowBatteryAlertMessage) {
+            lowBattery = true;
+            return true;
+        } else {
+            Log.w(LOG_TAG, "processMessage: Unknown message! message=" + message.getDescription());
+        }
+        return false;
+    }
+
+    private void onButtonPressed(int buttonId) {
+        Log.i(LOG_TAG, "onButtonPressed: buttonId=" + buttonId);
+    }
+
+}
+```
+
+### Controller
+One piece is left, it is Controller. A controller connects the three modules, the encoder, the decoder and the device. Let's create a controller `SimpleRemoteController` by subclassing `Controller`. It is a generic class which receives a subclass of `Device` as type. And `Controller` constructor receives a pair of encoder and decoder.
+
+```java
+public class SimpleRemoteController extends Controller<SimpleRemote> {
+
+    public SimpleRemoteController() {
+        super(new SimpleRemoteEncoder(), new SimpleRemoteDecoder());
+    }
+}
+```
+
+There are more things customizable in `Controller`, but for a simple communication this implementation is enough.
 
 ### Usage
-To talk with our simple robot, all necessary steps are done. Let's make some Android UI to communicate with our robot.
+All necessary steps to communicate with our SimpleRemote are done. Let's make some Android UI.
 
-We call `Communicator.connect()` method to connect to device. It asks for three parameters which are a remote address, a connection type and a communication controller.
+We use `Communicator.connect()` to connect to device. It asks for four parameters which are a `Context`, a connection type, a device's identifier and a `Controller`.
 
-The remote address of a device is acquired using Bluetooth discovery. You can refer to the actual implementation in the sample project.
-
-Second, there are three kinds of connection types for now.
+There are four kinds of connection types for now.
 
 * Bluetooth SPP
 * Bluetooth insecure SPP
-* Bluetooth A2DP
+* USB serial
+* Dummy
 
-As NFCommunicator is structured to extend connection types, we can implement more connection types later.
+The device identifier is literally an identifier for specific connection type. It will be a MAC address for Bluetooth, in other case it will be a name of USB device for USB serial connection. You can refer to the actual implementation in the sample.
 
-Third, put a newly created `SimpleRobotCommunicationController` as parameter.
+And put a newly created `SimpleRemoteController` as 4th parameter.
 
-After `Communicator.connect()` call, we can get notified by any communication events through a listener. Register a listener to the communicator in `onResume()` and unregister it in `onPause()`.
+After `Communicator.connect()` call, we get notified by any communication events through a listener. Register a listener to the communicator in `onResume()` and unregister it in `onPause()`.
 
-Once a robot is connected, we keep its instance as a variable given via  `onDeviceConnected()` and operate wheels by using it whenever we want.
+Once a device is connected, `onDeviceConnected()` gets called with an instance of device. We keep it as a variable and use it when we want to command.
 
-Following is an example activity implementation.
+Please refer to the actual implementation in `sample_app` module.
 
-	public class TestActivity extends Activity {
-		
-		private SimpleRobot robot;
-		
-		private CommunicationListener<SimpleRobot> listener = new CommunicationListener<SimpleRobot>() {
-			
-			@Override
-			public void onStartConnecting(Connection connection) {
-				updateConnectionStatus("Started connecting to '" + connection.getRemoteAddress() + "'");
-			}
-			
-			@Override
-			public void onFailedToConnect(Connection connection) {
-				updateConnectionStatus("Failed to connect to '" + connection.getRemoteAddress() + "'");
-			}
+## Dummy Connection
 
-			@Override
-			public void onDeviceConnected(SimpleRobot robot, boolean alreadyExisting) {
-				TestActivity.this.robot = robot;
-				updateConnectionStatus("Connected to '" + robot.getConnection().getRemoteAddress() + "'");
-			}
+Communicator is for physical communication channel like Bluetooth and USB serial. But it has a functionality to communicate with non-real device using dummy connection.
 
-			@Override
-			public void onDeviceDisconnected(SimpleRobot robot) {
-				updateConnectionStatus("Disconnected from '" + robot.getConnection().getRemoteAddress() + "'");
-				updateSensorData("");
-			}
-			
-			@Override
-			public void onDeviceUpdated(SimpleRobot robot) {
-				updateSensorData("Proximity sensor - " + robot.getProximitySensorValue());
-			}
+Thanks to Communicator's feature of separation of protocol implementation and connection, the dummy connection can be utilized to implement protocol without real device and to test application independently to device firmware.
 
-		};
-		
-		@Override
-		protected void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-			setContentView(R.layout.activity_test);
-			
-			Button buttonConnect = (Button) this.findViewById(R.id.button_connect);
-			buttonConnect.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					String remoteAddress = "BLUETOOTH_MAC_ADDRESS";
-					SimpleRobotCommunicationController controller = new SimpleRobotCommunicationController();
-					Communicator.connect(remoteAddress, ConnectionType.BLUETOOTH_SPP, controller);
-				}
-			});
-			
-			Button buttonOperateWheels = (Button) this.findViewById(R.id.button_operate_wheels);
-			buttonOperateWheels.setOnClickListener(new OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					if(robot == null)
-						return;
-					robot.operateWheels(10, 10);
-				}
-			});
+By subclassing `DummyPhysicalDevice` and putting some communication logic in it, you can connect to the dummy physical device through dummy connection. Please refer to `DummySimpleRemote` and `DummySimpleRemoteTest` in `sample_app`.
 
-		}
-		
-		@Override
-		public void onResume() {
-			super.onResume();
-			robot = null;
-			Communicator.registerListener(listener);
-		}
-		
-		@Override
-		public void onPause() {
-			super.onPause();
-			Communicator.unregisterListener(listener);
-		}
-		
-		private void updateConnectionStatus(String status) {
-			EditText connectionStatusText = (EditText) findViewById(R.id.connection_status);
-			connectionStatusText.setText(status);
-		}
-		
-		private void updateSensorData(String sensorData) {
-			EditText sensorDataText = (EditText) findViewById(R.id.sensor_data);
-			sensorDataText.setText(sensorData);
-		}
-		
-	}
-
-You can find the sample project in `/SampleProject` folder.
+## Products
+#### [RAPAEL Smart Glove][1]
+* Bluetooth SPP connection
 
 
-## Configuration for Proguard
-To work with Proguard, following lines need to be added into proguard-project.txt.
+#### [CHEMION LED Glasses][2]
+* Bluetooth LE (Customized)
 
-	-keepattributes Signature
-	-keepclassmembers class * extends com.neofect.communicator.Device {
-	    public <init>(com.neofect.communicator.Connection);
-	}
+#### [RAPAEL Smart Board][3]
+* USB connection
+
+[1]:http://www.rapaelhome.com/us/smart-glove-2/
+[2]:https://www.instagram.com/chemionglasses/
+[3]:http://www.rapaelhome.com/us/smart-board/
+
+## License
+Copyright 2017 Neofect Co., Ltd.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

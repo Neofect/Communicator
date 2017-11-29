@@ -1,3 +1,0 @@
-rootProject.name = 'NFCommunicator'
-
-include ':nfcommunicator'
