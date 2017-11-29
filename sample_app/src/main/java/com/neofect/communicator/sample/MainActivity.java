@@ -270,7 +270,7 @@ public class MainActivity extends Activity {
 		ConnectionType connectionType = getConnectionType(scannedDevice);
 		String deviceIdentifier = scannedDevice.getIdentifier();
 		Log.d(LOG_TAG, "connectToDevice: connectionType=" + connectionType + ", deviceIdentifier=" + deviceIdentifier);
-		Controller controller = new Controller<SimpleRemote>(new Encoder(), new Decoder()) {};
+		Controller controller = new Controller<SimpleRemote>(new SimpleRemoteEncoder(), new SimpleRemoteDecoder()) {};
 		boolean result = Communicator.connect(this.getApplicationContext(), connectionType, deviceIdentifier, controller);
 		if (!result) {
 			showToast("Failed to connect to '" + deviceIdentifier + "'!");

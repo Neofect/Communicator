@@ -14,9 +14,9 @@ import com.neofect.communicator.sample.message.MessageMapper;
  * @author neo.kim@neofect.com
  * @date Feb 15, 2015
  */
-public class Encoder extends MessageEncoder {
+public class SimpleRemoteEncoder extends MessageEncoder {
 
-	public Encoder() {
+	public SimpleRemoteEncoder() {
 		super(new MessageMapper());
 	}
 

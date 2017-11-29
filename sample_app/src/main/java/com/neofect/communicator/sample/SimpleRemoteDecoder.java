@@ -15,9 +15,9 @@ import com.neofect.communicator.util.ByteRingBuffer;
  * @author neo.kim@neofect.com
  * @date Feb 16, 2015
  */
-public class Decoder extends MessageDecoder {
+public class SimpleRemoteDecoder extends MessageDecoder {
 
-	public Decoder() {
+	public SimpleRemoteDecoder() {
 		super(new MessageMapper());
 	}
 
@@ -30,7 +30,7 @@ public class Decoder extends MessageDecoder {
 			inputBuffer.consume(1);
 		}
 
-		// If failed to find header byte, try it later.
+		// If failed to find header byte, just return null to try later
 		if (inputBuffer.getContentSize() == 0) {
 			return null;
 		}

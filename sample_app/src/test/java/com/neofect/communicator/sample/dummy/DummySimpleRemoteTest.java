@@ -8,8 +8,8 @@ import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
 import com.neofect.communicator.dummy.DummyPhysicalDeviceManager;
 import com.neofect.communicator.message.Message;
-import com.neofect.communicator.sample.Controller;
 import com.neofect.communicator.sample.SimpleRemote;
+import com.neofect.communicator.sample.SimpleRemoteController;
 import com.neofect.communicator.sample.message.LowBatteryAlertMessage;
 
 import org.junit.BeforeClass;
@@ -79,7 +79,7 @@ public class DummySimpleRemoteTest {
 
 		});
 
-		Controller controller = new Controller();
+		SimpleRemoteController controller = new SimpleRemoteController();
 		Communicator.connect(null, ConnectionType.DUMMY, dummyDevice.getDeviceIdentifier(), controller);
 
 		final long TIMEOUT = 10000;

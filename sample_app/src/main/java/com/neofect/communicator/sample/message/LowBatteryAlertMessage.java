@@ -16,7 +16,7 @@ public class LowBatteryAlertMessage extends MessageImpl {
 	
 	@Override
 	public void decodePayload(byte[] data, int startIndex, int length) {
-		// No implementation needed
+		// No payload
 	}
 
 }
