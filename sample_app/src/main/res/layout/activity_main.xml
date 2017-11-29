@@ -9,8 +9,6 @@
         android:id="@+id/button_scan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
         android:text="Scan" />
 
     <ListView
@@ -38,8 +36,7 @@
 
     <View android:layout_width="match_parent" android:layout_height="2dp" android:layout_marginBottom="7dp" android:layout_marginTop="3dp" android:background="@android:color/darker_gray" />
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:id="@+id/panel_only_when_connected"
+    <LinearLayout android:id="@+id/panel_only_when_connected"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:gravity="top|center"
@@ -52,8 +49,7 @@
             android:clickable="false"
             android:text="Disconnect" />
 
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                      android:layout_width="match_parent"
+        <LinearLayout android:layout_width="match_parent"
                       android:layout_height="wrap_content"
                       android:gravity="top|center"
                       android:orientation="horizontal"

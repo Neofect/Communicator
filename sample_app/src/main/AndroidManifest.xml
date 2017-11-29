@@ -3,7 +3,8 @@
           package="com.neofect.communicator.sample">
 
     <application
-        android:label="SampleApp">
+        android:label="SampleApp"
+        android:allowBackup="false">
             <activity android:name=".MainActivity"
                 android:theme="@android:style/Theme.Holo.Light">
             <intent-filter>
