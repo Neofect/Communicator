@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.neofect.communicator.Communicator;
@@ -174,10 +175,19 @@ public class MainActivity extends Activity {
 
 		// Disconnect
 		Button buttonDisconnect = (Button) MainActivity.this.findViewById(R.id.button_disconnect);
-		buttonDisconnect.setVisibility(View.INVISIBLE);
 		buttonDisconnect.setOnClickListener((v) -> {
 			if (device != null) {
 				device.getConnection().disconnect();
+			}
+		});
+
+		// Start beep
+		Button buttonStartBeep = (Button) MainActivity.this.findViewById(R.id.button_start_beep);
+		buttonStartBeep.setOnClickListener((v) -> {
+			if (device != null) {
+				EditText timeText = (EditText) MainActivity.this.findViewById(R.id.beep_duration);
+				float timeDuration = Float.parseFloat(timeText.getText().toString());
+				device.startBeep((int) timeDuration);
 			}
 		});
 	}
@@ -262,8 +272,8 @@ public class MainActivity extends Activity {
 	}
 
 	private void toggleDisconnectVisibility(boolean visible) {
-		Button buttonDisconnect = (Button) MainActivity.this.findViewById(R.id.button_disconnect);
-		buttonDisconnect.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
+		View panel = MainActivity.this.findViewById(R.id.panel_only_when_connected);
+		panel.setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
 	}
 
 	private void connectToDevice(ScannedDevice scannedDevice) {
@@ -289,12 +299,12 @@ public class MainActivity extends Activity {
 	}
 
 	private void updateConnectionStatus(String status) {
-		EditText connectionStatusText = (EditText) findViewById(R.id.connection_status);
+		TextView connectionStatusText = (TextView) findViewById(R.id.connection_status);
 		connectionStatusText.setText(status);
 	}
 
 	private void updateMessage(String sensorData) {
-		EditText sensorDataText = (EditText) findViewById(R.id.sensor_data);
+		TextView sensorDataText = (TextView) findViewById(R.id.sensor_data);
 		sensorDataText.setText(sensorData);
 	}
 

@@ -22,43 +22,67 @@
         android:orientation="vertical">
     </ListView>
 
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="1dp"
-        android:background="@android:color/darker_gray"/>
+    <View android:layout_width="match_parent" android:layout_height="2dp" android:layout_marginBottom="7dp" android:layout_marginTop="3dp" android:background="@android:color/darker_gray" />
 
-    <Button
-        android:id="@+id/button_disconnect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="false"
-        android:text="Disconnect" />
-
-    <EditText
+    <TextView
         android:id="@+id/connection_status"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clickable="false"
-        android:duplicateParentState="false"
-        android:ems="10"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:inputType="textMultiLine"
-        android:longClickable="false" >
+        android:layout_height="wrap_content" />
 
-        <requestFocus />
-    </EditText>
+    <View android:layout_width="match_parent" android:layout_height="2dp" android:layout_marginBottom="7dp" android:layout_marginTop="3dp" android:background="@android:color/darker_gray" />
 
-    <EditText
+    <TextView
         android:id="@+id/sensor_data"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:clickable="false"
-        android:duplicateParentState="false"
-        android:ems="10"
-        android:focusable="false"
-        android:focusableInTouchMode="false"
-        android:inputType="textMultiLine"
-        android:longClickable="false" />
+        android:layout_height="wrap_content" />
+
+    <View android:layout_width="match_parent" android:layout_height="2dp" android:layout_marginBottom="7dp" android:layout_marginTop="3dp" android:background="@android:color/darker_gray" />
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  android:id="@+id/panel_only_when_connected"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="top|center"
+                  android:orientation="vertical">
+
+        <Button
+            android:id="@+id/button_disconnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:text="Disconnect" />
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:gravity="top|center"
+                      android:orientation="horizontal"
+                      android:focusableInTouchMode="true">
+
+            <EditText
+                android:id="@+id/beep_duration"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:digits="0123456789"
+                android:inputType="numberDecimal"
+                android:text="3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sec"
+                android:layout_marginRight="20dp"
+                />
+
+            <Button
+                android:id="@+id/button_start_beep"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start beep" />
+
+        </LinearLayout>
+    </LinearLayout>
+
 
 </LinearLayout>

@@ -40,7 +40,7 @@ public class SimpleRemote extends Device {
 
 	public void startBeep(int timeDuration) {
 		StartBeepMessage message = new StartBeepMessage(timeDuration);
-		sendMessage(message);
+		getConnection().sendMessage(message);
 	}
 	
 	@Override

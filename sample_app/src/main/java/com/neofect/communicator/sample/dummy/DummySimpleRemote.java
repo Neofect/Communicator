@@ -20,6 +20,7 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 	private int lastPressedButton = 0;
 	private long elapsedTimeForButtonPressed = 0;
 	private long elapsedTimeForLowBatteryAlert = 0;
+	private long endTimeForBeep = 0;
 
 	public DummySimpleRemote(String deviceIdentifier, String deviceName) {
 		super(deviceIdentifier, deviceName);
@@ -45,20 +46,16 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 		String message = byteArrayToHex(data);
 		Log.d(LOG_TAG, "receive: Physical device received data. [" + message + "]");
 
-//		if (message.equals(IDENTIFY_REQUEST)) {
-//			processIdentifyRequest(data);
-//		} else if (message.startsWith(DATA_CHUNK_REQUEST_HEADER)) {
-//			processDataChunkRequest(data);
-//		} else if (message.startsWith(DEVICE_INFO_REQUEST_HEADER)) {
-//			processDeviceInfoRequest(data);
-//		} else if (message.equals(SENSOR_STOP_REQUEST)) {
-//			sensorInterval = 0;
-//		} else if (message.startsWith(SENSOR_START_HEADER)) {
-//			sensorInterval = Math.min(Math.max(10, data[3]), 255);
-//			synchronized (senderThread) {
-//				senderThread.notify();
-//			}
-//		}
+		try {
+			if (message.startsWith("9d 03")) {
+				int timeDuration = data[2] << 8 | data[3] & 0x000000ff;
+				startBeep(timeDuration);
+			} else {
+				Log.e(LOG_TAG, "receive: Undefined message!");
+			}
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "receive:", e);
+		}
 	}
 
 	private void sendData(long elapsedTime) {
@@ -92,6 +89,14 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 		notifyRead(message);
 	}
 
+	private void startBeep(int timeDuration) {
+		Log.i(LOG_TAG, "startBeep: timeDuration=" + timeDuration);
+		if (endTimeForBeep != 0) {
+			Log.i(LOG_TAG, "Start beep sound.");
+		}
+		endTimeForBeep = System.currentTimeMillis() + (timeDuration * 1000);
+	}
+
 	private void stopSenderThread() {
 		if (senderThread != null) {
 			senderThread.interrupt();
@@ -106,6 +111,14 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 			while (true) {
 				try {
 					long now = System.currentTimeMillis();
+					if (endTimeForBeep != 0) {
+						if (now > endTimeForBeep) {
+							Log.i(LOG_TAG, "Stop beep sound.");
+							endTimeForBeep = 0;
+						} else {
+							Log.i(LOG_TAG, "BEEP!");
+						}
+					}
 					sendData(now - timestamp);
 					timestamp = now;
 					Thread.sleep(100);
