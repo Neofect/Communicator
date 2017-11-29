@@ -37,6 +37,12 @@ public abstract class Controller<T extends Device> {
 	private static final String LOG_TAG = "Controller";
 
 	public interface InboundMessageCallback {
+		/**
+		 * Any process after this process will be skipped when it returns true.
+		 * @param connection
+		 * @param message
+		 * @return
+		 */
 		boolean process(Connection connection, Message message);
 	}
 	
