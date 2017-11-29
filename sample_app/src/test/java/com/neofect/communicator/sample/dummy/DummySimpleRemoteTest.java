@@ -5,12 +5,10 @@ import android.util.Log;
 import com.neofect.communicator.Communicator;
 import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
-import com.neofect.communicator.Controller;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
 import com.neofect.communicator.dummy.DummyPhysicalDeviceManager;
 import com.neofect.communicator.message.Message;
-import com.neofect.communicator.sample.Decoder;
-import com.neofect.communicator.sample.Encoder;
+import com.neofect.communicator.sample.Controller;
 import com.neofect.communicator.sample.SimpleRemote;
 import com.neofect.communicator.sample.message.LowBatteryAlertMessage;
 
@@ -22,7 +20,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLog;
 import org.robolectric.shadows.ShadowLooper;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by Neo on 2017. 11. 28..
@@ -81,7 +79,7 @@ public class DummySimpleRemoteTest {
 
 		});
 
-		Controller controller = new Controller<SimpleRemote>(new Encoder(), new Decoder()) {};
+		Controller controller = new Controller();
 		Communicator.connect(null, ConnectionType.DUMMY, dummyDevice.getDeviceIdentifier(), controller);
 
 		final long TIMEOUT = 10000;

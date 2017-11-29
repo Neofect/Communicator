@@ -26,15 +26,13 @@ public class Decoder extends MessageDecoder {
 		final byte HEADER_BYTE = (byte) 0x9d;
 
 		// Find header byte
-		{
-			while(inputBuffer.getContentSize() > 0 && inputBuffer.peek(0) != HEADER_BYTE) {
-				inputBuffer.consume(1);
-			}
+		while(inputBuffer.getContentSize() > 0 && inputBuffer.peek(0) != HEADER_BYTE) {
+			inputBuffer.consume(1);
+		}
 
-			// If failed to find header byte, try it later.
-			if (inputBuffer.getContentSize() == 0) {
-				return null;
-			}
+		// If failed to find header byte, try it later.
+		if (inputBuffer.getContentSize() == 0) {
+			return null;
 		}
 
 		// Get message ID
