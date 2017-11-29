@@ -1,5 +1,7 @@
 # Communicator
 
+ [ ![Download](https://api.bintray.com/packages/neofect/maven/Communicator/images/download.svg) ](https://bintray.com/neofect/maven/Communicator/_latestVersion)
+ 
 Communicator is a framework for message-based binary communication on Android.
 
 It separates connection-related logic and protocol implementation so that user can focus on the protocol implementation and business logic for application.
@@ -36,7 +38,7 @@ dependencies {
 
 Let say that we have a physical device as a counterpart to communicate with. The device is a tiny remote control having 4 buttons, which sends a button ID to Android app remotely via Bluetooth when any button pressed. It also alerts when battery is low. And our app can command the device to beep for some time.
 
-### Protocol definition
+### Protocol Definition
 To communicate with the device, we design a simple binary protocol. The protocol has three types of messages (also called as packet) as following.
 
 
