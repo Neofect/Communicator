@@ -5,9 +5,6 @@ import android.util.Log;
 import com.neofect.communicator.dummy.DummyConnection;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 import static com.neofect.communicator.util.ByteArrayConverter.byteArrayToHex;
 
 /**
@@ -18,7 +15,6 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 
 	private static final String LOG_TAG = "DummySimpleRemote";
 
-	private Executor executor = Executors.newSingleThreadExecutor();
 	private Thread senderThread;
 
 	private int lastPressedButton = 0;
@@ -34,24 +30,14 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 		Log.d(LOG_TAG, "connect:");
 		this.connection = connection;
 
-		executor.execute(() -> {
-			try {
-				Thread.sleep(10);
-				notifyConnected();
-				startSenderThread();
-			} catch (Exception e) {
-				Log.e(LOG_TAG, "", e);
-			}
-		});
+		notifyConnected();
+		startSenderThread();
 	}
 
 	@Override
 	protected void disconnect() {
 		Log.d(LOG_TAG, "disconnect:");
-		if (senderThread != null) {
-			senderThread.interrupt();
-			senderThread = null;
-		}
+		stopSenderThread();
 	}
 
 	@Override
@@ -106,7 +92,15 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 		notifyRead(message);
 	}
 
+	private void stopSenderThread() {
+		if (senderThread != null) {
+			senderThread.interrupt();
+			senderThread = null;
+		}
+	}
+
 	private void startSenderThread() {
+		stopSenderThread();
 		senderThread = new Thread(() -> {
 			long timestamp = System.currentTimeMillis();
 			while (true) {

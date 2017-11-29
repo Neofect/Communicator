@@ -71,7 +71,7 @@ public class DummySimpleRemoteTest {
 			public void onDeviceMessageProcessed(SimpleRemote device, Message message) {
 				Log.i(LOG_TAG, "onDeviceMessageProcessed: message=" + message.getDescription());
 
-				// Test condition
+				// Test termination condition
 				if (message instanceof LowBatteryAlertMessage) {
 					result[0] = true;
 				}

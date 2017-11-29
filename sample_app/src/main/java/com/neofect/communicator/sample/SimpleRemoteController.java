@@ -21,16 +21,6 @@ public class SimpleRemoteController extends Controller<SimpleRemote> {
 		addCallbackAfterProcessInboundMessage((connection, message) -> onAfterProcessMessage(connection, message));
 	}
 
-	@Override
-	protected void onConnected(Connection connection) {
-		super.onConnected(connection);
-	}
-
-	@Override
-	protected void onDisconnected(Connection connection) {
-		super.onDisconnected(connection);
-	}
-
 	private boolean onBeforeProcessMessage(Connection connection, Message message) {
 		Log.i(LOG_TAG, "onBeforeProcessMessage: message=" + message.getDescription());
 		return false;
