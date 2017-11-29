@@ -54,6 +54,4 @@ public abstract class Device {
 		return connection;
 	}
 	
-	protected void sendMessage(Message message) {}
-
 }
