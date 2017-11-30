@@ -1,7 +1,7 @@
 # Communicator
 
- [ ![Download](https://api.bintray.com/packages/neofect/maven/Communicator/images/download.svg) ](https://bintray.com/neofect/maven/Communicator/_latestVersion)
- 
+ [ ![Download](https://api.bintray.com/packages/neofect/maven/Communicator/images/download.svg) ](https://bintray.com/neofect/maven/Communicator/_latestVersion) [![Build Status](https://www.travis-ci.org/Neofect/Communicator.svg?branch=develop)](https://www.travis-ci.org/Neofect/Communicator)
+
 Communicator is a framework for message-based binary communication on Android.
 
 It separates connection-related logic and protocol implementation so that user can focus on the protocol implementation and business logic for application.
