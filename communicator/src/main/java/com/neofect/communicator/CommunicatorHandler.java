@@ -36,73 +36,61 @@ class CommunicatorHandler<T extends Device> extends Handler {
 	}
 
 	void onStartConnecting(final Connection connection) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onStartConnecting(connection);
-				} catch(Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		post(() -> {
+			try {
+				listener.onStartConnecting(connection);
+			} catch(Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
 	
 	void onFailedToConnect(final Connection connection, final Exception cause) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onFailedToConnect(connection, cause);
-				} catch(Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		post(() -> {
+			try {
+				listener.onFailedToConnect(connection, cause);
+			} catch(Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
 	
 	void onDeviceConnected(final T device, final boolean alreadyExisting) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onDeviceConnected(device, alreadyExisting);
-				} catch(Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		post(() -> {
+			try {
+				listener.onDeviceConnected(device, alreadyExisting);
+			} catch(Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
 	
 	void onDeviceDisconnected(final T device) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onDeviceDisconnected(device);
-				} catch(Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		post(() -> {
+			try {
+				listener.onDeviceDisconnected(device);
+			} catch(Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
 	
 	void onDeviceMessageProcessed(final T device, final Message message) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onDeviceMessageProcessed(device, message);
-				} catch(Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		post(() -> {
+			try {
+				listener.onDeviceMessageProcessed(device, message);
+			} catch(Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
 	
 	void onDeviceUpdated(final T device) {
-		post(new Runnable() {
-			public void run() {
-				try {
-					listener.onDeviceUpdated(device);
-				} catch(Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		post(() -> {
+			try {
+				listener.onDeviceUpdated(device);
+			} catch(Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
