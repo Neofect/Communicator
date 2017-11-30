@@ -32,40 +32,29 @@ public class DummyConnection extends Connection {
 			Log.e(LOG_TAG, "connect: '" + getDescription() + "' is not in the status of to connect! Status=" + getStatus());
 			return;
 		}
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				handleConnecting();
-				try {
-					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					Log.e(LOG_TAG, "", e);
-				}
-				device.connect(DummyConnection.this);
+		executor.execute(() -> {
+			handleConnecting();
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				Log.e(LOG_TAG, "", e);
 			}
+			device.connect(DummyConnection.this);
 		});
 	}
 
 	void onConnected() {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				handleConnected();
-			}
-		});
+		executor.execute(this::handleConnected);
 	}
 
 	@Override
 	public void disconnect() {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					device.disconnect();
-					handleDisconnected();
-				} catch (Exception e) {
-					Log.e(LOG_TAG, "", e);
-				}
+		executor.execute(() -> {
+			try {
+				device.disconnect();
+				handleDisconnected();
+			} catch (Exception e) {
+				Log.e(LOG_TAG, "", e);
 			}
 		});
 	}
@@ -91,12 +80,7 @@ public class DummyConnection extends Connection {
 			Log.e(LOG_TAG, "write: Not connected! connection=" + getDescription());
 			return;
 		}
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				device.receive(data);
-			}
-		});
+		executor.execute(() -> device.receive(data));
 	}
 
 	void onRead(final byte[] data) {
@@ -104,12 +88,7 @@ public class DummyConnection extends Connection {
 			Log.e(LOG_TAG, "onRead: Not connected! connection=" + getDescription());
 			return;
 		}
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				handleReadData(data);
-			}
-		});
+		executor.execute(() -> handleReadData(data));
 	}
 
 }
