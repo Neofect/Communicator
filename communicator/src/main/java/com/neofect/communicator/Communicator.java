@@ -172,6 +172,9 @@ public class Communicator {
 					continue;
 				}
 				Device device = connection.getController().getDevice();
+				if (device == null) {
+					continue;
+				}
 				if (isSameOrSuperClassDevice(device.getClass(), deviceClass)) {
 					notifyNewListenerOfExistingDevices(handler, device);
 				}
