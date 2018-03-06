@@ -22,7 +22,7 @@ package com.neofect.communicator;
 public enum ConnectionType {
 	BLUETOOTH_SPP,
 	BLUETOOTH_SPP_INSECURE,
-	BLUETOOTH_LOW_ENERGY,	// Not used for now
+	BLUETOOTH_LE,	// Not used for now
 
 	USB_SERIAL,
 
