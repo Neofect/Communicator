@@ -126,14 +126,13 @@ public class BluetoothLeConnection extends BluetoothConnection {
 			if (writeCharacteristic == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for write!");
 			}
-
-			handleConnected();
 		}
 
 		@Override
 		public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
 			if (status == BluetoothGatt.GATT_SUCCESS) {
 				Log.d(LOG_TAG, "onDescriptorWrite: Success");
+				handleConnected();
 			} else {
 				Log.e(LOG_TAG, "onDescriptorWrite: The status is not success! status=" + status);
 			}
