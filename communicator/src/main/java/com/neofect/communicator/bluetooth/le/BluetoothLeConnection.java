@@ -27,8 +27,11 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 	private static final String LOG_TAG = "BluetoothLeConnection";
 
-	private final static UUID CHARACTERISTIC_UPDATE_NOTIFICATION_UUID = UUID.fromString("3dd4051c-8660-11e7-bb31-be2e44b06b34");
+	private final static UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+
+	private final static UUID SERVICE_UUID = UUID.fromString("3dd4051e-8660-11e7-bb31-be2e44b06b34");
 	private final static UUID CHARACTERISTIC_WRITE_UUID = UUID.fromString("3dd4051d-8660-11e7-bb31-be2e44b06b34");
+	private final static UUID CHARACTERISTIC_NOTIFICATION_UUID = UUID.fromString("3dd4051c-8660-11e7-bb31-be2e44b06b34");
 
 	private Context context;
 	private BluetoothGatt bluetoothGatt;
@@ -50,7 +53,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@Override
 	protected void connectProcess() {
-		Log.i(LOG_TAG, "connectProcess: ");
+		Log.d(LOG_TAG, "connectProcess: ");
 		bluetoothGatt = getBluetoothDevice().connectGatt(context, false, gattCallback);
 		handleConnecting();
 	}
@@ -58,6 +61,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@Override
 	protected void disconnectProcess() {
+		Log.d(LOG_TAG, "disconnectProcess: ");
 		if (bluetoothGatt == null) {
 			Log.w(LOG_TAG, "disconnectProcess: GATT service is not connected!");
 			return;
@@ -69,7 +73,6 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 		@Override
 		public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-			Log.d(LOG_TAG, "onCharacteristicChanged: ");
 			handleAvailableData(characteristic);
 		}
 
@@ -109,23 +112,27 @@ public class BluetoothLeConnection extends BluetoothConnection {
 				Log.e(LOG_TAG, "onServicesDiscovered: The status is not success! status=" + status);
 				return;
 			}
-			Log.d(LOG_TAG, "onServicesDiscovered: status=" + status);
+			Log.d(LOG_TAG, "onServicesDiscovered: ");
 
-			writeCharacteristic = null;
-			for (BluetoothGattService service : gatt.getServices()) {
-				// Use the first found characteristic for write
-				if (writeCharacteristic == null) {
-					writeCharacteristic = service.getCharacteristic(CHARACTERISTIC_WRITE_UUID);
-				}
-
-				BluetoothGattCharacteristic updateNotificationCharacteristic = service.getCharacteristic(CHARACTERISTIC_UPDATE_NOTIFICATION_UUID);
-				if (updateNotificationCharacteristic != null) {
-					setCharacteristicNotification(updateNotificationCharacteristic, true);
-				}
+			BluetoothGattService service = gatt.getService(SERVICE_UUID);
+			if (service == null) {
+				Log.e(LOG_TAG, "onServicesDiscovered: No GATT service of UUID '" + SERVICE_UUID + "'!");
+				return;
 			}
+
+			writeCharacteristic = service.getCharacteristic(CHARACTERISTIC_WRITE_UUID);
 			if (writeCharacteristic == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for write!");
+				return;
 			}
+
+			BluetoothGattCharacteristic notificationCharacteristic = service.getCharacteristic(CHARACTERISTIC_NOTIFICATION_UUID);
+			if (writeCharacteristic == null) {
+				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for notification!");
+				return;
+			}
+			bluetoothGatt.setCharacteristicNotification(notificationCharacteristic, true);
+			enableCccdNotification(notificationCharacteristic);
 		}
 
 		@Override
@@ -137,13 +144,12 @@ public class BluetoothLeConnection extends BluetoothConnection {
 				Log.e(LOG_TAG, "onDescriptorWrite: The status is not success! status=" + status);
 			}
 		}
+
 	};
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-	private void setCharacteristicNotification(BluetoothGattCharacteristic characteristic, boolean enabled) {
-		bluetoothGatt.setCharacteristicNotification(characteristic, enabled);
-		final String CLIENT_CHARACTERISTIC_CONFIG = "00002902-0000-1000-8000-00805f9b34fb";
-		BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(CLIENT_CHARACTERISTIC_CONFIG));
+	private void enableCccdNotification(BluetoothGattCharacteristic characteristic) {
+		BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CLIENT_CHARACTERISTIC_CONFIG);
 		descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
 		bluetoothGatt.writeDescriptor(descriptor);
 	}
@@ -161,13 +167,13 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	private void handleAvailableData(BluetoothGattCharacteristic characteristic) {
-		if (CHARACTERISTIC_UPDATE_NOTIFICATION_UUID.equals(characteristic.getUuid())) {
+		if (CHARACTERISTIC_NOTIFICATION_UUID.equals(characteristic.getUuid())) {
 			final byte[] data = characteristic.getValue();
 			if (data != null && data.length > 0) {
 				handleReadData(data);
 			}
 		} else {
-			Log.i(LOG_TAG, "onCharacteristicRead: UUID mismatched! UUID=" + characteristic.getUuid());
+			Log.i(LOG_TAG, "handleAvailableData: UUID mismatched! UUID=" + characteristic.getUuid());
 		}
 	}
 
