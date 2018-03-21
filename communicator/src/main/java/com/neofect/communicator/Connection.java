@@ -34,7 +34,7 @@ public abstract class Connection {
 		CONNECTED,
 	}
 	
-	public abstract void connect();
+	protected abstract void connect();
 	public abstract void disconnect();
 	public abstract String getDeviceIdentifier();
 	public abstract String getDeviceName();

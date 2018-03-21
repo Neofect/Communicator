@@ -72,7 +72,7 @@ public class UsbConnection extends Connection {
 	}
 
 	@Override
-	public void connect() {
+	protected void connect() {
 		Log.d(LOG_TAG, "connect:");
 		if (deviceConnection != null) {
 			Log.e(LOG_TAG, "connect: Already connected!");
