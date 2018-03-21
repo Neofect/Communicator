@@ -73,14 +73,31 @@ public class Communicator {
 		Connection connection = null;
 		try {
 			connection = ConnectionFactory.create(context, connectionType, deviceIdentifier, controller);
-
-			Log.d(LOG_TAG, "connect: " + connection.getClass().getSimpleName() + " is created and starts to connect.");
-			connection.connect();
-			return true;
+			Log.d(LOG_TAG, "connect: '" + connection.getClass().getSimpleName() + "' is created.");
 		} catch (Exception e) {
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
 			return false;
 		}
+		return connect(connection);
+	}
+
+	public static boolean connect(Connection connection) {
+		if (connection == null) {
+			Log.e(LOG_TAG, "connect: Connection is null!");
+			return false;
+		}
+		try {
+			connection.connect();
+			Log.i(LOG_TAG, "connect: Try to connect... '" + connection.getClass().getSimpleName() + "'");
+			return true;
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "connect: Failed to connect! " + connection.getDescription(), e);
+			Controller<?> controller = connection.getController();
+			Class<? extends Device> deviceClass = (controller == null ? null : controller.getDeviceClass());
+			instance.notifyFailedToConnect(connection, deviceClass, e);
+			return false;
+		}
+
 	}
 
 	public static void disconnect(Device device) {

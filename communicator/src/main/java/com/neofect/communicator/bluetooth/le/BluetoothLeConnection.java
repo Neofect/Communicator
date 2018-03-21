@@ -1,6 +1,7 @@
 package com.neofect.communicator.bluetooth.le;
 
 import android.annotation.TargetApi;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -12,6 +13,7 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
+import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
@@ -29,16 +31,16 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 	private final static UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
-	private final static UUID SERVICE_UUID = UUID.fromString("3dd4051e-8660-11e7-bb31-be2e44b06b34");
-	private final static UUID CHARACTERISTIC_WRITE_UUID = UUID.fromString("3dd4051d-8660-11e7-bb31-be2e44b06b34");
-	private final static UUID CHARACTERISTIC_NOTIFICATION_UUID = UUID.fromString("3dd4051c-8660-11e7-bb31-be2e44b06b34");
-
 	private Context context;
+	private UUID serviceUuid;
+	private UUID writeCharacteristicUuid;
+	private UUID readCharacteristicUuid;
+
 	private BluetoothGatt bluetoothGatt;
 	public  BluetoothGattCharacteristic writeCharacteristic;
 	private int rssi;
 
-	public BluetoothLeConnection(Context context, BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
+	private BluetoothLeConnection(Context context, BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
 			new Exception("Bluetooth LE is not supported for Android version " + Build.VERSION.SDK_INT);
@@ -114,19 +116,19 @@ public class BluetoothLeConnection extends BluetoothConnection {
 			}
 			Log.d(LOG_TAG, "onServicesDiscovered: ");
 
-			BluetoothGattService service = gatt.getService(SERVICE_UUID);
+			BluetoothGattService service = gatt.getService(serviceUuid);
 			if (service == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No GATT service of UUID '" + SERVICE_UUID + "'!");
+				Log.e(LOG_TAG, "onServicesDiscovered: No GATT service of UUID '" + serviceUuid + "'!");
 				return;
 			}
 
-			writeCharacteristic = service.getCharacteristic(CHARACTERISTIC_WRITE_UUID);
+			writeCharacteristic = service.getCharacteristic(writeCharacteristicUuid);
 			if (writeCharacteristic == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for write!");
 				return;
 			}
 
-			BluetoothGattCharacteristic notificationCharacteristic = service.getCharacteristic(CHARACTERISTIC_NOTIFICATION_UUID);
+			BluetoothGattCharacteristic notificationCharacteristic = service.getCharacteristic(readCharacteristicUuid);
 			if (writeCharacteristic == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for notification!");
 				return;
@@ -167,7 +169,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	private void handleAvailableData(BluetoothGattCharacteristic characteristic) {
-		if (CHARACTERISTIC_NOTIFICATION_UUID.equals(characteristic.getUuid())) {
+		if (readCharacteristicUuid.equals(characteristic.getUuid())) {
 			final byte[] data = characteristic.getValue();
 			if (data != null && data.length > 0) {
 				handleReadData(data);
@@ -184,6 +186,52 @@ public class BluetoothLeConnection extends BluetoothConnection {
 		}
 		bluetoothGatt.close();
 		bluetoothGatt = null;
+	}
+
+	public static class Builder {
+
+		private Controller<? extends Device> controller;
+		private Context context;
+		private String deviceIdentifier;
+		private String serviceUuid;
+		private String writeCharacteristicUuid;
+		private String readCharacteristicUuid;
+
+		public Builder(Controller<? extends Device> controller, Context context) {
+			this.controller = controller;
+			this.context = context;
+		}
+
+		public Builder deviceIdentifier(String deviceIdentifier) {
+			this.deviceIdentifier = deviceIdentifier;
+			return this;
+		}
+
+		public Builder serviceUuid(String serviceUuid) {
+			this.serviceUuid = serviceUuid;
+			return this;
+		}
+
+		public Builder writeCharacteristicUuid(String writeCharacteristicUuid) {
+			this.writeCharacteristicUuid = writeCharacteristicUuid;
+			return this;
+		}
+
+		public Builder readCharacteristicUuid(String readCharacteristicUuid) {
+			this.readCharacteristicUuid = readCharacteristicUuid;
+			return this;
+		}
+
+		public BluetoothLeConnection build() {
+			BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+			BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceIdentifier);
+			BluetoothLeConnection connection = new BluetoothLeConnection(context, device, controller, ConnectionType.BLUETOOTH_LE);
+
+			connection.serviceUuid = UUID.fromString(this.serviceUuid);
+			connection.writeCharacteristicUuid = UUID.fromString(this.writeCharacteristicUuid);
+			connection.readCharacteristicUuid = UUID.fromString(this.readCharacteristicUuid);
+			return connection;
+		}
 	}
 
 }

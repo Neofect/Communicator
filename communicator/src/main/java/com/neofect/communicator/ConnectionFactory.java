@@ -31,9 +31,7 @@ class ConnectionFactory {
 			}
 
 			case BLUETOOTH_LE: {
-				BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceIdentifier);
-				return new BluetoothLeConnection(context, device, controller, connectionType);
+				throw new Exception("Bluetooth LE connection cannot be created here. Use BluetoothLeConnection.Builder instead.");
 			}
 
 			case USB_SERIAL: {
