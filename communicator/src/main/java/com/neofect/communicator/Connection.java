@@ -59,10 +59,6 @@ public abstract class Connection {
 		return status == Status.CONNECTED;
 	}
 
-	protected void setStatus(Status status) {
-		this.status = status;
-	}
-
 	public Status getStatus() {
 		return status;
 	}
