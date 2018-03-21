@@ -27,7 +27,7 @@ public class DummyConnection extends Connection {
 	}
 
 	@Override
-	public void connect() {
+	protected void connect() {
 		if (getStatus() != Status.NOT_CONNECTED) {
 			Log.e(LOG_TAG, "connect: '" + getDescription() + "' is not in the status of to connect! Status=" + getStatus());
 			return;

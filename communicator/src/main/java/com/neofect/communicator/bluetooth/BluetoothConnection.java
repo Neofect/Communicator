@@ -75,7 +75,7 @@ public abstract class BluetoothConnection extends Connection {
 	}
 	
 	@Override
-	public final void connect() {
+	protected final void connect() {
 		Log.d(LOG_TAG, "connect: device= '" + getDescriptionWithAddress() + "'");
 		if (getStatus() == Status.NOT_CONNECTED) {
 			disconnectRequested = false;

@@ -15,20 +15,11 @@
  */
 package com.neofect.communicator;
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.hardware.usb.UsbDevice;
-import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.util.Log;
 
-import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
-import com.neofect.communicator.dummy.DummyConnection;
-import com.neofect.communicator.dummy.DummyPhysicalDevice;
-import com.neofect.communicator.dummy.DummyPhysicalDeviceManager;
 import com.neofect.communicator.message.Message;
-import com.neofect.communicator.usb.UsbConnection;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -79,51 +70,34 @@ public class Communicator {
 			return false;
 		}
 
-		Connection connection;
-		switch (connectionType) {
-			case BLUETOOTH_SPP:
-			case BLUETOOTH_SPP_INSECURE: {
-				BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-				BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceIdentifier);
-				connection = new BluetoothSppConnection(device, controller, connectionType);
-				break;
-			}
-			case USB_SERIAL: {
-				UsbManager usbManager = (UsbManager) context.getSystemService(Context.USB_SERVICE);
-				UsbDevice device = usbManager.getDeviceList().get(deviceIdentifier);
-				if (device == null) {
-					Exception exception = new Exception("Not existing USB device! deviceIdentifier=" + deviceIdentifier);
-					instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
-					return false;
-				}
-				connection = new UsbConnection(context, device, controller);
-				break;
-			}
-			case DUMMY: {
-				DummyPhysicalDevice device = DummyPhysicalDeviceManager.getDevice(deviceIdentifier);
-				if (device == null) {
-					Exception exception = new Exception("Not existing Dummy physical device! identifier=" + deviceIdentifier);
-					instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
-					return false;
-				}
-				connection = new DummyConnection(device, controller);
-				break;
-			}
-			default: {
-				Exception exception = new Exception("Unsupported connection type! '" + connectionType + "'");
-				instance.notifyFailedToConnect(null, controller.getDeviceClass(), exception);
-				return false;
-			}
-		}
-
+		Connection connection = null;
 		try {
-			Log.d(LOG_TAG, "connect: " + connection.getClass().getSimpleName() + " is created and starts to connect.");
-			connection.connect();
-			return true;
-		} catch(Exception e) {
+			connection = ConnectionFactory.create(context, connectionType, deviceIdentifier, controller);
+			Log.d(LOG_TAG, "connect: '" + connection.getClass().getSimpleName() + "' is created.");
+		} catch (Exception e) {
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
 			return false;
 		}
+		return connect(connection);
+	}
+
+	public static boolean connect(Connection connection) {
+		if (connection == null) {
+			Log.e(LOG_TAG, "connect: Connection is null!");
+			return false;
+		}
+		try {
+			connection.connect();
+			Log.i(LOG_TAG, "connect: Try to connect... '" + connection.getClass().getSimpleName() + "'");
+			return true;
+		} catch (Exception e) {
+			Log.e(LOG_TAG, "connect: Failed to connect! " + connection.getDescription(), e);
+			Controller<?> controller = connection.getController();
+			Class<? extends Device> deviceClass = (controller == null ? null : controller.getDeviceClass());
+			instance.notifyFailedToConnect(connection, deviceClass, e);
+			return false;
+		}
+
 	}
 
 	public static void disconnect(Device device) {

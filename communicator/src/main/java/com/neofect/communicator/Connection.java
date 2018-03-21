@@ -34,7 +34,7 @@ public abstract class Connection {
 		CONNECTED,
 	}
 	
-	public abstract void connect();
+	protected abstract void connect();
 	public abstract void disconnect();
 	public abstract String getDeviceIdentifier();
 	public abstract String getDeviceName();
@@ -57,10 +57,6 @@ public abstract class Connection {
 	
 	public boolean isConnected() {
 		return status == Status.CONNECTED;
-	}
-
-	protected void setStatus(Status status) {
-		this.status = status;
 	}
 
 	public Status getStatus() {
@@ -93,6 +89,10 @@ public abstract class Connection {
 	}
 
 	protected final void handleConnecting() {
+		if (status == Status.CONNECTING) {
+			Log.w(LOG_TAG, "handleConnecting: Already connecting. description=" + getDescription());
+			return;
+		}
 		status = Status.CONNECTING;
 		Communicator.getInstance().notifyStartConnecting(this, controller.getDeviceClass());
 	}
@@ -103,6 +103,10 @@ public abstract class Connection {
 	}
 
 	protected final void handleConnected() {
+		if (status == Status.CONNECTED) {
+			Log.w(LOG_TAG, "handleConnected: Already connected. description=" + getDescription());
+			return;
+		}
 		try {
 			Log.i(LOG_TAG, "Connected. description=" + getDescription());
 			status = Status.CONNECTED;
@@ -120,6 +124,10 @@ public abstract class Connection {
 	}
 
 	protected final void handleDisconnected() {
+		if (status == Status.NOT_CONNECTED) {
+			Log.w(LOG_TAG, "handleDisconnected: Already disconnected. description=" + getDescription());
+			return;
+		}
 		Log.i(LOG_TAG, "Disconnected. description=" + getDescription());
 		status = Status.NOT_CONNECTED;
 		controller.onDisconnected(this);
