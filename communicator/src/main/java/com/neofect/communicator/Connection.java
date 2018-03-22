@@ -89,6 +89,7 @@ public abstract class Connection {
 	}
 
 	protected final void handleConnecting() {
+		Log.d(LOG_TAG, "handleConnecting: ");
 		if (status == Status.CONNECTING) {
 			Log.w(LOG_TAG, "handleConnecting: Already connecting. description=" + getDescription());
 			return;
@@ -98,11 +99,13 @@ public abstract class Connection {
 	}
 
 	protected final void handleFailedToConnect(Exception cause) {
+		Log.d(LOG_TAG, "handleFailedToConnect: ");
 		status = Status.NOT_CONNECTED;
 		Communicator.getInstance().notifyFailedToConnect(this, controller.getDeviceClass(), cause);
 	}
 
 	protected final void handleConnected() {
+		Log.d(LOG_TAG, "handleConnected: ");
 		if (status == Status.CONNECTED) {
 			Log.w(LOG_TAG, "handleConnected: Already connected. description=" + getDescription());
 			return;
@@ -124,6 +127,7 @@ public abstract class Connection {
 	}
 
 	protected final void handleDisconnected() {
+		Log.d(LOG_TAG, "handleDisconnected: ");
 		if (status == Status.NOT_CONNECTED) {
 			Log.w(LOG_TAG, "handleDisconnected: Already disconnected. description=" + getDescription());
 			return;
