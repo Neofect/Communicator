@@ -112,6 +112,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 			if (status != BluetoothGatt.GATT_SUCCESS) {
 				Log.e(LOG_TAG, "onServicesDiscovered: The status is not success! status=" + status);
+				disconnect();
 				return;
 			}
 			Log.d(LOG_TAG, "onServicesDiscovered: ");
@@ -119,18 +120,21 @@ public class BluetoothLeConnection extends BluetoothConnection {
 			BluetoothGattService service = gatt.getService(serviceUuid);
 			if (service == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No GATT service of UUID '" + serviceUuid + "'!");
+				disconnect();
 				return;
 			}
 
 			writeCharacteristic = service.getCharacteristic(writeCharacteristicUuid);
 			if (writeCharacteristic == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for write!");
+				disconnect();
 				return;
 			}
 
 			BluetoothGattCharacteristic readCharacteristic = service.getCharacteristic(readCharacteristicUuid);
 			if (readCharacteristic == null) {
 				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for read!");
+				disconnect();
 				return;
 			}
 			bluetoothGatt.setCharacteristicNotification(readCharacteristic, true);
