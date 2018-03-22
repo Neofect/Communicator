@@ -108,11 +108,9 @@ class BluetoothSppTransferThread extends Thread {
 	
 	@Override
 	public void run() {
-		while (connection.isConnected()) {
+		do {
 			try {
-				// Read data from the input stream
 				int numberOfReadBytes = inputStream.read(buffer, 0, buffer.length);
-				
 				byte[] readData = new byte[numberOfReadBytes];
 				System.arraycopy(buffer, 0, readData, 0, numberOfReadBytes);
 				connection.onReadMessage(readData);
@@ -120,7 +118,7 @@ class BluetoothSppTransferThread extends Thread {
 				Log.d(LOG_TAG, "run: IOException on read(), device=" + connection.getDescriptionWithAddress());
 				onDisconnected();
 			}
-		}
+		} while (connection.isConnected());
 	}
 	
 }
