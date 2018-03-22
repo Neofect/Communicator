@@ -128,13 +128,13 @@ public class BluetoothLeConnection extends BluetoothConnection {
 				return;
 			}
 
-			BluetoothGattCharacteristic notificationCharacteristic = service.getCharacteristic(readCharacteristicUuid);
-			if (writeCharacteristic == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for notification!");
+			BluetoothGattCharacteristic readCharacteristic = service.getCharacteristic(readCharacteristicUuid);
+			if (readCharacteristic == null) {
+				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for read!");
 				return;
 			}
-			bluetoothGatt.setCharacteristicNotification(notificationCharacteristic, true);
-			enableCccdNotification(notificationCharacteristic);
+			bluetoothGatt.setCharacteristicNotification(readCharacteristic, true);
+			enableCccdNotification(readCharacteristic);
 		}
 
 		@Override
