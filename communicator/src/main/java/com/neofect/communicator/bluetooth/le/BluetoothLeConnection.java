@@ -19,6 +19,7 @@ import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -39,6 +40,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 	private BluetoothGatt bluetoothGatt;
 	public  BluetoothGattCharacteristic writeCharacteristic;
 	private int rssi;
+	private Exception causeOfConnectionFailure;
 
 	private BluetoothLeConnection(Context context, BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
@@ -97,7 +99,11 @@ public class BluetoothLeConnection extends BluetoothConnection {
 			} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 				Log.d(LOG_TAG, "onConnectionStateChange: newState=STATE_DISCONNECTED");
 				cleanUp();
-				handleDisconnected();
+				if (getStatus() == Status.CONNECTING) {
+					handleFailedToConnect(causeOfConnectionFailure);
+				} else {
+					handleDisconnected();
+				}
 			} else if (newState == BluetoothProfile.STATE_CONNECTING) {
 				Log.d(LOG_TAG, "onConnectionStateChange: newState=STATE_CONNECTING");
 			} else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
@@ -112,29 +118,36 @@ public class BluetoothLeConnection extends BluetoothConnection {
 		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 			if (status != BluetoothGatt.GATT_SUCCESS) {
 				Log.e(LOG_TAG, "onServicesDiscovered: The status is not success! status=" + status);
-				disconnect();
+				processFailedToConnect(new Exception("onServicesDiscovered: The status is not success! status=" + status));
 				return;
 			}
 			Log.d(LOG_TAG, "onServicesDiscovered: ");
 
+//			///////////
+//			List<BluetoothGattService> services = gatt.getServices();
+//			for (BluetoothGattService service : services) {
+//				Log.e(LOG_TAG, "onServicesDiscovered: serviceUuid=" + service.getUuid());
+//				for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
+//					Log.e(LOG_TAG, "onServicesDiscovered: characteristic=" + characteristic.getUuid());
+//				}
+//			}
+//			///////////
+
 			BluetoothGattService service = gatt.getService(serviceUuid);
 			if (service == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No GATT service of UUID '" + serviceUuid + "'!");
-				disconnect();
+				processFailedToConnect(new Exception("onServicesDiscovered: No GATT service of UUID '" + serviceUuid + "'!"));
 				return;
 			}
 
 			writeCharacteristic = service.getCharacteristic(writeCharacteristicUuid);
 			if (writeCharacteristic == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for write!");
-				disconnect();
+				processFailedToConnect(new Exception("onServicesDiscovered: No characteristic for write! '" + writeCharacteristicUuid + "'"));
 				return;
 			}
 
 			BluetoothGattCharacteristic readCharacteristic = service.getCharacteristic(readCharacteristicUuid);
 			if (readCharacteristic == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for read!");
-				disconnect();
+				processFailedToConnect(new Exception("onServicesDiscovered: No characteristic for read! '" + readCharacteristicUuid + "'"));
 				return;
 			}
 			bluetoothGatt.setCharacteristicNotification(readCharacteristic, true);
@@ -152,6 +165,12 @@ public class BluetoothLeConnection extends BluetoothConnection {
 		}
 
 	};
+
+	private void processFailedToConnect(Exception cause) {
+		Log.e(LOG_TAG, "processFailedToConnect: ", cause);
+		causeOfConnectionFailure = cause;
+		disconnectProcess();
+	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	private void enableCccdNotification(BluetoothGattCharacteristic characteristic) {
