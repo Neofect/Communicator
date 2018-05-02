@@ -13,13 +13,11 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
-import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
 import com.neofect.communicator.bluetooth.BluetoothConnection;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -30,7 +28,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 	private static final String LOG_TAG = "BluetoothLeConnection";
 
-	private final static UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+	private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
 	private Context context;
 	private UUID serviceUuid;
@@ -38,14 +36,14 @@ public class BluetoothLeConnection extends BluetoothConnection {
 	private UUID readCharacteristicUuid;
 
 	private BluetoothGatt bluetoothGatt;
-	public  BluetoothGattCharacteristic writeCharacteristic;
+	private BluetoothGattCharacteristic writeCharacteristic;
 	private int rssi;
 	private Exception causeOfConnectionFailure;
 
 	private BluetoothLeConnection(Context context, BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			new Exception("Bluetooth LE is not supported for Android version " + Build.VERSION.SDK_INT);
+			throw new UnsupportedOperationException("Bluetooth LE is not supported for Android version " + Build.VERSION.SDK_INT);
 		}
 		this.context = context;
 	}
@@ -122,16 +120,6 @@ public class BluetoothLeConnection extends BluetoothConnection {
 				return;
 			}
 			Log.d(LOG_TAG, "onServicesDiscovered: ");
-
-//			///////////
-//			List<BluetoothGattService> services = gatt.getServices();
-//			for (BluetoothGattService service : services) {
-//				Log.e(LOG_TAG, "onServicesDiscovered: serviceUuid=" + service.getUuid());
-//				for (BluetoothGattCharacteristic characteristic : service.getCharacteristics()) {
-//					Log.e(LOG_TAG, "onServicesDiscovered: characteristic=" + characteristic.getUuid());
-//				}
-//			}
-//			///////////
 
 			BluetoothGattService service = gatt.getService(serviceUuid);
 			if (service == null) {

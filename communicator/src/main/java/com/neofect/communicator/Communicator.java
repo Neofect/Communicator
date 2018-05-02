@@ -35,7 +35,7 @@ public class Communicator {
 
 	private static final String LOG_TAG = "Communicator";
 
-	public static abstract class Listener<T extends Device> {
+	public abstract static class Listener<T extends Device> {
 		public void onStartConnecting(Connection connection) {}
 		public void onFailedToConnect(Connection connection, Exception cause) {}
 		public void onDeviceConnected(T device, boolean alreadyExisting) {}

@@ -119,7 +119,7 @@ public class UsbConnection extends Connection {
 		}
 
 		if (usbEventReceiver != null) {
-			synchronized (usbEventReceiver) {
+			synchronized (this) {
 				try {
 					context.unregisterReceiver(usbEventReceiver);
 					Log.d(LOG_TAG, "cleanUp: Receiver unregistered.");
