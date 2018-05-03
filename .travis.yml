@@ -4,7 +4,7 @@ android:
   components:
     - tools
     - platform-tools
-    - build-tools-26.0.2
+    - build-tools-27.0.3
     - android-24
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -16,4 +16,4 @@ cache:
 licenses:
   - 'android-sdk-license-.+'
 install:
-  - echo yes | sdkmanager "build-tools;26.0.2"
+  - echo yes | sdkmanager "build-tools;27.0.3"
