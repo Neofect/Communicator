@@ -39,19 +39,22 @@ public class DummyConnection extends Connection {
 			} catch (InterruptedException e) {
 				Log.e(LOG_TAG, "", e);
 			}
-			device.connect(DummyConnection.this);
+			device.start((data) -> {
+				if (!isConnected()) {
+					Log.e(LOG_TAG, "send: Not connected! connection=" + getDescription());
+					return;
+				}
+				executor.execute(() -> handleReadData(data));
+			});
+			executor.execute(() -> DummyConnection.this.handleConnected());
 		});
-	}
-
-	void onConnected() {
-		executor.execute(this::handleConnected);
 	}
 
 	@Override
 	public void disconnect() {
 		executor.execute(() -> {
 			try {
-				device.disconnect();
+				device.stop();
 				handleDisconnected();
 			} catch (Exception e) {
 				Log.e(LOG_TAG, "", e);
@@ -80,15 +83,7 @@ public class DummyConnection extends Connection {
 			Log.e(LOG_TAG, "write: Not connected! connection=" + getDescription());
 			return;
 		}
-		executor.execute(() -> device.receive(data));
-	}
-
-	void onRead(final byte[] data) {
-		if (!isConnected()) {
-			Log.e(LOG_TAG, "onRead: Not connected! connection=" + getDescription());
-			return;
-		}
-		executor.execute(() -> handleReadData(data));
+		executor.execute(() -> device.put(data));
 	}
 
 }
