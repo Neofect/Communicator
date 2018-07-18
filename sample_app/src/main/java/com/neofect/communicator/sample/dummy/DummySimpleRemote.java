@@ -2,7 +2,6 @@ package com.neofect.communicator.sample.dummy;
 
 import android.util.Log;
 
-import com.neofect.communicator.dummy.DummyConnection;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
 
 import static com.neofect.communicator.util.ByteArrayConverter.byteArrayToHex;
@@ -27,24 +26,22 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 	}
 
 	@Override
-	protected void connect(final DummyConnection connection) {
-		Log.d(LOG_TAG, "connect:");
-		this.connection = connection;
-
-		notifyConnected();
+	public void start(final TransferDelegate delegate) {
+		Log.d(LOG_TAG, "start:");
+		super.start(delegate);
 		startSenderThread();
 	}
 
 	@Override
-	protected void disconnect() {
-		Log.d(LOG_TAG, "disconnect:");
+	public void stop() {
+		Log.d(LOG_TAG, "stop:");
 		stopSenderThread();
 	}
 
 	@Override
-	protected void receive(byte[] data) {
+	public void put(byte[] data) {
 		String message = byteArrayToHex(data);
-		Log.d(LOG_TAG, "receive: Physical device received data. [" + message + "]");
+		Log.d(LOG_TAG, "put: Physical device received data. [" + message + "]");
 
 		try {
 			if (message.startsWith("9d 03")) {
@@ -79,14 +76,14 @@ public class DummySimpleRemote extends DummyPhysicalDevice {
 		message[0] = (byte) 0x9d;
 		message[1] = (byte) 0x01;
 		message[2] = (byte) lastPressedButton;
-		notifyRead(message);
+		delegate.send(message);
 	}
 
 	private void sendLowBatteryAlertMessage() {
 		byte[] message = new byte[2];
 		message[0] = (byte) 0x9d;
 		message[1] = (byte) 0x02;
-		notifyRead(message);
+		delegate.send(message);
 	}
 
 	private void startBeep(int timeDuration) {
