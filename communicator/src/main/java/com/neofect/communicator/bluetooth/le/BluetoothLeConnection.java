@@ -13,7 +13,6 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 
-import com.neofect.communicator.Connection;
 import com.neofect.communicator.ConnectionType;
 import com.neofect.communicator.Controller;
 import com.neofect.communicator.Device;
@@ -29,7 +28,7 @@ public class BluetoothLeConnection extends BluetoothConnection {
 
 	private static final String LOG_TAG = "BluetoothLeConnection";
 
-	private final static UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+	private static final UUID CLIENT_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
 	private Context context;
 	private UUID serviceUuid;
@@ -37,13 +36,14 @@ public class BluetoothLeConnection extends BluetoothConnection {
 	private UUID readCharacteristicUuid;
 
 	private BluetoothGatt bluetoothGatt;
-	public  BluetoothGattCharacteristic writeCharacteristic;
+	private BluetoothGattCharacteristic writeCharacteristic;
 	private int rssi;
+	private Exception causeOfConnectionFailure;
 
 	private BluetoothLeConnection(Context context, BluetoothDevice device, Controller<? extends Device> controller, ConnectionType connectionType) {
 		super(device, controller, connectionType);
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-			new Exception("Bluetooth LE is not supported for Android version " + Build.VERSION.SDK_INT);
+			throw new UnsupportedOperationException("Bluetooth LE is not supported for Android version " + Build.VERSION.SDK_INT);
 		}
 		this.context = context;
 	}
@@ -97,7 +97,11 @@ public class BluetoothLeConnection extends BluetoothConnection {
 			} else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
 				Log.d(LOG_TAG, "onConnectionStateChange: newState=STATE_DISCONNECTED");
 				cleanUp();
-				handleDisconnected();
+				if (getStatus() == Status.CONNECTING) {
+					handleFailedToConnect(causeOfConnectionFailure);
+				} else {
+					handleDisconnected();
+				}
 			} else if (newState == BluetoothProfile.STATE_CONNECTING) {
 				Log.d(LOG_TAG, "onConnectionStateChange: newState=STATE_CONNECTING");
 			} else if (newState == BluetoothProfile.STATE_DISCONNECTING) {
@@ -112,29 +116,30 @@ public class BluetoothLeConnection extends BluetoothConnection {
 		public void onServicesDiscovered(BluetoothGatt gatt, int status) {
 			if (status != BluetoothGatt.GATT_SUCCESS) {
 				Log.e(LOG_TAG, "onServicesDiscovered: The status is not success! status=" + status);
+				processFailedToConnect(new Exception("onServicesDiscovered: The status is not success! status=" + status));
 				return;
 			}
 			Log.d(LOG_TAG, "onServicesDiscovered: ");
 
 			BluetoothGattService service = gatt.getService(serviceUuid);
 			if (service == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No GATT service of UUID '" + serviceUuid + "'!");
+				processFailedToConnect(new Exception("onServicesDiscovered: No GATT service of UUID '" + serviceUuid + "'!"));
 				return;
 			}
 
 			writeCharacteristic = service.getCharacteristic(writeCharacteristicUuid);
 			if (writeCharacteristic == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for write!");
+				processFailedToConnect(new Exception("onServicesDiscovered: No characteristic for write! '" + writeCharacteristicUuid + "'"));
 				return;
 			}
 
-			BluetoothGattCharacteristic notificationCharacteristic = service.getCharacteristic(readCharacteristicUuid);
-			if (writeCharacteristic == null) {
-				Log.e(LOG_TAG, "onServicesDiscovered: No characteristic for notification!");
+			BluetoothGattCharacteristic readCharacteristic = service.getCharacteristic(readCharacteristicUuid);
+			if (readCharacteristic == null) {
+				processFailedToConnect(new Exception("onServicesDiscovered: No characteristic for read! '" + readCharacteristicUuid + "'"));
 				return;
 			}
-			bluetoothGatt.setCharacteristicNotification(notificationCharacteristic, true);
-			enableCccdNotification(notificationCharacteristic);
+			bluetoothGatt.setCharacteristicNotification(readCharacteristic, true);
+			enableCccdNotification(readCharacteristic);
 		}
 
 		@Override
@@ -148,6 +153,12 @@ public class BluetoothLeConnection extends BluetoothConnection {
 		}
 
 	};
+
+	private void processFailedToConnect(Exception cause) {
+		Log.e(LOG_TAG, "processFailedToConnect: ", cause);
+		causeOfConnectionFailure = cause;
+		disconnectProcess();
+	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	private void enableCccdNotification(BluetoothGattCharacteristic characteristic) {
