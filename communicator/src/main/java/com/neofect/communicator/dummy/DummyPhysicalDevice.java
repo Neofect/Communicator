@@ -40,7 +40,8 @@ public abstract class DummyPhysicalDevice {
 		Log.d(LOG_TAG, "disconnect: ");
 	}
 
-	protected void receive(byte[] data) {
+	protected void put(byte[] data) {
+		Log.w(LOG_TAG, "put: Unsupported operation.");
 	}
 
 	protected void notifyRead(byte[] data) {

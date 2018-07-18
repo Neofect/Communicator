@@ -80,7 +80,7 @@ public class DummyConnection extends Connection {
 			Log.e(LOG_TAG, "write: Not connected! connection=" + getDescription());
 			return;
 		}
-		executor.execute(() -> device.receive(data));
+		executor.execute(() -> device.put(data));
 	}
 
 	void onRead(final byte[] data) {
