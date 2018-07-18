@@ -10,7 +10,11 @@ public abstract class DummyPhysicalDevice {
 
 	private static final String LOG_TAG = "DummyPhysicalDevice";
 
-	protected DummyConnection connection;
+	public interface TransferDelegate {
+		void send(byte[] data);
+	}
+
+	protected TransferDelegate delegate;
 	protected String deviceIdentifier;
 	protected String deviceName;
 
@@ -27,24 +31,17 @@ public abstract class DummyPhysicalDevice {
 		return deviceName;
 	}
 
-	protected void connect(final DummyConnection connection) {
-		Log.d(LOG_TAG, "connect: ");
+	public void start(final TransferDelegate delegate) {
+		Log.d(LOG_TAG, "start: ");
+		this.delegate = delegate;
 	}
 
-	protected void notifyConnected() {
-		Log.d(LOG_TAG, "notifyConnected: ");
-		connection.onConnected();
+	public void stop() {
+		Log.d(LOG_TAG, "stop: ");
 	}
 
-	protected void disconnect() {
-		Log.d(LOG_TAG, "disconnect: ");
-	}
-
-	protected void put(byte[] data) {
+	public void put(byte[] data) {
 		Log.w(LOG_TAG, "put: Unsupported operation.");
 	}
 
-	protected void notifyRead(byte[] data) {
-		connection.onRead(data);
-	}
 }
