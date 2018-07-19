@@ -26,5 +26,7 @@ public enum ConnectionType {
 
 	USB_SERIAL,
 
+	TCP,
+
 	DUMMY,
 }
