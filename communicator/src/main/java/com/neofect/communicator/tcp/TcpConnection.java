@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class TcpConnection extends Connection {
 
@@ -18,6 +20,7 @@ public class TcpConnection extends Connection {
 
 	private static final int BUFFER_SIZE = 1024;
 
+	private Executor executor = Executors.newSingleThreadExecutor();
 	private String ip;
 	private int port;
 	private Socket socket;
@@ -57,15 +60,17 @@ public class TcpConnection extends Connection {
 
 	@Override
 	public void write(byte[] data) {
-		if (outputStream == null) {
-			Log.e(LOG_TAG, "write: Not connected!");
-			return;
-		}
-		try {
-			outputStream.write(data);
-		} catch (IOException e) {
-			Log.e(LOG_TAG, "write: ", e);
-		}
+		executor.execute(() -> {
+			if (outputStream == null) {
+				Log.e(LOG_TAG, "write: Not connected!");
+				return;
+			}
+			try {
+				outputStream.write(data);
+			} catch (IOException e) {
+				Log.e(LOG_TAG, "write: ", e);
+			}
+		});
 	}
 
 	private void startReadThread() {
@@ -73,17 +78,25 @@ public class TcpConnection extends Connection {
 			while (true) {
 				try {
 					int numberOfReadBytes = inputStream.read(buffer, 0, buffer.length);
+					if (numberOfReadBytes < 0) {
+						onDisconnected();
+						return;
+					}
 					byte[] readData = new byte[numberOfReadBytes];
 					System.arraycopy(buffer, 0, readData, 0, numberOfReadBytes);
 					handleReadData(readData);
 				} catch (IOException e) {
 					Log.d(LOG_TAG, "run: IOException on read() '" + getDeviceIdentifier() + "'", e);
-					clear();
-					handleDisconnected();
-					break;
+					onDisconnected();
+					return;
 				}
 			}
 		}).start();
+	}
+
+	private void onDisconnected() {
+		clear();
+		handleDisconnected();
 	}
 
 	private void clear() {
