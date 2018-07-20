@@ -44,4 +44,8 @@ public abstract class DummyPhysicalDevice {
 		Log.w(LOG_TAG, "put: Unsupported operation.");
 	}
 
+	public void setTransferDelegate(TransferDelegate delegate) {
+		this.delegate = delegate;
+	}
+
 }
