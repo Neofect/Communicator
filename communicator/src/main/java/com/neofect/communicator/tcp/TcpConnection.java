@@ -23,15 +23,17 @@ public class TcpConnection extends Connection {
 	private Executor executor = Executors.newSingleThreadExecutor();
 	private String ip;
 	private int port;
+	private String endpointName;
 	private Socket socket;
 	private OutputStream outputStream;
 	private InputStream inputStream;
 	private byte[] buffer = new byte[BUFFER_SIZE];
 
-	public TcpConnection(String ip, int port, Controller<? extends Device> controller) {
+	public TcpConnection(String ip, int port, String endpointName, Controller<? extends Device> controller) {
 		super(ConnectionType.TCP, controller);
 		this.ip = ip;
 		this.port = port;
+		this.endpointName = endpointName;
 	}
 
 	@Override
@@ -75,7 +77,7 @@ public class TcpConnection extends Connection {
 
 	private void startReadThread() {
 		new Thread(() -> {
-			while (true) {
+			while (inputStream != null) {
 				try {
 					int numberOfReadBytes = inputStream.read(buffer, 0, buffer.length);
 					if (numberOfReadBytes < 0) {
@@ -133,12 +135,16 @@ public class TcpConnection extends Connection {
 
 	@Override
 	public String getDeviceName() {
-		return getDeviceIdentifier();
+		return endpointName != null ? endpointName : "";
 	}
 
 	@Override
 	public String getDescription() {
-		return getDeviceIdentifier();
+		if (endpointName == null) {
+			return getDeviceIdentifier();
+		} else {
+			return endpointName + "(" + getDeviceIdentifier() + ")";
+		}
 	}
 
 }
