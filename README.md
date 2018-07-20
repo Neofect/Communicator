@@ -10,7 +10,7 @@ It separates connection-related logic and protocol implementation so that user c
 
 ```gradle
 dependencies {
-    compile 'com.neofect.communicator:communicator:2.1.4'
+    compile 'com.neofect.communicator:communicator:2.1.5'
 }
 ```
 
