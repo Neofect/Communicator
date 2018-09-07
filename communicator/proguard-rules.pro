@@ -1,3 +1,7 @@
+###################################################
+# ProGuard configuration for Communicator library #
+###################################################
+
 -keepattributes Signature
 
 # Keep constructors of Device subclasses

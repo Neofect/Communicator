@@ -17,7 +17,6 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
             consumerProguardFiles 'proguard-rules.pro'
         }
     }
@@ -33,7 +32,7 @@ dependencies {
 }
 
 group = 'com.neofect.communicator'
-version = '2.1.5'
+version = '2.1.6'
 
 if (rootProject.name == 'Communicator') {
     apply from: project.file('../gradle/bintray-upload.gradle')
