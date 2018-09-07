@@ -27,8 +27,16 @@ public abstract class DummyPhysicalDevice {
 		return deviceIdentifier;
 	}
 
+	public void setDeviceIdentifier(String deviceIdentifier) {
+		this.deviceIdentifier = deviceIdentifier;
+	}
+
 	public String getDeviceName() {
 		return deviceName;
+	}
+
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
 	}
 
 	public void start(final TransferDelegate delegate) {
