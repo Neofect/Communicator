@@ -19,6 +19,8 @@ public class UsbSerialDriverFactory {
 	private static final int PRODUCT_SILABS_CP2105 = 0xea70;
 	private static final int PRODUCT_SILABS_CP2108 = 0xea71;
 	private static final int PRODUCT_SILABS_CP2110 = 0xea80;
+	private static final int VENDOR_STM = 0x0483;
+	private static final int PRODUCT_STM32 = 0x5740;
 
 	public static UsbSerialDriver createDriver(UsbDevice device, UsbDeviceConnection connection) {
 		int vendorId = device.getVendorId();
@@ -30,7 +32,12 @@ public class UsbSerialDriverFactory {
 				case PRODUCT_SILABS_CP2105:
 				case PRODUCT_SILABS_CP2108:
 				case PRODUCT_SILABS_CP2110:
-				return new UsbCp21xxSerialDriver(device, connection);
+				    return new UsbCp21xxSerialDriver(device, connection);
+			}
+		} else if(vendorId == VENDOR_STM) {
+			switch (productId) {
+				case PRODUCT_STM32:
+					return new UsbSTM32SerialDriver(device, connection);
 			}
 		}
 
