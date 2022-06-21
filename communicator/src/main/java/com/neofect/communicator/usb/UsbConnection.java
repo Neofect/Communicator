@@ -151,7 +151,11 @@ public class UsbConnection extends Connection {
 			readEndpoint = endpoints[0];
 			writeEndpoint = endpoints[1];
 
-			driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+			if(driver instanceof UsbSTM32SerialDriver) {
+				driver.setParameters(230400, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+			} else {
+				driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+			}
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "Failed to connect to USB device(" + device.getDeviceName() + "). cause=" + e.getMessage());
 			cleanUp();
