@@ -32,8 +32,23 @@ dependencies {
 }
 
 group = 'com.neofect.communicator'
-version = '2.1.8'
+version = '2.1.9-SNAPSHOT'
 
+//if (rootProject.name == 'Communicator') {
+//    apply from: project.file('../gradle/bintray-upload.gradle')
+//}
 if (rootProject.name == 'Communicator') {
-    apply from: project.file('../gradle/bintray-upload.gradle')
+    uploadArchives {
+        repositories {
+            apply plugin: 'maven'
+            mavenDeployer {
+                repository(url: NEXUS_RELEASE_URL) {
+                    authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+                }
+                snapshotRepository(url: NEXUS_SNAPSHOT_URL) {
+                    authentication(userName: NEXUS_USERNAME, password: NEXUS_PASSWORD)
+                }
+            }
+        }
+    }
 }
