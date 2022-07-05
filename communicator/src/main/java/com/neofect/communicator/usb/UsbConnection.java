@@ -152,7 +152,7 @@ public class UsbConnection extends Connection {
 			writeEndpoint = endpoints[1];
 
 			if(driver instanceof UsbSTM32SerialDriver) {
-				driver.setParameters(230400, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+				driver.setParameters(921600, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
 			} else {
 				driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
 			}
