@@ -20,7 +20,7 @@ import static android.content.ContentValues.TAG;
  * @author neo.kim@neofect.com
  * @date Nov 29, 2016
  */
-public class UsbCp21xxSerialDriver extends UsbSerialDriver {
+public class NeofectUsbCp21xxSerialDriver extends NeofectUsbSerialDriver {
 
 	private static final int DEFAULT_BAUD_RATE = 9600;
 
@@ -65,7 +65,7 @@ public class UsbCp21xxSerialDriver extends UsbSerialDriver {
 	private static final int CONTROL_WRITE_DTR = 0x0100;
 	private static final int CONTROL_WRITE_RTS = 0x0200;
 
-	UsbCp21xxSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
+	NeofectUsbCp21xxSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
 		super(device, connection);
 	}
 

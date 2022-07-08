@@ -4,7 +4,7 @@ android {
     compileSdkVersion 24
     defaultConfig {
         applicationId "com.neofect.communicator.sample"
-        minSdkVersion 15
+        minSdkVersion 17
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

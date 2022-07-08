@@ -22,7 +22,7 @@ public class UsbSerialDriverFactory {
 	private static final int VENDOR_STM = 0x0483;
 	private static final int PRODUCT_STM32 = 0x5740;
 
-	public static UsbSerialDriver createDriver(UsbDevice device, UsbDeviceConnection connection) {
+	public static NeofectUsbSerialDriver createDriver(UsbDevice device, UsbDeviceConnection connection) {
 		int vendorId = device.getVendorId();
 		int productId = device.getProductId();
 
@@ -32,12 +32,12 @@ public class UsbSerialDriverFactory {
 				case PRODUCT_SILABS_CP2105:
 				case PRODUCT_SILABS_CP2108:
 				case PRODUCT_SILABS_CP2110:
-				    return new UsbCp21xxSerialDriver(device, connection);
+				    return new NeofectUsbCp21xxSerialDriver(device, connection);
 			}
 		} else if(vendorId == VENDOR_STM) {
 			switch (productId) {
 				case PRODUCT_STM32:
-					return new UsbSTM32SerialDriver(device, connection);
+					return new NeofectCdcAcmSerialDriver(device, connection);
 			}
 		}
 

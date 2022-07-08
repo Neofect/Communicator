@@ -10,7 +10,7 @@ import java.io.IOException;
  * @author neo.kim@neofect.com
  * @date Nov 29, 2016
  */
-public abstract class UsbSerialDriver {
+public abstract class NeofectUsbSerialDriver {
 
 	/**
 	 * 5 data bits.
@@ -100,7 +100,7 @@ public abstract class UsbSerialDriver {
 	protected UsbDevice device;
 	protected UsbDeviceConnection connection;
 
-	UsbSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
+	NeofectUsbSerialDriver(UsbDevice device, UsbDeviceConnection connection) {
 		this.device = device;
 		this.connection = connection;
 	}

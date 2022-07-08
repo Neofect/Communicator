@@ -29,7 +29,7 @@ package com.neofect.communicator.usb;
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-public final class UsbId {
+public final class NeofectUsbId {
 
     public static final int VENDOR_FTDI = 0x0403;
     public static final int FTDI_FT232R = 0x6001;
@@ -64,7 +64,7 @@ public final class UsbId {
     public static final int VENDOR_PROLIFIC = 0x067b;
     public static final int PROLIFIC_PL2303 = 0x2303;
 
-    private UsbId() {
+    private NeofectUsbId() {
         throw new IllegalAccessError("Non-instantiable class.");
     }
 

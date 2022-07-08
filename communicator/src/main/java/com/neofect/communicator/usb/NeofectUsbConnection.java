@@ -24,9 +24,9 @@ import java.nio.ByteBuffer;
  * @author neo.kim@neofect.com
  * @date Nov 16, 2016
  */
-public class UsbConnection extends Connection {
+public class NeofectUsbConnection extends Connection {
 
-	private static final String LOG_TAG = UsbConnection.class.getSimpleName();
+	private static final String LOG_TAG = NeofectUsbConnection.class.getSimpleName();
 
 	private static final String ACTION_USB_PERMISSION = "com.neofect.communicator.USB_PERMISSION";
 
@@ -42,11 +42,11 @@ public class UsbConnection extends Connection {
 	private UsbDeviceConnection deviceConnection;
 	private UsbEndpoint readEndpoint;
 	private UsbEndpoint writeEndpoint;
-	private UsbSerialDriver driver;
+	private NeofectUsbSerialDriver driver;
 	private Thread readThread;
 	private BroadcastReceiver usbEventReceiver;
 
-	public UsbConnection(Context context, UsbDevice device, Controller<? extends Device> controller) {
+	public NeofectUsbConnection(Context context, UsbDevice device, Controller<? extends Device> controller) {
 		super(ConnectionType.USB_SERIAL, controller);
 		this.context = context.getApplicationContext();
 		this.device = device;
@@ -151,10 +151,10 @@ public class UsbConnection extends Connection {
 			readEndpoint = endpoints[0];
 			writeEndpoint = endpoints[1];
 
-			if(driver instanceof UsbSTM32SerialDriver) {
-				driver.setParameters(921600, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+			if(driver instanceof NeofectCdcAcmSerialDriver) {
+				driver.setParameters(921600, 8, NeofectUsbSerialDriver.STOPBITS_1, NeofectUsbSerialDriver.PARITY_NONE);
 			} else {
-				driver.setParameters(115200, 8, UsbSerialDriver.STOPBITS_1, UsbSerialDriver.PARITY_NONE);
+				driver.setParameters(115200, 8, NeofectUsbSerialDriver.STOPBITS_1, NeofectUsbSerialDriver.PARITY_NONE);
 			}
 		} catch (Exception e) {
 			Log.e(LOG_TAG, "Failed to connect to USB device(" + device.getDeviceName() + "). cause=" + e.getMessage());
@@ -189,11 +189,11 @@ public class UsbConnection extends Connection {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				UsbDevice device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-				if (device == null || !UsbConnection.this.device.equals(device)) {
+				if (device == null || !NeofectUsbConnection.this.device.equals(device)) {
 					return;
 				}
 				String action = intent.getAction();
-				Log.d(LOG_TAG, "USB event is received. action=" + action + ", device=" + UsbConnection.this.getDescription());
+				Log.d(LOG_TAG, "USB event is received. action=" + action + ", device=" + NeofectUsbConnection.this.getDescription());
 
 				if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
 					Log.i(LOG_TAG, "USB device is detached. device=" + device);
@@ -258,7 +258,7 @@ public class UsbConnection extends Connection {
 			final UsbRequest request = new UsbRequest();
 			request.initialize(deviceConnection, readEndpoint);
 			try {
-				while (UsbConnection.this.isConnected()) {
+				while (NeofectUsbConnection.this.isConnected()) {
 					ByteBuffer buf = ByteBuffer.wrap(buffer);
 					if (!request.queue(buf, buffer.length)) {
 						Log.e(LOG_TAG, "UsbReadThread: run: Failed queueing request!");

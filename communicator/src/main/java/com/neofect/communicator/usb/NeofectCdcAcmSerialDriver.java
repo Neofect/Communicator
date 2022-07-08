@@ -43,13 +43,13 @@ import java.util.Map;
  *      href="http://www.usb.org/developers/devclass_docs/usbcdc11.pdf">Universal
  *      Serial Bus Class Definitions for Communication Devices, v1.1</a>
  */
-class CdcAcmSerialDriver extends UsbSerialDriver {
+class NeofectCdcAcmSerialDriver extends NeofectUsbSerialDriver {
 
-    private final String TAG = CdcAcmSerialDriver.class.getSimpleName();
+    private final String TAG = NeofectCdcAcmSerialDriver.class.getSimpleName();
 
-    private final UsbSerialPort mPort;
+    private final NeofectUsbSerialPort mPort;
 
-    CdcAcmSerialDriver(UsbDevice device, UsbDeviceConnection usbDeviceConnection) {
+    NeofectCdcAcmSerialDriver(UsbDevice device, UsbDeviceConnection usbDeviceConnection) {
         super(device, usbDeviceConnection);
         mPort = new CdcAcmSerialPort(device, 0);
     }
@@ -77,7 +77,7 @@ class CdcAcmSerialDriver extends UsbSerialDriver {
         mPort.setParameters(baudRate, dataBits, stopBits, parity);
     }
 
-    class CdcAcmSerialPort extends CommonUsbSerialPort {
+    class CdcAcmSerialPort extends NeofectCommonUsbSerialPort {
 
         private final boolean mEnableAsyncReads;
         private UsbInterface mControlInterface;
@@ -104,8 +104,8 @@ class CdcAcmSerialDriver extends UsbSerialDriver {
         }
 
         @Override
-        public UsbSerialDriver getDriver() {
-            return CdcAcmSerialDriver.this;
+        public NeofectUsbSerialDriver getDriver() {
+            return NeofectCdcAcmSerialDriver.this;
         }
 
         @Override
@@ -333,29 +333,29 @@ class CdcAcmSerialDriver extends UsbSerialDriver {
 
     public static Map<Integer, int[]> getSupportedDevices() {
         final Map<Integer, int[]> supportedDevices = new LinkedHashMap<Integer, int[]>();
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_ARDUINO),
+        supportedDevices.put(Integer.valueOf(NeofectUsbId.VENDOR_ARDUINO),
                 new int[] {
-                        UsbId.ARDUINO_UNO,
-                        UsbId.ARDUINO_UNO_R3,
-                        UsbId.ARDUINO_MEGA_2560,
-                        UsbId.ARDUINO_MEGA_2560_R3,
-                        UsbId.ARDUINO_SERIAL_ADAPTER,
-                        UsbId.ARDUINO_SERIAL_ADAPTER_R3,
-                        UsbId.ARDUINO_MEGA_ADK,
-                        UsbId.ARDUINO_MEGA_ADK_R3,
-                        UsbId.ARDUINO_LEONARDO,
+                        NeofectUsbId.ARDUINO_UNO,
+                        NeofectUsbId.ARDUINO_UNO_R3,
+                        NeofectUsbId.ARDUINO_MEGA_2560,
+                        NeofectUsbId.ARDUINO_MEGA_2560_R3,
+                        NeofectUsbId.ARDUINO_SERIAL_ADAPTER,
+                        NeofectUsbId.ARDUINO_SERIAL_ADAPTER_R3,
+                        NeofectUsbId.ARDUINO_MEGA_ADK,
+                        NeofectUsbId.ARDUINO_MEGA_ADK_R3,
+                        NeofectUsbId.ARDUINO_LEONARDO,
                 });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_VAN_OOIJEN_TECH),
+        supportedDevices.put(Integer.valueOf(NeofectUsbId.VENDOR_VAN_OOIJEN_TECH),
                 new int[] {
-                    UsbId.VAN_OOIJEN_TECH_TEENSYDUINO_SERIAL,
+                    NeofectUsbId.VAN_OOIJEN_TECH_TEENSYDUINO_SERIAL,
                 });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_ATMEL),
+        supportedDevices.put(Integer.valueOf(NeofectUsbId.VENDOR_ATMEL),
                 new int[] {
-                    UsbId.ATMEL_LUFA_CDC_DEMO_APP,
+                    NeofectUsbId.ATMEL_LUFA_CDC_DEMO_APP,
                 });
-        supportedDevices.put(Integer.valueOf(UsbId.VENDOR_LEAFLABS),
+        supportedDevices.put(Integer.valueOf(NeofectUsbId.VENDOR_LEAFLABS),
                 new int[] {
-                    UsbId.LEAFLABS_MAPLE,
+                    NeofectUsbId.LEAFLABS_MAPLE,
                 });
         return supportedDevices;
     }

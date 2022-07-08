@@ -31,7 +31,7 @@ import java.io.IOException;
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-public interface UsbSerialPort {
+public interface NeofectUsbSerialPort {
 
     /** 5 data bits. */
     public static final int DATABITS_5 = 5;
@@ -84,7 +84,7 @@ public interface UsbSerialPort {
     /** 2 stop bits. */
     public static final int STOPBITS_2 = 2;
 
-    public UsbSerialDriver getDriver();
+    public NeofectUsbSerialDriver getDriver();
 
     /**
      * Port number within driver.

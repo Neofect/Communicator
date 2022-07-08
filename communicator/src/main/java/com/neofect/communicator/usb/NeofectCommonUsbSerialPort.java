@@ -31,7 +31,7 @@ import java.io.IOException;
  *
  * @author mike wakerly (opensource@hoho.com)
  */
-abstract class CommonUsbSerialPort implements UsbSerialPort {
+abstract class NeofectCommonUsbSerialPort implements NeofectUsbSerialPort {
 
     public static final int DEFAULT_READ_BUFFER_SIZE = 16 * 1024;
     public static final int DEFAULT_WRITE_BUFFER_SIZE = 16 * 1024;
@@ -51,7 +51,7 @@ abstract class CommonUsbSerialPort implements UsbSerialPort {
     /** Internal write buffer.  Guarded by {@link #mWriteBufferLock}. */
     protected byte[] mWriteBuffer;
 
-    public CommonUsbSerialPort(UsbDevice device, int portNumber) {
+    public NeofectCommonUsbSerialPort(UsbDevice device, int portNumber) {
         mDevice = device;
         mPortNumber = portNumber;
 
