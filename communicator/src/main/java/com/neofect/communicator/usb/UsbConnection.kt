@@ -17,7 +17,7 @@ import com.neofect.communicator.Connection
 import com.neofect.communicator.ConnectionType
 import com.neofect.communicator.Controller
 import com.neofect.communicator.Device
-import com.neofect.communicator.util.ByteArrayConverter
+import com.neofect.communicator.util.ByteRingBuffer
 import java.io.IOException
 
 /**
@@ -31,7 +31,12 @@ class UsbConnection(
 ) : Connection(ConnectionType.USB_SERIAL, controller) {
     private var usbSerialPort: UsbSerialPort? = null
     private var usbEventReceiver: BroadcastReceiver? = null
-    private var usbIoManager: SerialInputOutputManager? = null
+    private var usbIoManager: SimpleSerialIoManager? = null
+
+    private var readDataHandlerThread: Thread? = null
+
+    private val readDataCache = ByteRingBuffer()
+    private val cacheLock = Object()
 
     override fun connect() {
         registerReceiver()
@@ -58,6 +63,10 @@ class UsbConnection(
     }
 
     private fun cleanUp() {
+
+        readDataHandlerThread?.interrupt()
+        readDataHandlerThread = null
+
         usbIoManager?.let {
             it.listener = null
             it.stop()
@@ -83,18 +92,22 @@ class UsbConnection(
     }
 
     private fun startConnecting() {
+        handleConnecting()
         val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
         val usbConnection = usbManager.openDevice(device)
         val driver = UsbSerialProber.getDefaultProber().probeDevice(device) ?: run {
+            UsbCustomProber.getCustomProber().probeDevice(device)
+        } ?: run {
             throw IllegalStateException("Unknown usb device. driver not found.")
         }
+
         val usbSerialPort = driver.ports.first()
         runCatching {
             usbSerialPort.open(usbConnection)
             when (usbSerialPort) {
                 is CdcAcmSerialDriver.CdcAcmSerialPort -> {
                     usbSerialPort.setParameters(
-                        921600,
+                        115200,
                         8,
                         UsbSerialPort.STOPBITS_1,
                         UsbSerialPort.PARITY_NONE
@@ -109,11 +122,20 @@ class UsbConnection(
                     )
                 }
             }
-            usbIoManager = SerialInputOutputManager(usbSerialPort, inputOutputManagerListener)
+
+            readDataHandlerThread?.interrupt()
+
+            usbIoManager =
+                SimpleSerialIoManager(usbSerialPort, READ_BUFFER_SIZE, inputOutputManagerListener)
             usbIoManager?.start()
             this@UsbConnection.usbSerialPort = usbSerialPort
 
             handleConnected()
+
+            readDataHandlerThread = ReadDataHandlerThread()
+            readDataHandlerThread?.start()
+
+
         }.onFailure {
             cleanUp()
             val exception = if (it is Exception) it else IOException("connect failed.")
@@ -172,8 +194,6 @@ class UsbConnection(
             return
         }
         runCatching {
-            val hex = ByteArrayConverter.byteArrayToHex(data)
-            Log.d(LOG_TAG, "writeData: $hex")
             usbSerialPort?.write(data, WRITE_TIMEOUT_MILLIS)
         }.onFailure { e ->
             Log.e(LOG_TAG, "write()", e)
@@ -191,23 +211,49 @@ class UsbConnection(
 
     override fun getDescription(): String = "$deviceName($deviceIdentifier)"
 
+    private inner class ReadDataHandlerThread : Thread() {
+        override fun run() {
+            Log.d(LOG_TAG, "ReadDataHandlerThread start.")
+            runCatching {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
+                while (isConnected) {
+                    val result = synchronized(cacheLock) {
+                        readDataCache.read(readDataCache.contentSize)
+                    }
+                    if (result?.isNotEmpty() == true) {
+                        handleReadData(result)
+                    }
+                    sleep(1)
+                }
+            }.onFailure {
+                it.printStackTrace()
+            }
+            Log.d(LOG_TAG, "ReadDataHandlerThread finish.")
+        }
+    }
+
     private val inputOutputManagerListener = object : SerialInputOutputManager.Listener {
+//        val dataChecker = SmartBalanceSensorDataChecker("readThread")
         override fun onNewData(data: ByteArray?) {
-            val hex = ByteArrayConverter.byteArrayToHex(data)
-            Log.d(LOG_TAG, "readData: $hex")
-            handleReadData(data)
+            if (data != null) {
+//                dataChecker.simpleCheckSensorData(data)
+                synchronized(cacheLock) {
+                    readDataCache.put(data)
+                }
+            }
         }
 
         override fun onRunError(e: Exception?) {
             Log.e(LOG_TAG, "onRunError. ", e)
             disconnect()
         }
+
     }
 
     companion object {
         private val LOG_TAG = UsbConnection::class.java.simpleName
         private val ACTION_USB_PERMISSION = "com.neofect.communicator.USB_PERMISSION"
         private const val WRITE_TIMEOUT_MILLIS = 200
+        private const val READ_BUFFER_SIZE = 16 * 1024
     }
-
 }
