@@ -15,10 +15,10 @@ import java.nio.ByteBuffer
 internal class SimpleSerialIoManager(
     private val serialPort: UsbSerialPort,
     bufferSize: Int? = null,
-    listener: SerialInputOutputManager.Listener? = null
+    listener: Listener? = null
 ) : Runnable {
-    private var readBuffer // default size = getReadEndpoint().getMaxPacketSize()
-            : ByteBuffer
+    private var readBufferArray: ByteArray
+    private var readBufferLength: Int = 0
 
     @get:Synchronized
     var state = SerialInputOutputManager.State.STOPPED // Synchronized by 'this'
@@ -26,16 +26,16 @@ internal class SimpleSerialIoManager(
 
     @get:Synchronized
     @set:Synchronized
-    var listener // Synchronized by 'this'
-            : SerialInputOutputManager.Listener? = listener
+    var listener: Listener? = listener  // Synchronized by 'this'
 
     init {
         Log.d(TAG, "buffer size: ${serialPort.readEndpoint.maxPacketSize}")
-        readBuffer = bufferSize?.let {
+        val readBuffer = bufferSize?.let {
             ByteBuffer.allocate(it)
         } ?: run {
             ByteBuffer.allocate(serialPort.readEndpoint.maxPacketSize)
         }
+        readBufferArray = readBuffer.array()
     }
 
     /**
@@ -95,19 +95,19 @@ internal class SimpleSerialIoManager(
     @Throws(IOException::class)
     private fun readStep() {
         // Handle incoming data.
-        val buffer: ByteArray? = readBuffer.array()
-        val len = serialPort.read(buffer, 0)
-        if (len > 0) {
-            val listener = listener
-            if (listener != null) {
-                val data = ByteArray(len)
-                System.arraycopy(buffer, 0, data, 0, len)
-                listener.onNewData(data)
-            }
+        readBufferLength = serialPort.read(readBufferArray, 0)
+        if (readBufferLength > 0) {
+            this.listener?.onNewData(readBufferArray, readBufferLength)
         }
     }
 
     companion object {
         private val TAG = SimpleSerialIoManager::class.java.simpleName
+    }
+
+    interface Listener {
+        fun onNewData(data: ByteArray, length: Int)
+
+        fun onRunError(e: java.lang.Exception?)
     }
 }

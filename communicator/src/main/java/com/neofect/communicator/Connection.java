@@ -45,7 +45,7 @@ public abstract class Connection {
 
     private ConnectionType connectionType;
     private Status status = Status.NOT_CONNECTED;
-    private ByteRingBuffer ringBuffer = new ByteRingBuffer();
+    private ByteRingBuffer ringBuffer = new ByteRingBuffer(2 * 1024 * 1024);
 
     public Connection(ConnectionType connectionType, Controller<? extends Device> controller) {
         this.connectionType = connectionType;

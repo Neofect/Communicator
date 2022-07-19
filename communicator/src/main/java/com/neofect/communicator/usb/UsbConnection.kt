@@ -12,7 +12,6 @@ import android.util.Log
 import com.hoho.android.usbserial.driver.CdcAcmSerialDriver
 import com.hoho.android.usbserial.driver.UsbSerialPort
 import com.hoho.android.usbserial.driver.UsbSerialProber
-import com.hoho.android.usbserial.util.SerialInputOutputManager
 import com.neofect.communicator.Connection
 import com.neofect.communicator.ConnectionType
 import com.neofect.communicator.Controller
@@ -35,7 +34,9 @@ class UsbConnection(
 
     private var readDataHandlerThread: Thread? = null
 
-    private val readDataCache = ByteRingBuffer()
+    private val readDataCache = ByteRingBuffer(
+        2 * 1024 * 1024 // Maximum 2MB
+    )
     private val cacheLock = Object()
 
     override fun connect() {
@@ -232,13 +233,13 @@ class UsbConnection(
         }
     }
 
-    private val inputOutputManagerListener = object : SerialInputOutputManager.Listener {
-//        val dataChecker = SmartBalanceSensorDataChecker("readThread")
-        override fun onNewData(data: ByteArray?) {
+    private val inputOutputManagerListener = object : SimpleSerialIoManager.Listener {
+        //        val dataChecker = SmartBalanceSensorDataChecker("readThread")
+        override fun onNewData(data: ByteArray, length: Int) {
             if (data != null) {
 //                dataChecker.simpleCheckSensorData(data)
                 synchronized(cacheLock) {
-                    readDataCache.put(data)
+                    readDataCache.put(data, length)
                 }
             }
         }
@@ -254,6 +255,6 @@ class UsbConnection(
         private val LOG_TAG = UsbConnection::class.java.simpleName
         private val ACTION_USB_PERMISSION = "com.neofect.communicator.USB_PERMISSION"
         private const val WRITE_TIMEOUT_MILLIS = 200
-        private const val READ_BUFFER_SIZE = 16 * 1024
+        private const val READ_BUFFER_SIZE = 100
     }
 }
