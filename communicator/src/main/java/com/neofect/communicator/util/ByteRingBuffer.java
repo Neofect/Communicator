@@ -65,6 +65,9 @@ public class ByteRingBuffer {
     }
 
     public void put(byte[] data, int dataLength) {
+        put(data, 0, dataLength);
+    }
+    public void put(byte[] data, int startPosition, int dataLength) {
         // Check if the internal buffer has enough room for given data.
         if (getAvailableSize() < dataLength) {
             if (buffer.length < maxCapacity) {
@@ -74,7 +77,7 @@ public class ByteRingBuffer {
             }
         }
 
-        int dataIndex = 0;
+        int dataIndex = startPosition;
         while (dataLength > 0) {
             int tailIndex = headIndex + contentSize;
             int copyLength = 0;
@@ -170,16 +173,16 @@ public class ByteRingBuffer {
         return result;
     }
 
-    public void read(byte[] buffer) {
-        readWithoutConsume(buffer);
-        consume(buffer.length);
+    public void read(byte[] buffer, int length) {
+        readWithoutConsume(buffer, length);
+        consume(length);
     }
 
-    public void readWithoutConsume(byte[] result) {
-        if (result.length > contentSize) {
-            throw new ArrayIndexOutOfBoundsException("Possible length=" + contentSize + ", but requested=" + result.length);
+    public void readWithoutConsume(byte[] result, int length) {
+        if (length > contentSize) {
+            throw new ArrayIndexOutOfBoundsException("Possible length=" + contentSize + ", but requested=" + length);
         }
-        fillByteArrayFromInternalBuffer(result, 0, 0, result.length);
+        fillByteArrayFromInternalBuffer(result, 0, 0, length);
     }
 
     public void clear() {

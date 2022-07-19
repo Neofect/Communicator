@@ -18,6 +18,7 @@ import com.neofect.communicator.Controller
 import com.neofect.communicator.Device
 import com.neofect.communicator.util.ByteRingBuffer
 import java.io.IOException
+import java.nio.ByteBuffer
 
 /**
  * Created by jhchoi on 2022/07/08
@@ -217,12 +218,19 @@ class UsbConnection(
             Log.d(LOG_TAG, "ReadDataHandlerThread start.")
             runCatching {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
+                var bufferCache = ByteBuffer.allocate(2 * 1024 * 1024).array()
                 while (isConnected) {
-                    val result = synchronized(cacheLock) {
-                        readDataCache.read(readDataCache.contentSize)
+                    val contentSize = synchronized(cacheLock) {
+                        val contentSize = readDataCache.contentSize
+                        if (contentSize > bufferCache.size) {
+                            Log.d(LOG_TAG, "handle thread buffer alloc. size: $contentSize")
+                            bufferCache = ByteBuffer.allocate(contentSize).array()
+                        }
+                        readDataCache.read(bufferCache, contentSize)
+                        contentSize
                     }
-                    if (result?.isNotEmpty() == true) {
-                        handleReadData(result)
+                    if (bufferCache.isNotEmpty()) {
+                        handleReadData(bufferCache, contentSize)
                     }
                     sleep(1)
                 }

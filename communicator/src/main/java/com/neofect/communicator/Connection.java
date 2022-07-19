@@ -89,6 +89,15 @@ public abstract class Connection {
         }
     }
 
+    protected final void handleReadData(byte[] data, int size) {
+        ringBuffer.put(data, size);
+
+        // Process message
+        synchronized (this) {
+            controller.decodeRawMessageAndProcess(this);
+        }
+    }
+
     protected final void handleConnecting() {
         Log.d(LOG_TAG, "handleConnecting: ");
         if (status == Status.CONNECTING) {
