@@ -242,10 +242,8 @@ class UsbConnection(
     }
 
     private val inputOutputManagerListener = object : SimpleSerialIoManager.Listener {
-        //        val dataChecker = SmartBalanceSensorDataChecker("readThread")
         override fun onNewData(data: ByteArray, length: Int) {
             if (data != null) {
-//                dataChecker.simpleCheckSensorData(data)
                 synchronized(cacheLock) {
                     readDataCache.put(data, length)
                 }
