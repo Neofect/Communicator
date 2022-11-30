@@ -67,6 +67,7 @@ public abstract class MessageDecoder {
 	 * @return
 	 */
 	protected final Message decodeMessagePayload(byte[] messageId, byte[] data, int startIndex, int length) {
+
 		if (messageClassMapper == null) {
 			Log.e(LOG_TAG, "Message class mapper is not set!");
 			return null;
@@ -74,7 +75,7 @@ public abstract class MessageDecoder {
 		
 		// Create a message instance
 		Message message = createMessage(messageId);
-		
+
 		// Decode payload data
 		try {
 			message.decodePayload(data, startIndex, length);

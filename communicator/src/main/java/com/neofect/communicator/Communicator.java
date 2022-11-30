@@ -75,6 +75,7 @@ public class Communicator {
 			connection = ConnectionFactory.create(context, connectionType, deviceIdentifier, controller);
 			Log.d(LOG_TAG, "connect: '" + connection.getClass().getSimpleName() + "' is created.");
 		} catch (Exception e) {
+			e.printStackTrace();
 			instance.notifyFailedToConnect(connection, controller.getDeviceClass(), e);
 			return false;
 		}
