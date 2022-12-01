@@ -5,10 +5,7 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.os.Build;
-import android.util.Log;
 
-import com.neofect.communicator.bluetooth.le.BluetoothLeConnection;
 import com.neofect.communicator.bluetooth.spp.BluetoothSppConnection;
 import com.neofect.communicator.dummy.DummyConnection;
 import com.neofect.communicator.dummy.DummyPhysicalDevice;
